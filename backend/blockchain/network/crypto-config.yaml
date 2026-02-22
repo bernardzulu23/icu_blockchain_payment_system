@@ -1,0 +1,4 @@
+# Hyperledger Fabric crypto-config - placeholder
+# Define OrdererOrgs and PeerOrgs per Fabric docs
+OrdererOrgs: []
+PeerOrgs: []

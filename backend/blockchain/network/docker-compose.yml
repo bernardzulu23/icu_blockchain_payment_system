@@ -1,0 +1,8 @@
+# Hyperledger Fabric network - placeholder
+# Full setup requires Fabric samples and crypto material
+version: '2'
+services:
+  # Add peer, orderer, ca as per Fabric docs
+  placeholder:
+    image: busybox
+    command: sleep infinity
