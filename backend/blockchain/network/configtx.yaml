@@ -1,0 +1,5 @@
+# Hyperledger Fabric configtx - placeholder
+# Copy from fabric-samples or configure per your org
+Organizations: []
+Capabilities: {}
+Application: {}
