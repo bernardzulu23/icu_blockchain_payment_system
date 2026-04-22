@@ -18,11 +18,61 @@ async function findByStudent(studentId) {
   return rows;
 }
 
-async function updateStatus(clearanceId, { status, approvedBy, approvedDate, rejectionReason }) {
+async function findAll(filters = {}) {
+  const { status } = filters;
+  let sql = `
+    SELECT cr.*, s.first_name, s.last_name, s.student_number
+    FROM clearance_requests cr
+    LEFT JOIN students s ON cr.student_id = s.student_id
+    ORDER BY cr.requested_date DESC
+  `;
+  const params = [];
+  if (status) {
+    sql = `
+      SELECT cr.*, s.first_name, s.last_name, s.student_number
+      FROM clearance_requests cr
+      LEFT JOIN students s ON cr.student_id = s.student_id
+      WHERE cr.status = $1
+      ORDER BY cr.requested_date DESC
+    `;
+    params.push(status);
+  }
+  const { rows } = await pool.query(sql, params);
+  return rows;
+}
+
+async function massUpdateStatus(clearanceIds, { status, approvedBy, approvedDate, rejectionReason }) {
+  if (!clearanceIds?.length) return 0;
+  const placeholders = clearanceIds.map((_, i) => `$${i + 5}`).join(',');
+  const params = [status, approvedBy, approvedDate, rejectionReason || null, ...clearanceIds];
+  const { rowCount } = await pool.query(
+    `UPDATE clearance_requests
+     SET status = $1, approved_by = $2, approved_date = $3, rejection_reason = $4
+     WHERE clearance_id IN (${placeholders})`,
+    params
+  );
+  return rowCount;
+}
+
+async function updateStatus(clearanceId, { status, approvedBy, approvedDate, rejectionReason, certificateUrl }) {
+  const updates = ['status = $1', 'approved_by = $2', 'approved_date = $3', 'rejection_reason = $4'];
+  const params = [status, approvedBy, approvedDate, rejectionReason || null];
+  if (certificateUrl != null) {
+    updates.push('clearance_certificate_url = $5');
+    params.push(certificateUrl);
+  }
+  params.push(clearanceId);
   await pool.query(
-    `UPDATE clearance_requests SET status = $1, approved_by = $2, approved_date = $3, rejection_reason = $4 WHERE clearance_id = $5`,
-    [status, approvedBy, approvedDate, rejectionReason, clearanceId]
+    `UPDATE clearance_requests SET ${updates.join(', ')} WHERE clearance_id = $${params.length}`,
+    params
   );
 }
 
-module.exports = { create, findByStudent, updateStatus };
+async function updateCertificateUrl(clearanceId, certificateUrl) {
+  await pool.query(
+    'UPDATE clearance_requests SET clearance_certificate_url = $1 WHERE clearance_id = $2',
+    [certificateUrl, clearanceId]
+  );
+}
+
+module.exports = { create, findByStudent, findAll, updateStatus, massUpdateStatus, updateCertificateUrl };

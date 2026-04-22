@@ -1,7 +1,7 @@
 const express = require('express');
 const accountantController = require('../controllers/accountantController');
 const { authenticateToken } = require('../middleware/auth');
-const { requireAccountant } = require('../middleware/rbac');
+const { requireRole, requireAccountant } = require('../middleware/rbac');
 const { upload } = require('../middleware/upload');
 
 const router = express.Router();
@@ -15,6 +15,12 @@ router.post(
   accountantController.uploadBankStatement
 );
 
+router.post(
+  '/verify-all-auto-matched',
+  requireRole('accountant', 'admin'),
+  accountantController.verifyAllAutoMatched
+);
+
 router.get('/pending-payments', accountantController.getPendingPayments);
 
 router.post(
@@ -25,6 +31,8 @@ router.post(
 router.post('/bulk-verify', accountantController.bulkVerifyPayments);
 
 router.get('/stats', accountantController.getVerificationStats);
+
+router.post('/bulk-payment-status', accountantController.bulkPaymentStatus);
 
 router.post(
   '/batch/verify',

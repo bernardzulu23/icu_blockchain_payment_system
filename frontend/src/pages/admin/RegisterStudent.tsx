@@ -258,13 +258,16 @@ export default function RegisterStudent() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           <div>
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-              Password
+              Password <span className="text-red-500">*</span>
             </label>
             <input
               type="password"
-              {...register('password', { minLength: { value: 6, message: 'Min 6 characters' } })}
+              {...register('password', {
+                required: 'Password is required for student login',
+                minLength: { value: 6, message: 'Min 6 characters' },
+              })}
               className="input-field w-full"
-              placeholder="Optional - auto-generated if blank"
+              placeholder="Student will use this to log in (min 6 characters)"
             />
             {errors.password && (
               <p className="text-red-500 text-sm mt-1">{errors.password.message}</p>
@@ -272,13 +275,17 @@ export default function RegisterStudent() {
           </div>
           <div>
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-              Confirm Password
+              Confirm Password <span className="text-red-500">*</span>
             </label>
             <input
               type="password"
-              {...register('confirmPassword')}
+              {...register('confirmPassword', { required: 'Please confirm password' })}
               className="input-field w-full"
+              placeholder="Re-enter password"
             />
+            {errors.confirmPassword && (
+              <p className="text-red-500 text-sm mt-1">{errors.confirmPassword.message}</p>
+            )}
           </div>
         </div>
 

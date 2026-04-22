@@ -52,6 +52,13 @@ export const authService = {
       student_number,
       password,
     }),
+  forgotPassword: (email: string) =>
+    apiClient.post<{ success: boolean; message: string }>('/auth/forgot-password', { email }),
+  resetPassword: (token: string, newPassword: string, confirmPassword: string) =>
+    apiClient.post<{ success: boolean; message?: string; error?: string }>(`/auth/reset-password/${token}`, {
+      newPassword,
+      confirmPassword,
+    }),
   refreshToken: (refreshToken: string) =>
     apiClient.post<{ accessToken: string; token: string }>('/auth/refresh', { refreshToken }),
   me: () => apiClient.get<User>('/auth/me'),
@@ -115,6 +122,22 @@ export interface CreateStudentData {
   currentSemester?: number;
   currentTerm?: number;
   password?: string;
+}
+
+export const feedbackService = {
+  submit: (data: { message: string; rating?: number }) =>
+    apiClient.post('/feedback', data),
+  getAll: () => apiClient.get<{ feedback: Feedback[]; total: number }>('/feedback'),
+};
+
+export interface Feedback {
+  feedback_id: string;
+  user_id: string;
+  user_type: string;
+  user_name: string;
+  message: string;
+  rating?: number;
+  created_at: string;
 }
 
 export const studentService = {

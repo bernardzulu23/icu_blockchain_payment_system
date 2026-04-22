@@ -17,7 +17,7 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const { theme, toggleTheme } = useTheme();
-  const { register, handleSubmit, formState: { errors } } = useForm<LoginFormData>({
+  const { register, handleSubmit, watch, formState: { errors } } = useForm<LoginFormData>({
     defaultValues: { role: 'staff' },
   });
 
@@ -45,89 +45,114 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center page-bg-auth p-4 relative overflow-hidden">
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-icu-accent/10 via-transparent to-transparent" />
+    <div 
+      className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden bg-cover bg-center bg-no-repeat"
+      style={{ backgroundImage: 'url("https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=2070&auto=format&fit=crop")' }}
+    >
+      {/* Dark overlay to ensure contrast */}
+      <div className="absolute inset-0 bg-black/40" />
+      
       <button
         onClick={toggleTheme}
-        className="absolute top-4 right-4 glass px-3 py-2 rounded-xl text-sm text-slate-600 dark:text-slate-300 hover:text-icu-accent transition-colors"
+        className="absolute top-4 right-4 bg-white/10 backdrop-blur-md border border-white/20 px-3 py-2 rounded-xl text-sm text-white hover:bg-white/20 transition-all z-20"
       >
-        {theme === 'dark' ? '☀️ Light' : '🌙 Dark'}
+        {theme === 'dark' ? '☀️' : '🌙'}
       </button>
-      <div className="card w-full max-w-md relative z-10">
+
+      <div className="w-full max-w-md relative z-10 bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-8 shadow-2xl">
         <div className="text-center mb-8">
-          <h1 className="font-display text-2xl font-bold text-slate-800 dark:text-slate-100">
-            ICU Payment System
+          <div className="flex justify-center mb-6">
+            <div className="w-24 h-24 bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20 shadow-xl">
+              <img 
+                src="/logo.jpg" 
+                alt="BluePeack Logo" 
+                className="w-full h-full object-contain filter drop-shadow-lg"
+              />
+            </div>
+          </div>
+          <h1 className="font-display text-3xl font-bold text-white tracking-tight">
+            BluePeack
           </h1>
-          <p className="text-slate-600 dark:text-slate-400 mt-2">
-            Blockchain-Based Reconciliation
-          </p>
+          <p className="text-white/60 text-sm mt-1 uppercase tracking-widest">Technologies</p>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
           <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+            <label className="block text-xs font-medium text-white/70 uppercase tracking-widest mb-1">
               Sign in as
             </label>
             <select
               {...register('role', { required: 'Role is required' })}
-              className="input-field"
+              className="w-full bg-transparent border-b border-white/30 text-white py-2 focus:outline-none focus:border-white transition-colors appearance-none cursor-pointer"
             >
-              <option value="staff">Staff</option>
-              <option value="student">Student</option>
+              <option value="staff" className="bg-slate-900 text-white">Staff</option>
+              <option value="student" className="bg-slate-900 text-white">Student</option>
             </select>
             {errors.role && (
-              <p className="text-red-500 text-sm mt-1">{errors.role.message}</p>
+              <p className="text-red-400 text-xs mt-1">{errors.role.message}</p>
             )}
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-              Email or Student Number
-            </label>
             <input
               {...register('identifier', { required: 'This field is required' })}
               type="text"
-              className="input-field"
-              placeholder="admin@icu.edu.zm or ICU2024001"
+              className="w-full bg-transparent border-b border-white/30 text-white py-3 placeholder:text-white/50 focus:outline-none focus:border-white transition-colors"
+              placeholder={watch('role') === 'student' ? 'Student number or email' : 'Username or email'}
             />
             {errors.identifier && (
-              <p className="text-red-500 text-sm mt-1">{errors.identifier.message}</p>
+              <p className="text-red-400 text-xs mt-1">{errors.identifier.message}</p>
             )}
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-              Password
-            </label>
             <div className="relative">
               <input
                 {...register('password', { required: 'Password is required' })}
                 type={showPassword ? 'text' : 'password'}
-                className="input-field pr-10"
+                className="w-full bg-transparent border-b border-white/30 text-white py-3 placeholder:text-white/50 focus:outline-none focus:border-white transition-colors pr-10"
+                placeholder="Enter your password"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                className="absolute right-0 top-1/2 -translate-y-1/2 text-white/50 hover:text-white"
                 aria-label={showPassword ? 'Hide password' : 'Show password'}
               >
                 {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
               </button>
             </div>
             {errors.password && (
-              <p className="text-red-500 text-sm mt-1">{errors.password.message}</p>
+              <p className="text-red-400 text-xs mt-1">{errors.password.message}</p>
             )}
           </div>
 
-          <button type="submit" disabled={loading} className="btn-primary w-full py-3">
-            {loading ? 'Signing in...' : 'Sign In'}
+          <div className="flex items-center justify-between text-sm">
+            <label className="flex items-center gap-2 text-white cursor-pointer group">
+              <input 
+                type="checkbox" 
+                className="w-4 h-4 rounded border-white/30 bg-transparent checked:bg-white focus:ring-0 transition-all cursor-pointer"
+              />
+              <span className="group-hover:text-white/80 transition-colors">Remember me</span>
+            </label>
+            <Link to="/forgot-password" className="text-white hover:text-white/80 transition-colors font-medium">
+              Forgot password?
+            </Link>
+          </div>
+
+          <button 
+            type="submit" 
+            disabled={loading} 
+            className="w-full bg-white text-slate-900 font-bold py-4 rounded-lg hover:bg-white/90 active:scale-[0.98] transition-all disabled:opacity-50 disabled:scale-100 shadow-xl"
+          >
+            {loading ? 'SIGNING IN...' : 'Log In'}
           </button>
         </form>
 
-        <p className="mt-6 text-center text-sm text-slate-600 dark:text-slate-400">
+        <p className="mt-8 text-center text-sm text-white/60">
           Not registered?{' '}
-          <Link to="/student" className="text-icu-accent font-medium hover:underline">
-            Check payment status (no login)
+          <Link to="/student" className="text-white font-bold hover:underline">
+            Check payment status
           </Link>
         </p>
       </div>

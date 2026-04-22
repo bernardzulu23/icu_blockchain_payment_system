@@ -345,6 +345,11 @@ docker compose --profile blockchain up -d
 - [ ] Set up log aggregation
 - [ ] Test disaster recovery
 
+## 📐 Mockups & Simulation
+
+- **UI Mockups**: See [docs/MOCKUPS.md](docs/MOCKUPS.md) for visual mockups of Student Dashboard, Accountant Dashboard, Registrar Clearance, and the payment flow diagram.
+- **Simulation Guide**: See [docs/SIMULATION_GUIDE.md](docs/SIMULATION_GUIDE.md) for step-by-step demo scenarios and a 5-minute quick demo script.
+
 ## 📄 License
 
 Copyright (c) 2024 Information and Communications University, Zambia.

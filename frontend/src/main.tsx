@@ -21,7 +21,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <ThemeProvider>
       <QueryClientProvider client={queryClient}>
-        <BrowserRouter>
+        <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
           <App />
           <ToastContainer
             position="top-right"

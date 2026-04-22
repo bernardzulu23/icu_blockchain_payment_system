@@ -26,7 +26,7 @@ export default function Clearance() {
       </h1>
       <div className="card max-w-xl">
         <p className="text-slate-600 dark:text-slate-400 mb-6">
-          Request graduation clearance. Your payment history will be verified on the blockchain.
+          Request clearance. Your identity is taken from your login (no need to enter your student number). You must have already uploaded your deposit slips in Submit Payment; those batch numbers are cross-referenced against the bank PDF that admin uploads. Clearance is granted only when the bank has confirmed your batches.
         </p>
         <div className="space-y-4">
           <div>

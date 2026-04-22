@@ -6,7 +6,7 @@ const auditService = require('../services/auditService');
 const { createAuditLog } = require('../services/auditService');
 const pdfService = require('../services/pdfService');
 const { uploadToStorage } = require('../services/storageService');
-const { sendNotification } = require('../services/notificationService');
+const { sendNotification, notifyAccountantsPendingVerification } = require('../services/notificationService');
 const { handleValidation } = require('../utils/validators');
 const logger = require('../utils/logger');
 
@@ -203,6 +203,24 @@ async function submitPayment(req, res) {
       title: 'Payment Submitted for Verification',
       message: `Your payment for ${semester}, ${academic_year} (K${amount}) has been submitted. Batch: ${batch_number}. You will be notified once verified.`,
       channels: ['email', 'sms'],
+    });
+
+    const { rows: pendingRows } = await query(
+      "SELECT COUNT(*) AS count FROM student_payments WHERE status IN ('pending', 'manual_review')"
+    );
+    const countPending = parseInt(pendingRows[0]?.count || '0', 10);
+    const { rows: studentRows } = await query(
+      'SELECT first_name, last_name FROM students WHERE student_id = $1',
+      [student_id]
+    );
+    const studentName = studentRows[0] ? `${studentRows[0].first_name || ''} ${studentRows[0].last_name || ''}`.trim() : student_id;
+    await notifyAccountantsPendingVerification({
+      studentId: student_id,
+      studentName,
+      semester,
+      academicYear: academic_year,
+      amount,
+      countPending: countPending + 1,
     });
 
     await client.query('COMMIT');

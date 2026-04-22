@@ -9,10 +9,12 @@ const studentRoutes = require('./routes/student.routes');
 const paymentRoutes = require('./routes/payment.routes');
 const accountantRoutes = require('./routes/accountant.routes');
 const clearanceRoutes = require('./routes/clearance.routes');
+const feedbackRoutes = require('./routes/feedback.routes');
 const adminRoutes = require('./routes/admin.routes');
 
 const errorHandler = require('./middleware/errorHandler');
 const { connectDB, initDb } = require('./config/database');
+const { checkFabricHealth } = require('./services/blockchainService');
 const { connectRedis } = require('./config/redis');
 const { apiLimiter, authLimiter } = require('./middleware/rateLimit');
 const logger = require('./utils/logger');
@@ -52,12 +54,14 @@ if (env.NODE_ENV === 'development') {
 
 app.use('/uploads', express.static(path.join(process.cwd(), env.UPLOAD_PATH || 'uploads')));
 
-app.get('/health', (req, res) => {
+app.get('/health', async (req, res) => {
+  const fabric = await checkFabricHealth();
   res.json({
     status: 'OK',
     timestamp: new Date().toISOString(),
     environment: env.NODE_ENV,
     version: '1.0.0',
+    fabric,
   });
 });
 
@@ -66,6 +70,7 @@ app.use('/api/students', studentRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/accountant', accountantRoutes);
 app.use('/api/clearance', clearanceRoutes);
+app.use('/api/feedback', feedbackRoutes);
 app.use('/api/admin', adminRoutes);
 
 app.use((req, res) => {
@@ -86,8 +91,8 @@ async function startServer() {
     logger.info('PostgreSQL connected');
 
     try {
-      await connectRedis();
-      logger.info('Redis connected');
+      const redis = await connectRedis();
+      if (redis) logger.info('Redis connected');
     } catch (err) {
       logger.warn('Redis not available:', err.message);
     }

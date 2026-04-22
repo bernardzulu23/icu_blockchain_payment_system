@@ -13,6 +13,9 @@ router.post('/login', (req, res, next) => {
   authController.staffLogin(req, res, next);
 });
 
+router.post('/forgot-password', authController.forgotPassword);
+router.post('/reset-password/:token', authController.resetPassword);
+
 // Students are registered by admin only
 router.post('/register/student', (req, res) =>
   res.status(403).json({ error: 'Student self-registration disabled', message: 'Students are registered by admin. Contact the accounts office.' })

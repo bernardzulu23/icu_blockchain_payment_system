@@ -160,7 +160,7 @@ def match_payments():
             SELECT payment_id, student_id, batch_number, amount, payment_date,
                    semester, academic_year
             FROM student_payments
-            WHERE status IN ('pending', 'manual_review') AND matched_with_bank = false
+            WHERE status = 'pending' AND matched_with_bank = false
             """
         )
         student_payments = list(cursor.fetchall())
@@ -220,8 +220,44 @@ def match_payments():
                     "reason": "No confident match found (threshold: 70%)",
                 })
 
-        cursor.close()
-        conn.close()
+        try:
+            for m in match_results:
+                if m["matched"]:
+                    cursor.execute(
+                        """
+                        UPDATE student_payments
+                        SET status = 'auto_matched', matched_with_bank = true,
+                            matched_transaction_id = %s, match_confidence = %s,
+                            updated_at = NOW()
+                        WHERE payment_id = %s
+                        """,
+                        (m["transaction_id"], m["confidence"], m["payment_id"]),
+                    )
+                    cursor.execute(
+                        """
+                        UPDATE bank_transactions
+                        SET matched_with_student = true, matched_payment_id = %s
+                        WHERE transaction_id = %s
+                        """,
+                        (m["payment_id"], m["transaction_id"]),
+                    )
+                else:
+                    cursor.execute(
+                        """
+                        UPDATE student_payments
+                        SET status = 'manual_review', updated_at = NOW()
+                        WHERE payment_id = %s
+                        """,
+                        (m["payment_id"],),
+                    )
+            conn.commit()
+        except Exception as db_err:
+            conn.rollback()
+            logger.exception("Database update failed after matching")
+            raise db_err
+        finally:
+            cursor.close()
+            conn.close()
 
         matched_count = sum(1 for m in match_results if m["matched"])
         summary = {
@@ -254,12 +290,41 @@ def manual_match():
             return jsonify({"error": "payment_id and transaction_id required"}), 400
 
         logger.info("Manual match: Payment %s -> Transaction %s", payment_id, transaction_id)
-        return jsonify({
-            "success": True,
-            "payment_id": payment_id,
-            "transaction_id": transaction_id,
-            "message": "Manual match recorded",
-        })
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        try:
+            cursor.execute(
+                """
+                UPDATE student_payments
+                SET status = 'auto_matched', matched_with_bank = true,
+                    matched_transaction_id = %s, match_confidence = 1.0,
+                    manually_matched = true, updated_at = NOW()
+                WHERE payment_id = %s
+                """,
+                (transaction_id, payment_id),
+            )
+            cursor.execute(
+                """
+                UPDATE bank_transactions
+                SET matched_with_student = true, matched_payment_id = %s
+                WHERE transaction_id = %s
+                """,
+                (payment_id, transaction_id),
+            )
+            conn.commit()
+            return jsonify({
+                "success": True,
+                "payment_id": payment_id,
+                "transaction_id": transaction_id,
+                "message": "Manual match recorded",
+            })
+        except Exception as db_err:
+            conn.rollback()
+            logger.exception("Manual match database update failed")
+            raise db_err
+        finally:
+            cursor.close()
+            conn.close()
     except Exception as e:
         logger.exception("Manual match failed")
         return jsonify({"error": str(e)}), 500

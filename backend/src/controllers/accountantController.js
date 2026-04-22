@@ -1,10 +1,13 @@
 const { query, getClient } = require('../config/database');
 const { uploadToStorage } = require('../services/storageService');
-const { createAuditLog } = require('../services/auditService');
-const { sendNotification } = require('../services/notificationService');
-const { generateStatementPDF } = require('../services/pdfService');
-const { recordPaymentOnBlockchain } = require('../services/blockchainService');
+const { createAuditLog, log: auditLog } = require('../services/auditService');
+const { sendNotification, sendPaymentVerified } = require('../services/notificationService');
+const { generateStatementPDF, generateStatement, generateProofOfNoBalancePDF } = require('../services/pdfService');
+const { recordPaymentOnBlockchain, recordPayment } = require('../services/blockchainService');
 const matchingService = require('../services/matchingService');
+
+const EXPECTED_SEMESTERS = ['1', '2', '3', '4', '5', '6', '7', '8'];
+const MIN_STUDENT_NUMBERS = 1;
 const axios = require('axios');
 const logger = require('../utils/logger');
 const path = require('path');
@@ -281,6 +284,148 @@ async function processBankStatement(statementId, statementUrl, uploadedBy) {
   }
 }
 
+async function verifyAllAutoMatched(req, res) {
+  const client = await getClient();
+
+  try {
+    const user_id = req.user.user_id || req.user.userId;
+    const role = req.user.role;
+
+    if (role !== 'accountant' && role !== 'admin') {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+
+    const result = await client.query(
+      `SELECT sp.payment_id, sp.student_id, sp.semester, sp.academic_year,
+              sp.amount, sp.batch_number, sp.bank_name, sp.payment_date,
+              sp.deposit_slip_url, sp.matched_transaction_id,
+              s.student_number, s.first_name, s.last_name, s.email, s.phone as phone_number
+       FROM student_payments sp
+       JOIN students s ON sp.student_id = s.student_id
+       WHERE sp.status = 'auto_matched'
+       ORDER BY sp.payment_date ASC`
+    );
+
+    if (result.rows.length === 0) {
+      return res.json({
+        success: true,
+        verified_count: 0,
+        failed_count: 0,
+        failed: [],
+      });
+    }
+
+    const verified = [];
+    const failed = [];
+
+    for (const payment of result.rows) {
+      try {
+        const paymentObj = {
+          payment_id: payment.payment_id,
+          student_id: payment.student_id,
+          student_number: payment.student_number,
+          semester: payment.semester,
+          academic_year: payment.academic_year,
+          amount: parseFloat(payment.amount),
+          batch_number: payment.batch_number,
+          bank_name: payment.bank_name,
+          payment_date: payment.payment_date,
+          verified_by: user_id,
+          verified_date: new Date(),
+        };
+
+        const blockchain_tx_id = await recordPayment(paymentObj);
+        logger.info(`Payment recorded on blockchain: ${payment.payment_id}, TX: ${blockchain_tx_id}`);
+
+        const statementPdfUrl = await generateStatement({
+          ...paymentObj,
+          student_name: `${payment.first_name} ${payment.last_name}`,
+          blockchain_tx_id,
+        });
+
+        await client.query('BEGIN');
+        await client.query(
+          `UPDATE student_payments
+           SET status = 'verified',
+               blockchain_tx_id = $1,
+               verified_date = NOW(),
+               verified_by = $2,
+               statement_pdf_url = $3
+           WHERE payment_id = $4`,
+          [blockchain_tx_id, user_id, statementPdfUrl, payment.payment_id]
+        );
+        await client.query('COMMIT');
+
+        await sendPaymentVerified({
+          email: payment.email,
+          phone: payment.phone_number,
+          fullName: `${payment.first_name} ${payment.last_name}`,
+          semester: payment.semester,
+          academicYear: payment.academic_year,
+          amount: payment.amount,
+          statementPdfUrl,
+        });
+
+        await auditLog({
+          userId: user_id,
+          userType: role,
+          action: 'PAYMENT_VERIFIED',
+          entityType: 'student_payments',
+          entityId: payment.payment_id,
+          ipAddress: req.ip,
+          userAgent: req.headers?.['user-agent'],
+          details: { user: req.user },
+        });
+
+        verified.push({
+          payment_id: payment.payment_id,
+          student_id: payment.student_id,
+          blockchain_tx_id,
+          statement_pdf_url: statementPdfUrl,
+        });
+      } catch (error) {
+        try {
+          await client.query('ROLLBACK');
+        } catch (_) {}
+        logger.error(`Verify all failed for payment ${payment.payment_id}:`, error);
+        failed.push({ payment_id: payment.payment_id, error: error.message });
+      }
+    }
+
+    await createAuditLog({
+      user_id,
+      user_type: role,
+      action: 'VERIFY_ALL_AUTO_MATCHED',
+      details: {
+        total: result.rows.length,
+        verified: verified.length,
+        failed: failed.length,
+      },
+      ip_address: req.ip,
+    });
+
+    logger.info(`Verify all auto-matched complete: ${verified.length} verified, ${failed.length} failed`);
+
+    res.json({
+      success: true,
+      verified_count: verified.length,
+      failed_count: failed.length,
+      failed,
+    });
+  } catch (error) {
+    try {
+      await client.query('ROLLBACK');
+    } catch (_) {}
+    logger.error('Verify all auto-matched error:', error);
+    res.status(500).json({
+      error: 'Failed to verify auto-matched payments',
+      message: error.message,
+    });
+  } finally {
+    client.release();
+  }
+}
+
 async function getPendingPayments(req, res) {
   try {
     const { status } = req.query;
@@ -461,6 +606,24 @@ async function verifyPayment(req, res) {
       [blockchainTxId, full_name, statementPdfUrl, payment_id]
     );
 
+    let proofPdfUrl = null;
+    try {
+      const { rows: verifiedPayments } = await client.query(
+        `SELECT semester, academic_year, amount, payment_date, verified_date, batch_number
+         FROM student_payments
+         WHERE student_id = $1 AND status = 'verified'
+         ORDER BY payment_date DESC, payment_id DESC`,
+        [payment.student_id]
+      );
+      proofPdfUrl = await generateProofOfNoBalancePDF({
+        student_number: payment.student_number,
+        student_name: `${payment.first_name} ${payment.last_name}`,
+        payments: verifiedPayments,
+      });
+    } catch (proofErr) {
+      logger.warn('Proof of no balance PDF generation failed:', proofErr);
+    }
+
     await createAuditLog({
       user_id,
       user_type: role,
@@ -477,13 +640,17 @@ async function verifyPayment(req, res) {
       ip_address: req.ip,
     });
 
+    const proofNote = proofPdfUrl
+      ? ` Your proof-of-no-balance document is available from the dashboard; open it with your student number (${payment.student_number}) as the password.`
+      : '';
     await sendNotification({
       recipient_id: payment.student_id,
       recipient_type: 'student',
       type: 'PAYMENT_VERIFIED',
       title: 'Payment Verified!',
-      message: `Your payment for ${payment.semester}, ${payment.academic_year} (K${payment.amount}) has been verified and recorded on blockchain. Download your statement from the dashboard.`,
+      message: `Your payment for ${payment.semester}, ${payment.academic_year} (K${payment.amount}) has been verified and recorded on blockchain. Download your statement from the dashboard.${proofNote}`,
       channels: ['email', 'sms'],
+      proofPdfUrl,
     });
 
     await client.query('COMMIT');
@@ -497,6 +664,7 @@ async function verifyPayment(req, res) {
         status: 'verified',
         blockchain_tx_id: blockchainTxId,
         statement_pdf_url: statementPdfUrl,
+        proof_of_no_balance_pdf_url: proofPdfUrl || undefined,
         verified_by: full_name,
         verified_date: new Date(),
       },
@@ -695,11 +863,134 @@ async function batchVerify(req, res) {
   }
 }
 
+/**
+ * Bulk payment status / cross-reference: accept 1 or more student numbers,
+ * return verification and payment status for each (semesters paid, clearance eligible).
+ */
+async function bulkPaymentStatus(req, res) {
+  try {
+    const role = req.user?.role;
+    if (role !== 'accountant' && role !== 'admin') {
+      return res.status(403).json({ error: 'Access denied. Accountant or admin only.' });
+    }
+
+    let studentNumbers = req.body.studentNumbers;
+    if (Array.isArray(studentNumbers)) {
+      studentNumbers = studentNumbers.map((n) => String(n).trim()).filter(Boolean);
+    } else if (typeof studentNumbers === 'string') {
+      studentNumbers = studentNumbers
+        .split(/[\n,;]+/)
+        .map((n) => n.trim())
+        .filter(Boolean);
+    } else {
+      return res.status(400).json({
+        error: 'studentNumbers required',
+        message: 'Provide an array of student numbers or a string (newline/comma separated). At least 1 required.',
+      });
+    }
+
+    const unique = [...new Set(studentNumbers)];
+    if (unique.length < MIN_STUDENT_NUMBERS) {
+      return res.status(400).json({
+        error: 'At least one student number required',
+        message: `You provided ${unique.length} student number(s). Enter at least one for verification.`,
+      });
+    }
+
+    const studentsResult = await query(
+      `SELECT student_id, student_number, first_name, last_name
+       FROM students
+       WHERE student_number = ANY($1::text[])`,
+      [unique]
+    );
+    const studentsByNumber = new Map(studentsResult.rows.map((r) => [r.student_number, r]));
+    const studentIds = studentsResult.rows.map((r) => r.student_id);
+
+    let paymentsByStudent = new Map();
+    if (studentIds.length > 0) {
+      const paymentsResult = await query(
+        `SELECT student_id, semester, amount, status
+         FROM student_payments
+         WHERE student_id = ANY($1::text[]) AND status = 'verified'`,
+        [studentIds]
+      );
+      for (const row of paymentsResult.rows) {
+        if (!paymentsByStudent.has(row.student_id)) {
+          paymentsByStudent.set(row.student_id, { semesters: new Set(), totalAmount: 0 });
+        }
+        const rec = paymentsByStudent.get(row.student_id);
+        rec.semesters.add(String(row.semester).trim());
+        rec.totalAmount += Number(row.amount) || 0;
+      }
+    }
+
+    const results = [];
+    let clearanceEligibleCount = 0;
+
+    for (const num of unique) {
+      const student = studentsByNumber.get(num);
+      if (!student) {
+        results.push({
+          student_number: num,
+          student_id: null,
+          student_name: null,
+          found: false,
+          paid_semesters: [],
+          missing_semesters: EXPECTED_SEMESTERS,
+          clearance_eligible: false,
+          total_verified_payments: 0,
+          total_verified_amount: 0,
+        });
+        continue;
+      }
+
+      const rec = paymentsByStudent.get(student.student_id) || { semesters: new Set(), totalAmount: 0 };
+      const paidSemesters = [...rec.semesters].sort();
+      const missingSemesters = EXPECTED_SEMESTERS.filter((s) => !rec.semesters.has(s));
+      const clearanceEligible = missingSemesters.length === 0;
+
+      if (clearanceEligible) clearanceEligibleCount++;
+
+      results.push({
+        student_number: student.student_number,
+        student_id: student.student_id,
+        student_name: `${student.first_name || ''} ${student.last_name || ''}`.trim(),
+        found: true,
+        paid_semesters: paidSemesters,
+        missing_semesters: missingSemesters,
+        clearance_eligible: clearanceEligible,
+        total_verified_payments: rec.semesters.size,
+        total_verified_amount: Math.round(rec.totalAmount * 100) / 100,
+      });
+    }
+
+    const summary = {
+      total_requested: unique.length,
+      found: studentsResult.rows.length,
+      not_found: unique.length - studentsResult.rows.length,
+      clearance_eligible_count: clearanceEligibleCount,
+    };
+
+    logger.info(`Bulk payment status: ${summary.total_requested} requested, ${summary.found} found, ${summary.clearance_eligible_count} clearance eligible`);
+
+    res.json({
+      success: true,
+      results,
+      summary,
+    });
+  } catch (err) {
+    logger.error('Bulk payment status error:', err);
+    res.status(500).json({ error: 'Bulk payment status failed', message: err.message });
+  }
+}
+
 module.exports = {
   uploadBankStatement,
+  verifyAllAutoMatched,
   getPendingPayments,
   verifyPayment,
   bulkVerifyPayments,
   getVerificationStats,
   batchVerify,
+  bulkPaymentStatus,
 };

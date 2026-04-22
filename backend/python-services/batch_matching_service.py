@@ -161,27 +161,29 @@ def match_payment_to_transaction(payment, transactions):
 
         if payment_batch and txn_batch:
             if payment_batch == txn_batch:
-                score += 40.0
+                score += 60.0
             else:
                 batch_sim = similarity_score(payment_batch, txn_batch)
                 if batch_sim > 0.8:
-                    score += 40.0 * batch_sim
+                    score += 60.0 * batch_sim
 
         if payment_amount > 0 and txn_amount > 0:
             amount_diff = abs(payment_amount - txn_amount)
             if amount_diff == 0:
-                score += 40.0
-            elif amount_diff <= 1.0:
-                score += 35.0
-            elif amount_diff <= 10.0:
                 score += 25.0
+            elif amount_diff <= 1.0:
+                score += 23.0
+            elif amount_diff <= 10.0:
+                score += 21.0
+            elif amount_diff <= 50.0:
+                score += 20.0
 
         if payment_date and txn_date:
             date_diff = abs((payment_date - txn_date).days)
             if date_diff == 0:
-                score += 20.0
-            elif date_diff <= 3:
                 score += 15.0
+            elif date_diff <= 3:
+                score += 12.0
             elif date_diff <= 7:
                 score += 10.0
             elif date_diff <= 14:

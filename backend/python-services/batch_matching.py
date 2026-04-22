@@ -7,6 +7,16 @@ import re
 from typing import Optional
 
 
+def normalize_batch(ref: str) -> str:
+    """Normalize batch/reference for comparison: uppercase, strip, remove non-alphanumeric, strip leading zeros."""
+    if not ref:
+        return ""
+    s = str(ref).upper().strip()
+    s = re.sub(r"[^A-Z0-9]", "", s)
+    s = s.lstrip("0") or "0"
+    return s
+
+
 def parse_payments_csv(content: bytes) -> list[dict]:
     """Parse payments CSV: studentId, studentName, amount, reference"""
     text = content.decode("utf-8")
@@ -27,11 +37,22 @@ def parse_payments_csv(content: bytes) -> list[dict]:
     return rows
 
 
+def extract_normalized_refs_from_text(text: str) -> set[str]:
+    """Extract and normalize all reference-like strings (6+ chars) from text."""
+    refs = set()
+    ref_pattern = re.compile(r"[A-Za-z0-9\-#]+")
+    for match in ref_pattern.finditer(text):
+        s = match.group()
+        if len(s) >= 6:
+            refs.add(normalize_batch(s))
+    return refs
+
+
 def extract_amounts_and_refs(text: str) -> set[tuple[float, str]]:
-    """Extract (amount, reference) pairs from bank statement text."""
+    """Extract (amount, reference) pairs from bank statement text. References are normalized."""
     pairs = set()
     amount_pattern = re.compile(r"(\d{1,3}(?:,\d{3})*(?:\.\d{2})?|\d+(?:\.\d{2})?)")
-    ref_pattern = re.compile(r"\b([A-Z0-9]{6,24})\b")
+    ref_pattern = re.compile(r"[A-Za-z0-9\-#]+")
     for line in text.split("\n"):
         amounts = amount_pattern.findall(line)
         refs = ref_pattern.findall(line)
@@ -40,13 +61,14 @@ def extract_amounts_and_refs(text: str) -> set[tuple[float, str]]:
             if 10 <= amt <= 1_000_000:
                 for ref in refs:
                     if len(ref) >= 6:
-                        pairs.add((round(amt, 2), ref))
+                        pairs.add((round(amt, 2), normalize_batch(ref)))
     return pairs
 
 
 def match_batch(payment_rows: list[dict], bank_text: str) -> dict:
     """Match payment rows against bank statement text."""
     bank_pairs = extract_amounts_and_refs(bank_text)
+    bank_refs_norm = extract_normalized_refs_from_text(bank_text)
     seen = set()
     results = []
     matched = unmatched = duplicates = 0
@@ -60,8 +82,9 @@ def match_batch(payment_rows: list[dict], bank_text: str) -> dict:
         seen.add(key)
 
         amount_rounded = round(p["amount"], 2)
-        ref_found = p["reference"] and p["reference"] in bank_text
-        amount_found = (amount_rounded, p["reference"]) in bank_pairs
+        ref_norm = normalize_batch(p["reference"] or "")
+        ref_found = ref_norm and ref_norm in bank_refs_norm
+        amount_found = (amount_rounded, ref_norm) in bank_pairs
         amount_in_text = str(p["amount"]) in bank_text or str(amount_rounded) in bank_text
 
         if ref_found or amount_found or amount_in_text:

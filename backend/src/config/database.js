@@ -4,9 +4,11 @@ const path = require('path');
 const logger = require('../utils/logger');
 const env = require('./environment');
 
-const poolConfig = env.DATABASE_URL
+// Use DATABASE_PUBLIC_URL for local/CLI (connects to Railway from outside); DATABASE_URL for Railway deployment
+const connectionUrl = env.DATABASE_PUBLIC_URL || env.DATABASE_URL;
+const poolConfig = connectionUrl
   ? {
-      connectionString: env.DATABASE_URL,
+      connectionString: connectionUrl,
       max: 20,
       idleTimeoutMillis: 30000,
       connectionTimeoutMillis: 2000,
@@ -70,9 +72,15 @@ async function initDb() {
     const schema = readFileSync(path.join(migrationsDir, '001_schema.sql'), 'utf-8');
     const seed = readFileSync(path.join(migrationsDir, '002_seed.sql'), 'utf-8');
     const migration003 = readFileSync(path.join(migrationsDir, '003_student_profile_fields.sql'), 'utf-8');
+    const migration004 = readFileSync(path.join(migrationsDir, '004_matching_columns.sql'), 'utf-8');
+    const migration005 = readFileSync(path.join(migrationsDir, '005_feedback.sql'), 'utf-8');
+    const migration006 = readFileSync(path.join(migrationsDir, '006_password_reset.sql'), 'utf-8');
     await client.query(schema);
     await client.query(seed);
     await client.query(migration003);
+    await client.query(migration004);
+    await client.query(migration005);
+    await client.query(migration006);
     logger.info('Database schema initialized');
     return true;
   } finally {
