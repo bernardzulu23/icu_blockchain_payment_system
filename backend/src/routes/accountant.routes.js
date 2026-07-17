@@ -15,6 +15,11 @@ router.post(
   accountantController.uploadBankStatement
 );
 
+router.get('/bank-statements', accountantController.listBankStatements);
+router.get('/bank-statements/:id', accountantController.getBankStatement);
+router.get('/bank-statements/:id/transactions', accountantController.listBankTransactions);
+router.delete('/bank-statements/:id', accountantController.deleteBankStatement);
+
 router.post(
   '/verify-all-auto-matched',
   requireRole('accountant', 'admin'),
@@ -42,5 +47,18 @@ router.post(
   ]),
   accountantController.batchVerify
 );
+
+router.post(
+  '/batch/reconcile',
+  upload.fields([
+    { name: 'bankStatement', maxCount: 1 },
+    { name: 'slips', maxCount: 50 },
+  ]),
+  accountantController.batchReconcileOcr
+);
+
+router.get('/batch/reconcile/:batchId', accountantController.getBatchReconcile);
+
+router.post('/batch/reconcile/:batchId/approve', accountantController.approveBatchReconcile);
 
 module.exports = router;

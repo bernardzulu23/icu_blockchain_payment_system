@@ -7,21 +7,15 @@ const router = express.Router();
 
 router.use(authenticateToken);
 
-// Student requests clearance (studentId from req.user)
 router.post('/request', requireStudent, clearanceController.requestClearance);
-
-// Staff creates clearance on behalf of student (studentId in body)
+router.get('/mine', requireStudent, clearanceController.getMyClearances);
 router.post('/', requireAccountantOrAdmin, clearanceController.requestClearance);
-
-// List/read: accountant, admin, registrar (registrar view-only)
 router.get('/', requireAccountant, clearanceController.listAll);
 router.get('/student/:studentId', requireAccountant, clearanceController.getByStudent);
-
-// Download certificate: staff or student (own clearance only) - auth checked in handler
-router.get('/:id/certificate', clearanceController.downloadCertificate);
-
-// Verify/update: accountant and admin only (registrar cannot verify)
 router.patch('/mass-verify', requireAccountantOrAdmin, clearanceController.massVerify);
+router.get('/:id/certificate', clearanceController.downloadCertificate);
+router.get('/:id', requireAccountant, clearanceController.getById);
 router.patch('/:id', requireAccountantOrAdmin, clearanceController.updateStatus);
+router.delete('/:id', clearanceController.remove);
 
 module.exports = router;

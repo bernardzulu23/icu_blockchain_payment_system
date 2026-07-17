@@ -3,14 +3,35 @@ import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useTheme } from '../contexts/ThemeContext';
 
-const staffNavItems = [
-  { path: '/', label: 'Dashboard', icon: '📊' },
-  { path: '/history', label: 'Payment History', icon: '📜' },
-  { path: '/batch-verification', label: 'Batch Verify', icon: '✅' },
+const accountantNavItems = [
+  { path: '/accountant', label: 'Dashboard', icon: '📊' },
+  { path: '/accountant/verification', label: 'Verification', icon: '✅' },
+  { path: '/accountant/upload-statement', label: 'Upload Statement', icon: '📄' },
+  { path: '/accountant/batch-reconciliation', label: 'Batch OCR', icon: '🔬' },
+  { path: '/accountant/bank-statements', label: 'Bank Statements', icon: '🏦' },
   { path: '/accountant/mass-clearance', label: 'Mass Clearance', icon: '📋' },
-  { path: '/accountant/bulk-payment-status', label: 'Bulk Payment Status', icon: '🔍' },
+  { path: '/accountant/bulk-payment-status', label: 'Bulk Status', icon: '🔍' },
+  { path: '/history', label: 'Payment History', icon: '📜' },
+  { path: '/batch-verification', label: 'Batch Preview', icon: '🔄' },
   { path: '/feedback', label: 'Feedback', icon: '💬' },
-  { path: '/admin', label: 'Admin', icon: '⚙️' },
+];
+
+const registrarNavItems = [
+  { path: '/registrar', label: 'Dashboard', icon: '📊' },
+  { path: '/accountant/mass-clearance', label: 'Clearance', icon: '📋' },
+  { path: '/feedback', label: 'Feedback', icon: '💬' },
+];
+
+const adminNavItems = [
+  { path: '/admin/dashboard', label: 'Dashboard', icon: '📊' },
+  { path: '/admin/students', label: 'Students', icon: '👥' },
+  { path: '/admin/staff', label: 'Staff', icon: '🛡️' },
+  { path: '/admin/audit-logs', label: 'Audit Logs', icon: '📋' },
+  { path: '/admin/register-student', label: 'Register Student', icon: '👤' },
+  { path: '/admin/feedback', label: 'Feedback', icon: '💬' },
+  { path: '/accountant', label: 'Accountant', icon: '💰' },
+  { path: '/history', label: 'Payment History', icon: '📜' },
+  { path: '/feedback', label: 'Submit Feedback', icon: '✉️' },
 ];
 
 const studentNavItems = [
@@ -19,6 +40,7 @@ const studentNavItems = [
   { path: '/student-portal/payments', label: 'Payments', icon: '💰' },
   { path: '/student-portal/submit-payment', label: 'Submit Payment', icon: '📤' },
   { path: '/student-portal/clearance', label: 'Clearance', icon: '📋' },
+  { path: '/student-portal/notifications', label: 'Notifications', icon: '🔔' },
   { path: '/student-portal/feedback', label: 'Feedback', icon: '💬' },
 ];
 
@@ -27,10 +49,22 @@ export default function Layout() {
   const { user } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const isStudent = user?.role === 'student';
-  const navItems = isStudent ? studentNavItems : staffNavItems;
+  const notificationsPath = isStudent ? '/student-portal/notifications' : '/admin/audit-logs';
+  const navItems =
+    user?.role === 'admin'
+      ? adminNavItems
+      : user?.role === 'registrar'
+        ? registrarNavItems
+        : user?.role === 'accountant'
+          ? accountantNavItems
+          : isStudent
+            ? studentNavItems
+            : accountantNavItems;
 
   const isActive = (path: string) => {
-    if (path === '/') return location.pathname === '/';
+    if (path === '/admin/dashboard') return location.pathname === '/admin/dashboard' || location.pathname === '/admin';
+    if (path === '/accountant') return location.pathname === '/accountant';
+    if (path === '/registrar') return location.pathname === '/registrar';
     if (path === '/student-portal') return location.pathname === '/student-portal';
     return location.pathname.startsWith(path);
   };
@@ -89,7 +123,9 @@ export default function Layout() {
                   {user?.role?.[0] || 'A'}
                 </span>
               </div>
-              <p className="text-xs text-slate-500 font-medium mb-1 uppercase tracking-wider">Admin Panel</p>
+              <p className="text-xs text-slate-500 font-medium mb-1 uppercase tracking-wider">
+                {user?.role ? `${user.role} panel` : 'Panel'}
+              </p>
               <p className="text-sm font-bold text-white truncate mb-4">
                 {user?.name || user?.email || 'Administrator'}
               </p>
@@ -131,10 +167,10 @@ export default function Layout() {
             <button className="p-2.5 rounded-xl hover:bg-white/5 text-slate-400 transition-all">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
             </button>
-            <button className="p-2.5 rounded-xl hover:bg-white/5 text-slate-400 transition-all relative">
+            <Link to={notificationsPath} className="p-2.5 rounded-xl hover:bg-white/5 text-slate-400 transition-all relative">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
               <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-red-500 border-2 border-[#020617]" />
-            </button>
+            </Link>
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 p-0.5 shadow-lg shadow-cyan-500/20 cursor-pointer hover:scale-105 transition-transform">
               <div className="w-full h-full rounded-[9px] bg-slate-900 flex items-center justify-center">
                 <span className="text-sm font-bold text-cyan-400 uppercase">{user?.role?.[0] || 'A'}</span>

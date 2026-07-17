@@ -18,6 +18,17 @@ async function findByStudent(studentId) {
   return rows;
 }
 
+async function findById(clearanceId) {
+  const { rows } = await pool.query(
+    `SELECT cr.*, s.first_name, s.last_name, s.student_number
+     FROM clearance_requests cr
+     LEFT JOIN students s ON cr.student_id = s.student_id
+     WHERE cr.clearance_id = $1`,
+    [clearanceId]
+  );
+  return rows[0];
+}
+
 async function findAll(filters = {}) {
   const { status } = filters;
   let sql = `
@@ -75,4 +86,12 @@ async function updateCertificateUrl(clearanceId, certificateUrl) {
   );
 }
 
-module.exports = { create, findByStudent, findAll, updateStatus, massUpdateStatus, updateCertificateUrl };
+async function remove(clearanceId) {
+  const { rows } = await pool.query(
+    `DELETE FROM clearance_requests WHERE clearance_id = $1 AND status = 'pending' RETURNING clearance_id`,
+    [clearanceId]
+  );
+  return rows[0];
+}
+
+module.exports = { create, findById, findByStudent, findAll, updateStatus, massUpdateStatus, updateCertificateUrl, remove };

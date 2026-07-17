@@ -9,10 +9,12 @@
     "test": "jest --coverage",
     "lint": "eslint src/",
     "db:migrate": "node scripts/migrate.js",
-    "db:seed": "node scripts/seed.js"
+    "db:seed": "node scripts/seed.js",
+    "db:migrate:neon": "node scripts/migrate.js"
   },
   "dependencies": {
     "@sendgrid/mail": "^8.1.5",
+    "@vercel/blob": "^0.27.3",
     "axios": "^1.6.7",
     "bcrypt": "^5.1.1",
     "cors": "^2.8.5",

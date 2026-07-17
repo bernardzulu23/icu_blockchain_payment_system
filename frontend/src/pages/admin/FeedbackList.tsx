@@ -1,20 +1,25 @@
-import { useQuery } from 'react-query';
-import { feedbackService } from '../../api/services';
+import { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from 'react-query';
+import { toast } from 'react-toastify';
+import CrudTable from '../../components/CrudTable';
+import { PaginationBar } from '../../components/CrudPagination';
+import { feedbackService, type Feedback } from '../../api/services';
 
 export default function FeedbackList() {
-  const { data, isLoading, error } = useQuery(
-    'admin-feedback',
-    () => feedbackService.getAll().then((r) => r.data),
+  const queryClient = useQueryClient();
+  const [page, setPage] = useState(1);
+
+  const { data, isLoading, error } = useQuery(['admin-feedback', page], () =>
+    feedbackService.getAll({ page, limit: 10 }).then((r) => r.data),
     { retry: 1 }
   );
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-16">
-        <div className="animate-spin w-10 h-10 border-2 border-cyan-500 border-t-transparent rounded-full" />
-      </div>
-    );
-  }
+  const deleteMutation = useMutation((id: string) => feedbackService.remove(id), {
+    onSuccess: () => {
+      toast.success('Feedback deleted');
+      queryClient.invalidateQueries('admin-feedback');
+    },
+  });
 
   if (error) {
     return (
@@ -24,55 +29,37 @@ export default function FeedbackList() {
     );
   }
 
-  const feedback = data?.feedback ?? [];
-
   return (
     <div>
-      <h1 className="font-display text-2xl font-bold text-slate-800 dark:text-slate-100 mb-8">
-        User Feedback
-      </h1>
+      <h1 className="font-display text-2xl font-bold text-slate-800 dark:text-slate-100 mb-8">User Feedback</h1>
       <p className="text-slate-600 dark:text-slate-400 mb-6">
         Feedback from students, accountants, and registrars about the payment system.
       </p>
 
-      {feedback.length === 0 ? (
-        <div className="card">
-          <p className="text-slate-500 dark:text-slate-400">No feedback yet.</p>
-        </div>
-      ) : (
-        <div className="space-y-4">
-          {feedback.map((f) => (
-            <div
-              key={f.feedback_id}
-              className="card border-white/10 hover:border-cyan-500/20 transition-colors"
-            >
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-400 uppercase">
-                      {f.user_type}
-                    </span>
-                    <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                      {f.user_name || f.user_id}
-                    </span>
-                    {f.rating != null && (
-                      <span className="text-amber-500 text-sm">
-                        {'★'.repeat(f.rating)}{'☆'.repeat(5 - f.rating)}
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-slate-600 dark:text-slate-400 whitespace-pre-wrap">
-                    {f.message}
-                  </p>
-                  <p className="text-xs text-slate-500 dark:text-slate-500 mt-2">
-                    {new Date(f.created_at).toLocaleString()}
-                  </p>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
+      <div className="card">
+        <CrudTable<Feedback>
+          loading={isLoading}
+          rows={data?.items ?? []}
+          rowKey={(f) => f.feedback_id}
+          columns={[
+            { key: 'user_type', label: 'Role', render: (f) => <span className="uppercase text-xs">{f.user_type}</span> },
+            { key: 'user_name', label: 'User', render: (f) => f.user_name || f.user_id },
+            {
+              key: 'rating',
+              label: 'Rating',
+              render: (f) => (f.rating != null ? '★'.repeat(f.rating) + '☆'.repeat(5 - f.rating) : '—'),
+            },
+            { key: 'message', label: 'Message', className: 'max-w-md' },
+            { key: 'created_at', label: 'Date', render: (f) => new Date(f.created_at).toLocaleString() },
+          ]}
+          onDelete={(f) => {
+            if (confirm('Delete this feedback?')) deleteMutation.mutate(f.feedback_id);
+          }}
+        />
+        {data && (
+          <PaginationBar page={data.page} totalPages={data.totalPages} total={data.total} onPageChange={setPage} />
+        )}
+      </div>
     </div>
   );
 }

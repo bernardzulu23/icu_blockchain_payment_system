@@ -4,6 +4,10 @@ const Clearance = require('../models/Clearance');
 const { pool } = require('../config/database');
 const env = require('../config/environment');
 const { generatePaymentCompletionCertificatePDF } = require('../services/pdfService');
+const {
+  checkClearanceEligibilityOnChain,
+  REQUIRED_CLEARANCE_SEMESTERS,
+} = require('../services/blockchainService');
 const logger = require('../utils/logger');
 
 const EXPECTED_SEMESTERS = ['1', '2', '3', '4', '5', '6', '7', '8'];
@@ -64,25 +68,44 @@ async function requestClearance(req, res, next) {
       return res.status(400).json({ error: 'Student ID required' });
     }
 
-    // 1) Get student's verified payments (semester + batch_number) from DB
+    // 1) Ledger is source of truth for paid semesters (Postgres is cache)
+    let chainEligibility;
+    try {
+      chainEligibility = await checkClearanceEligibilityOnChain(sid, REQUIRED_CLEARANCE_SEMESTERS);
+    } catch (chainErr) {
+      logger.error('On-chain clearance check failed:', chainErr);
+      return res.status(503).json({
+        eligible: false,
+        error: 'Blockchain unavailable',
+        message:
+          'Clearance eligibility must be verified on the Fabric ledger. Ensure the API runs on the Fabric VPS with a connected gateway.',
+      });
+    }
+
+    if (!chainEligibility) {
+      return res.status(503).json({
+        eligible: false,
+        message: 'Blockchain layer unavailable for clearance verification',
+      });
+    }
+
+    if (!chainEligibility.eligible) {
+      return res.status(400).json({
+        eligible: false,
+        missing_semesters: chainEligibility.missingSemesters.map(String),
+        source: chainEligibility.source,
+        message: `Clearance denied. Missing verified payments on ledger for semester(s): ${chainEligibility.missingSemesters.join(', ')}.`,
+      });
+    }
+
+    // Postgres cache used for batch cross-reference only
     const { rows: studentPayments } = await pool.query(
       `SELECT semester, batch_number FROM student_payments
        WHERE student_id = $1 AND status = 'verified'
        ORDER BY semester`,
       [sid]
     );
-
-    const paidSemesters = [...new Set(studentPayments.map((p) => String(p.semester).trim()).filter(Boolean))];
-    const missingSemesters = EXPECTED_SEMESTERS.filter((s) => !paidSemesters.includes(s));
-    if (missingSemesters.length > 0) {
-      return res.status(400).json({
-        eligible: false,
-        missing_semesters: missingSemesters,
-        message: `Clearance denied. Upload deposit slips and have payments verified for semesters: ${missingSemesters.join(', ')}.`,
-      });
-    }
-
-    // 2) Get batch numbers that appear in bank-uploaded statements (PDF from bank)
+    // 2) Bank batch cross-reference (operational cache — not a substitute for ledger eligibility)
     const { rows: bankBatches } = await pool.query(
       `SELECT DISTINCT TRIM(batch_number) AS batch_number FROM bank_transactions`
     );
@@ -163,7 +186,12 @@ async function listAll(req, res, next) {
   try {
     const { status } = req.query;
     const rows = await Clearance.findAll({ status });
-    res.json({ requests: rows });
+    res.json({
+      requests: rows.map((r) => ({
+        ...r,
+        student_name: `${r.first_name || ''} ${r.last_name || ''}`.trim() || r.student_id,
+      })),
+    });
   } catch (err) {
     next(err);
   }
@@ -193,6 +221,47 @@ async function massVerify(req, res, next) {
       }
     }
     res.json({ message: `${count} clearance(s) ${status}`, count });
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function getById(req, res, next) {
+  try {
+    const clearance = await Clearance.findById(req.params.id);
+    if (!clearance) return res.status(404).json({ error: 'Clearance not found' });
+    res.json({
+      ...clearance,
+      student_name: `${clearance.first_name || ''} ${clearance.last_name || ''}`.trim() || clearance.student_id,
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function getMyClearances(req, res, next) {
+  try {
+    const studentId = req.user.student_id || req.user.userId;
+    const rows = await Clearance.findByStudent(studentId);
+    res.json({ requests: rows });
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function remove(req, res, next) {
+  try {
+    const clearance = await Clearance.findById(req.params.id);
+    if (!clearance) return res.status(404).json({ error: 'Clearance not found' });
+    const isStudent = req.user.role === 'student';
+    if (isStudent && clearance.student_id !== (req.user.student_id || req.user.userId)) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+    const deleted = await Clearance.remove(req.params.id);
+    if (!deleted) {
+      return res.status(400).json({ error: 'Only pending clearance requests can be cancelled' });
+    }
+    res.json({ success: true, message: 'Clearance request cancelled' });
   } catch (err) {
     next(err);
   }
@@ -234,4 +303,14 @@ async function downloadCertificate(req, res, next) {
   }
 }
 
-module.exports = { requestClearance, getByStudent, updateStatus, listAll, massVerify, downloadCertificate };
+module.exports = {
+  requestClearance,
+  getByStudent,
+  getById,
+  getMyClearances,
+  updateStatus,
+  listAll,
+  massVerify,
+  remove,
+  downloadCertificate,
+};

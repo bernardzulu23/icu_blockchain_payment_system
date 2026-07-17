@@ -1,93 +1,20 @@
-const express = require('express');
-const cors = require('cors');
-const helmet = require('helmet');
-const morgan = require('morgan');
-const path = require('path');
-
-const authRoutes = require('./routes/auth.routes');
-const studentRoutes = require('./routes/student.routes');
-const paymentRoutes = require('./routes/payment.routes');
-const accountantRoutes = require('./routes/accountant.routes');
-const clearanceRoutes = require('./routes/clearance.routes');
-const feedbackRoutes = require('./routes/feedback.routes');
-const adminRoutes = require('./routes/admin.routes');
-
-const errorHandler = require('./middleware/errorHandler');
+const { createApp } = require('./createApp');
 const { connectDB, initDb } = require('./config/database');
-const { checkFabricHealth } = require('./services/blockchainService');
 const { connectRedis } = require('./config/redis');
-const { apiLimiter, authLimiter } = require('./middleware/rateLimit');
+const fabricGateway = require('./services/fabricGateway');
 const logger = require('./utils/logger');
 const env = require('./config/environment');
 
-const app = express();
-
-app.use(
-  helmet({
-    crossOriginResourcePolicy: { policy: 'cross-origin' },
-  })
-);
-
-app.use(
-  cors({
-    origin: env.FRONTEND_URL || 'http://localhost:5173',
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-  })
-);
-
-app.use('/api/', apiLimiter);
-
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
-
-if (env.NODE_ENV === 'development') {
-  app.use(morgan('dev'));
-} else {
-  app.use(
-    morgan('combined', {
-      stream: { write: (msg) => logger.info(msg.trim()) },
-    })
-  );
-}
-
-app.use('/uploads', express.static(path.join(process.cwd(), env.UPLOAD_PATH || 'uploads')));
-
-app.get('/health', async (req, res) => {
-  const fabric = await checkFabricHealth();
-  res.json({
-    status: 'OK',
-    timestamp: new Date().toISOString(),
-    environment: env.NODE_ENV,
-    version: '1.0.0',
-    fabric,
-  });
-});
-
-app.use('/api/auth', authLimiter, authRoutes);
-app.use('/api/students', studentRoutes);
-app.use('/api/payments', paymentRoutes);
-app.use('/api/accountant', accountantRoutes);
-app.use('/api/clearance', clearanceRoutes);
-app.use('/api/feedback', feedbackRoutes);
-app.use('/api/admin', adminRoutes);
-
-app.use((req, res) => {
-  res.status(404).json({
-    error: 'Not Found',
-    message: `Route ${req.method} ${req.url} not found`,
-  });
-});
-
-app.use(errorHandler);
-
+const app = createApp();
 const PORT = env.PORT;
 
 async function startServer() {
   try {
     await connectDB();
-    await initDb();
+    if (env.RUN_DB_MIGRATE) {
+      await initDb();
+      logger.info('Database migrations applied');
+    }
     logger.info('PostgreSQL connected');
 
     try {
@@ -120,6 +47,18 @@ process.on('uncaughtException', (err) => {
   process.exit(1);
 });
 
-startServer();
+process.on('SIGINT', async () => {
+  await fabricGateway.disconnect();
+  process.exit(0);
+});
+
+process.on('SIGTERM', async () => {
+  await fabricGateway.disconnect();
+  process.exit(0);
+});
+
+if (require.main === module) {
+  startServer();
+}
 
 module.exports = app;

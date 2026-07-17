@@ -22,4 +22,8 @@ module.exports = {
     ACTIVE: 'active',
     INACTIVE: 'inactive',
   },
+  AUTH: {
+    JWT_EXPIRES_IN: '15m',
+    BCRYPT_ROUNDS: 12,
+  },
 };

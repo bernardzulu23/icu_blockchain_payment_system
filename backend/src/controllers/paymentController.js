@@ -1,7 +1,7 @@
 const { query, getClient } = require('../config/database');
 const Payment = require('../models/Payment');
 const Student = require('../models/Student');
-const { getCurrentSemester, generateTxHash } = require('../utils/helpers');
+const { getCurrentSemester } = require('../utils/helpers');
 const auditService = require('../services/auditService');
 const { createAuditLog } = require('../services/auditService');
 const pdfService = require('../services/pdfService');
@@ -36,9 +36,14 @@ async function getById(req, res, next) {
 
 async function create(req, res, next) {
   try {
-    const { studentId, amount, reference, studentName, bankName } = req.body;
+    const { studentId, amount, reference, bankName } = req.body;
     const { semester, academicYear } = getCurrentSemester();
-    await Student.ensureExists(studentId, studentName);
+
+    const student = await Student.findById(studentId);
+    if (!student) {
+      return res.status(404).json({ message: 'Student not found. Register the student first.' });
+    }
+
     const payment = await Payment.create({
       studentId,
       semester,
@@ -52,35 +57,6 @@ async function create(req, res, next) {
     if (err.code === '23505') {
       return res.status(400).json({ message: 'Duplicate payment for this semester already exists' });
     }
-    next(err);
-  }
-}
-
-async function verify(req, res, next) {
-  try {
-    const payment = await Payment.findById(req.params.id);
-    if (!payment) return res.status(404).json({ message: 'Payment not found' });
-    const validStatuses = ['pending', 'manual_review', 'auto_matched'];
-    if (!validStatuses.includes(payment.status)) {
-      return res.status(400).json({ message: 'Payment already processed' });
-    }
-    const txHash = generateTxHash(payment.id);
-    const verified = await Payment.verify(req.params.id, {
-      blockchainTxId: txHash,
-      verifiedBy: req.user.userId,
-    });
-    await auditService.log({
-      userId: req.user.userId,
-      userType: req.user.role,
-      action: 'verify_payment',
-      entityType: 'student_payment',
-      entityId: req.params.id,
-      ipAddress: req.ip,
-      userAgent: req.get('User-Agent'),
-      details: { studentId: payment.studentId, batchNumber: payment.reference },
-    });
-    res.json(verified);
-  } catch (err) {
     next(err);
   }
 }
@@ -292,7 +268,7 @@ async function getPaymentHistory(req, res) {
 
     res.json({
       success: true,
-      payments: result.rows,
+      payments: result.rows.map(Payment.mapPayment),
       stats,
     });
   } catch (error) {
@@ -359,6 +335,34 @@ async function downloadStatement(req, res) {
   }
 }
 
+async function update(req, res, next) {
+  try {
+    const payment = await Payment.findById(req.params.id);
+    if (!payment) return res.status(404).json({ message: 'Payment not found' });
+    if (payment.status === 'verified') {
+      return res.status(400).json({ error: 'Cannot update verified payments' });
+    }
+    const updated = await Payment.update(req.params.id, req.body);
+    res.json(updated);
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function remove(req, res, next) {
+  try {
+    const deleted = await Payment.remove(req.params.id);
+    if (!deleted) {
+      return res.status(400).json({
+        error: 'Payment not found or cannot be deleted (only pending/rejected allowed)',
+      });
+    }
+    res.json({ success: true, message: 'Payment deleted' });
+  } catch (err) {
+    next(err);
+  }
+}
+
 async function checkPaymentExists(req, res) {
   try {
     const student_id = req.user.student_id || req.user.userId;
@@ -410,7 +414,8 @@ module.exports = {
   list,
   getById,
   create,
-  verify,
+  update,
+  remove,
   receipt,
   submitPayment,
   getPaymentHistory,

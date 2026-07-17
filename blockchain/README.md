@@ -1,33 +1,77 @@
 # ICU Blockchain (Hyperledger Fabric)
 
-This directory contains the chaincode for the ICU Payment System.
+Hyperledger Fabric network for immutable payment records on the ICU Payment System ledger.
 
-## Chaincode (Go)
+## Quick start (VPS)
 
-- **payment_cc.go**: Smart contract for recording and verifying payments on the ledger
-- Functions: `RecordPayment`, `GetPayment`, `QueryPayment`, `GetAllPayments`, `VerifyPayment`
+Full reproducible steps: **[SETUP.md](./SETUP.md)**
 
-## Deployment
+```bash
+# On Ubuntu 22.04 VPS after fabric-samples is installed:
+bash blockchain/scripts/vps-provision.sh
+bash blockchain/scripts/generate-connection-profile.sh
+```
 
-To deploy with Hyperledger Fabric 2.5:
+## Topology
 
-1. Install [Fabric samples](https://hyperledger-fabric.readthedocs.io/en/latest/install.html)
-2. Build chaincode: `cd chaincode && go build -o payment_cc .`
-3. Package and install per your Fabric network setup
-4. Set `FABRIC_CONNECTION_PROFILE`, `FABRIC_WALLET_PATH`, `FABRIC_CHANNEL`, `FABRIC_CHAINCODE`, `FABRIC_IDENTITY` in backend `.env`
+| Component | ICU role |
+|-----------|----------|
+| Org1MSP | ICU Accounts (accountants) |
+| Org2MSP | ICU Registrar |
+| Channel | `icupaymentchannel` |
+| Orderer | Single-node Raft |
+| Identity | Fabric CA enabled (`-ca`) |
+
+Uses stock `fabric-samples/test-network/network.sh` — **not modified**.
+
+## Chaincode (Go) — ReconciliationChaincode
+
+Implements **Chapter 3 / Pseudocode 2** reconciliation logic:
+
+| Function | Description |
+|----------|-------------|
+| `MatchPayment` | Proactive duplicate prevention by `paymentHash`; emits `PaymentVerified` |
+| `GetStudentPaymentHistory` | Range query by student, ordered by semester |
+| `CheckClearanceEligibility` | Returns eligibility + missing semester numbers |
+| `SubmitBatchRoot` | Stores one Merkle root per OCR batch (1 tx vs N) |
+
+Legacy wrappers: `RecordPayment`, `GetAllPayments`, `QueryPayment` (backend compatibility).
+
+### Tests
+
+```bash
+cd blockchain/chaincode && go test ./... -v
+```
+
+### Deploy
+
+```bash
+bash blockchain/scripts/deploy-chaincode.sh
+```
+
+## Backend integration
+
+```env
+FABRIC_CONNECTION_PROFILE=./blockchain/network/connection-profile.json
+FABRIC_WALLET_PATH=./blockchain/wallet
+FABRIC_CHANNEL=icupaymentchannel
+FABRIC_CHAINCODE=reconciliation-chaincode
+FABRIC_IDENTITY=admin
+```
+
+## Scripts
+
+| Script | Purpose |
+|--------|---------|
+| `scripts/vps-provision.sh` | Bring up CA network + create channel |
+| `scripts/verify-network.sh` | `docker ps` + `peer channel getinfo` |
+| `scripts/generate-connection-profile.sh` | Build connection profile from running network |
 
 ## Verification (peer CLI)
 
-Use `peer chaincode query` for read-only operations (not `invoke`):
-
 ```bash
-# Get all payments for a student
-peer chaincode query -C payments-channel -n payment-contract -c '{"Args":["GetAllPayments","STU001"]}'
-
-# Query specific payment (studentId, semester, academicYear)
-peer chaincode query -C payments-channel -n payment-contract -c '{"Args":["QueryPayment","STU001","1","2025"]}'
+peer chaincode query -C icupaymentchannel -n reconciliation-chaincode \
+  -c '{"Args":["GetAllPayments","STU001"]}'
 ```
 
-## Integration
-
-The Node.js backend uses fabric-network to submit transactions. Clearance checks use `GetAllPayments` from the chain; if Fabric is unavailable, the system falls back to the database.
+The Node.js backend uses `fabric-network`. If Fabric is unavailable and `BLOCKCHAIN_OPTIONAL=true`, verification falls back to the database.

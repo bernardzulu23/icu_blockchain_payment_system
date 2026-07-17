@@ -11,7 +11,8 @@ async function seed() {
       return;
     }
     const bcrypt = require('bcrypt');
-    const hash = await bcrypt.hash('admin123', 10);
+    const env = require('../src/config/environment');
+    const hash = await bcrypt.hash('admin123', env.BCRYPT_ROUNDS);
     await client.query(
       `INSERT INTO users (username, email, password_hash, role, full_name, status)
        VALUES ('admin', 'admin@icu.edu.zm', $1, 'admin', 'System Administrator', 'active')`,

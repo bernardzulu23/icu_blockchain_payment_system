@@ -1,0 +1,3002 @@
+{
+  "samples_evaluated": 80,
+  "manual_flag_rate": 0.0,
+  "field_metrics": {
+    "student_id": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "tp": 80,
+      "fp": 0,
+      "fn": 0
+    },
+    "amount": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "tp": 80,
+      "fp": 0,
+      "fn": 0
+    },
+    "date": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "tp": 80,
+      "fp": 0,
+      "fn": 0
+    },
+    "batch_reference": {
+      "precision": 0.9875,
+      "recall": 0.9875,
+      "f1": 0.9875,
+      "tp": 79,
+      "fp": 1,
+      "fn": 1
+    }
+  },
+  "macro_f1": 0.9969,
+  "meets_95_target": true,
+  "per_sample": [
+    {
+      "file": "zanaco/zanaco_000.png",
+      "predicted": {
+        "student_id": "100000",
+        "amount": 6336.56,
+        "date": "2026-07-12",
+        "batch_reference": "ZANACO2025000",
+        "confidence": 0.8337,
+        "needs_manual_entry": false,
+        "template": "zanaco",
+        "template_name": "Zanaco",
+        "fields_found": 4,
+        "region_confidence": {
+          "student_id": 0.52,
+          "amount": 0.945,
+          "date": 0.96,
+          "batch_ref": 0.91
+        },
+        "raw_text": "ZANACO Zambia National Commercial Bank - Deposit Slip Date: 12/07/2026 Student / Reference No: Amount (ZMW): ICU100000 K 6,336.56 Batch / Transaction Ref: TXNZANACO2025000\nICU100000\nK 6,336.56\n12/07/2026\nTXNZANACO2025000",
+        "filename": "zanaco_000.png",
+        "confidence_threshold": 0.65
+      },
+      "expected": {
+        "file": "zanaco/zanaco_000.png",
+        "bank": "zanaco",
+        "student_id": "100000",
+        "amount": 6336.56,
+        "date": "2026-07-12",
+        "batch_reference": "ZANACO2025000"
+      },
+      "fields": {
+        "student_id": true,
+        "amount": true,
+        "date": true,
+        "batch_reference": true
+      }
+    },
+    {
+      "file": "zanaco/zanaco_001.png",
+      "predicted": {
+        "student_id": "100001",
+        "amount": 2836.72,
+        "date": "2026-05-31",
+        "batch_reference": "ZANACO2025001",
+        "confidence": 0.8213,
+        "needs_manual_entry": false,
+        "template": "zanaco",
+        "template_name": "Zanaco",
+        "fields_found": 4,
+        "region_confidence": {
+          "student_id": 0.47,
+          "amount": 0.945,
+          "date": 0.96,
+          "batch_ref": 0.91
+        },
+        "raw_text": "ZANACO Zambia National Commercial Bank - Deposit Slip Date: 31/05/2026 Student / Reference No: Amount (ZMW): 1CU100001 K 2,836.72 Batch / Transaction Ref: TXNZANACO2025001\nICU100001\nK 2,836.72\n31/05/2026\nTXNZANACO2025001",
+        "filename": "zanaco_001.png",
+        "confidence_threshold": 0.65
+      },
+      "expected": {
+        "file": "zanaco/zanaco_001.png",
+        "bank": "zanaco",
+        "student_id": "100001",
+        "amount": 2836.72,
+        "date": "2026-05-31",
+        "batch_reference": "ZANACO2025001"
+      },
+      "fields": {
+        "student_id": true,
+        "amount": true,
+        "date": true,
+        "batch_reference": true
+      }
+    },
+    {
+      "file": "zanaco/zanaco_002.png",
+      "predicted": {
+        "student_id": "100002",
+        "amount": 4749.05,
+        "date": "2026-06-27",
+        "batch_reference": "ZANACO2025002",
+        "confidence": 0.8037,
+        "needs_manual_entry": false,
+        "template": "zanaco",
+        "template_name": "Zanaco",
+        "fields_found": 4,
+        "region_confidence": {
+          "student_id": 0.4,
+          "amount": 0.945,
+          "date": 0.96,
+          "batch_ref": 0.91
+        },
+        "raw_text": "ZANACO Zambia National Commercial Bank - Deposit Slip Date: 27/06/2026 Student / Reference No: Amount (ZMW): 1CU100002 K 4,749.05 Batch / Transaction Ref: TXNZANACO2025002\nICU100002\nK 4,749.05\n27/06/2026\nTXNZANACO2025002",
+        "filename": "zanaco_002.png",
+        "confidence_threshold": 0.65
+      },
+      "expected": {
+        "file": "zanaco/zanaco_002.png",
+        "bank": "zanaco",
+        "student_id": "100002",
+        "amount": 4749.05,
+        "date": "2026-06-27",
+        "batch_reference": "ZANACO2025002"
+      },
+      "fields": {
+        "student_id": true,
+        "amount": true,
+        "date": true,
+        "batch_reference": true
+      }
+    },
+    {
+      "file": "zanaco/zanaco_003.png",
+      "predicted": {
+        "student_id": "100003",
+        "amount": 3965.18,
+        "date": "2026-05-24",
+        "batch_reference": "ZANACO2025003",
+        "confidence": 0.7963,
+        "needs_manual_entry": false,
+        "template": "zanaco",
+        "template_name": "Zanaco",
+        "fields_found": 4,
+        "region_confidence": {
+          "student_id": 0.38,
+          "amount": 0.945,
+          "date": 0.96,
+          "batch_ref": 0.9
+        },
+        "raw_text": "ZANACO Zambia National Commercial Bank - Deposit Slip Date: 24/05/2026 Student / Reference No: Amount (ZMW): 1CU100003 K 3,965.18 Batch / Transaction Ref: TXNZANACO2025003\nICU100003\nK 3,965.18\n24/05/2026\nTXNZANACO2025003",
+        "filename": "zanaco_003.png",
+        "confidence_threshold": 0.65
+      },
+      "expected": {
+        "file": "zanaco/zanaco_003.png",
+        "bank": "zanaco",
+        "student_id": "100003",
+        "amount": 3965.18,
+        "date": "2026-05-24",
+        "batch_reference": "ZANACO2025003"
+      },
+      "fields": {
+        "student_id": true,
+        "amount": true,
+        "date": true,
+        "batch_reference": true
+      }
+    },
+    {
+      "file": "zanaco/zanaco_004.png",
+      "predicted": {
+        "student_id": "100004",
+        "amount": 5895.57,
+        "date": "2026-06-22",
+        "batch_reference": "ZANACO2025004",
+        "confidence": 0.8113,
+        "needs_manual_entry": false,
+        "template": "zanaco",
+        "template_name": "Zanaco",
+        "fields_found": 4,
+        "region_confidence": {
+          "student_id": 0.43,
+          "amount": 0.945,
+          "date": 0.96,
+          "batch_ref": 0.91
+        },
+        "raw_text": "ZANACO Zambia National Commercial Bank - Deposit Slip Date: 22/06/2026 Student / Reference No: Amount (ZMW): 1CU100004 K 5,895.57 Batch / Transaction Ref: TXNZANACO2025004\nICU100004\nK 5,895.57\n22/06/2026\nTXNZANACO2025004",
+        "filename": "zanaco_004.png",
+        "confidence_threshold": 0.65
+      },
+      "expected": {
+        "file": "zanaco/zanaco_004.png",
+        "bank": "zanaco",
+        "student_id": "100004",
+        "amount": 5895.57,
+        "date": "2026-06-22",
+        "batch_reference": "ZANACO2025004"
+      },
+      "fields": {
+        "student_id": true,
+        "amount": true,
+        "date": true,
+        "batch_reference": true
+      }
+    },
+    {
+      "file": "zanaco/zanaco_005.png",
+      "predicted": {
+        "student_id": "100005",
+        "amount": 3519.9,
+        "date": "2026-07-05",
+        "batch_reference": "ZANACO2025005",
+        "confidence": 0.8387,
+        "needs_manual_entry": false,
+        "template": "zanaco",
+        "template_name": "Zanaco",
+        "fields_found": 4,
+        "region_confidence": {
+          "student_id": 0.54,
+          "amount": 0.945,
+          "date": 0.96,
+          "batch_ref": 0.91
+        },
+        "raw_text": "ZANACO Zambia National Commercial Bank - Deposit Slip Date: 05/07/2026 Student / Reference No: Amount (ZMW): 1CU100005 K 3,519.90 Batch / Transaction Ref: TXNZANACO2025005\nICU100005\nK 3,519.90\n05/07/2026\nTXNZANACO2025005",
+        "filename": "zanaco_005.png",
+        "confidence_threshold": 0.65
+      },
+      "expected": {
+        "file": "zanaco/zanaco_005.png",
+        "bank": "zanaco",
+        "student_id": "100005",
+        "amount": 3519.9,
+        "date": "2026-07-05",
+        "batch_reference": "ZANACO2025005"
+      },
+      "fields": {
+        "student_id": true,
+        "amount": true,
+        "date": true,
+        "batch_reference": true
+      }
+    },
+    {
+      "file": "zanaco/zanaco_006.png",
+      "predicted": {
+        "student_id": "100006",
+        "amount": 2613.62,
+        "date": "2026-06-05",
+        "batch_reference": "ZANACO2025006",
+        "confidence": 0.8538,
+        "needs_manual_entry": false,
+        "template": "zanaco",
+        "template_name": "Zanaco",
+        "fields_found": 4,
+        "region_confidence": {
+          "student_id": 0.6,
+          "amount": 0.945,
+          "date": 0.96,
+          "batch_ref": 0.91
+        },
+        "raw_text": "ZANACO Zambia National Commercial Bank - Deposit Slip Date: 05/06/2026 Student / Reference No: Amount (ZMW): 1CU100006 K 2,613.62 Batch / Transaction Ref: TXNZANACO2025006\nICU100006\nK 2,613.62\n05/06/2026\nTXNZANACO2025006",
+        "filename": "zanaco_006.png",
+        "confidence_threshold": 0.65
+      },
+      "expected": {
+        "file": "zanaco/zanaco_006.png",
+        "bank": "zanaco",
+        "student_id": "100006",
+        "amount": 2613.62,
+        "date": "2026-06-05",
+        "batch_reference": "ZANACO2025006"
+      },
+      "fields": {
+        "student_id": true,
+        "amount": true,
+        "date": true,
+        "batch_reference": true
+      }
+    },
+    {
+      "file": "zanaco/zanaco_007.png",
+      "predicted": {
+        "student_id": "100007",
+        "amount": 5012.68,
+        "date": "2026-05-24",
+        "batch_reference": "ZANACO2025007",
+        "confidence": 0.7863,
+        "needs_manual_entry": false,
+        "template": "zanaco",
+        "template_name": "Zanaco",
+        "fields_found": 4,
+        "region_confidence": {
+          "student_id": 0.35,
+          "amount": 0.945,
+          "date": 0.95,
+          "batch_ref": 0.9
+        },
+        "raw_text": "ZANACO Zambia National Commercial Bank - Deposit Slip Date: 24/05/2026 Student / Reference No: Amount (ZMW): 1CU100007 K 5,012.68 Batch / Transaction Ref: TXNZANACO2025007\nICU100007\nK 5,012.68\n24/05/2026\nTXNZANACO2025007",
+        "filename": "zanaco_007.png",
+        "confidence_threshold": 0.65
+      },
+      "expected": {
+        "file": "zanaco/zanaco_007.png",
+        "bank": "zanaco",
+        "student_id": "100007",
+        "amount": 5012.68,
+        "date": "2026-05-24",
+        "batch_reference": "ZANACO2025007"
+      },
+      "fields": {
+        "student_id": true,
+        "amount": true,
+        "date": true,
+        "batch_reference": true
+      }
+    },
+    {
+      "file": "zanaco/zanaco_008.png",
+      "predicted": {
+        "student_id": "100008",
+        "amount": 6643.0,
+        "date": "2026-05-24",
+        "batch_reference": "ZANACO2025008",
+        "confidence": 0.8037,
+        "needs_manual_entry": false,
+        "template": "zanaco",
+        "template_name": "Zanaco",
+        "fields_found": 4,
+        "region_confidence": {
+          "student_id": 0.4,
+          "amount": 0.945,
+          "date": 0.96,
+          "batch_ref": 0.91
+        },
+        "raw_text": "ZANACO Zambia National Commercial Bank - Deposit Slip Date: 24/05/2026 Student / Reference No: Amount (ZMW): 1CU100008 K 6,643.00 Batch / Transaction Ref: TXNZANACO2025008\nICU100008\nK 6,643.00\n24/05/2026\nTXNZANACO2025008",
+        "filename": "zanaco_008.png",
+        "confidence_threshold": 0.65
+      },
+      "expected": {
+        "file": "zanaco/zanaco_008.png",
+        "bank": "zanaco",
+        "student_id": "100008",
+        "amount": 6643.0,
+        "date": "2026-05-24",
+        "batch_reference": "ZANACO2025008"
+      },
+      "fields": {
+        "student_id": true,
+        "amount": true,
+        "date": true,
+        "batch_reference": true
+      }
+    },
+    {
+      "file": "zanaco/zanaco_009.png",
+      "predicted": {
+        "student_id": "100009",
+        "amount": 5510.92,
+        "date": "2026-04-28",
+        "batch_reference": "ZANACO2025009",
+        "confidence": 0.8287,
+        "needs_manual_entry": false,
+        "template": "zanaco",
+        "template_name": "Zanaco",
+        "fields_found": 4,
+        "region_confidence": {
+          "student_id": 0.49,
+          "amount": 0.945,
+          "date": 0.96,
+          "batch_ref": 0.92
+        },
+        "raw_text": "ZANACO Zambia National Commercial Bank - Deposit Slip Date: 28/04/2026 Student / Reference No: Amount (ZMW): ICU100009 K 5,510.92 Batch / Transaction Ref: TXNZANACO2025009\nICU100009\nK 5,510.92\n28/04/2026\nTXNZANACO2025009",
+        "filename": "zanaco_009.png",
+        "confidence_threshold": 0.65
+      },
+      "expected": {
+        "file": "zanaco/zanaco_009.png",
+        "bank": "zanaco",
+        "student_id": "100009",
+        "amount": 5510.92,
+        "date": "2026-04-28",
+        "batch_reference": "ZANACO2025009"
+      },
+      "fields": {
+        "student_id": true,
+        "amount": true,
+        "date": true,
+        "batch_reference": true
+      }
+    },
+    {
+      "file": "zanaco/zanaco_010.png",
+      "predicted": {
+        "student_id": "100010",
+        "amount": 8023.13,
+        "date": "2026-07-08",
+        "batch_reference": "ZANACO2025010",
+        "confidence": 0.7188,
+        "needs_manual_entry": false,
+        "template": "zanaco",
+        "template_name": "Zanaco",
+        "fields_found": 4,
+        "region_confidence": {
+          "student_id": 0.07,
+          "amount": 0.935,
+          "date": 0.96,
+          "batch_ref": 0.91
+        },
+        "raw_text": "ZANACO Zambia National Commercial Bank - Deposit Slip Date: 08/07/2026 Student / Reference No: Amount (ZMW): 1CU100010 K 8,023.13 Batch / Transaction Ref: TXNZANACO2025010\nICU100010\nK 8,023.13\n08/07/2026\nTXNZANACO2025010",
+        "filename": "zanaco_010.png",
+        "confidence_threshold": 0.65
+      },
+      "expected": {
+        "file": "zanaco/zanaco_010.png",
+        "bank": "zanaco",
+        "student_id": "100010",
+        "amount": 8023.13,
+        "date": "2026-07-08",
+        "batch_reference": "ZANACO2025010"
+      },
+      "fields": {
+        "student_id": true,
+        "amount": true,
+        "date": true,
+        "batch_reference": true
+      }
+    },
+    {
+      "file": "zanaco/zanaco_011.png",
+      "predicted": {
+        "student_id": "100011",
+        "amount": 5820.38,
+        "date": "2026-04-30",
+        "batch_reference": "ZANACO202501",
+        "confidence": 0.83,
+        "needs_manual_entry": false,
+        "template": "zanaco",
+        "template_name": "Zanaco",
+        "fields_found": 4,
+        "region_confidence": {
+          "student_id": 0.49,
+          "amount": 0.945,
+          "date": 0.96,
+          "batch_ref": 0.925
+        },
+        "raw_text": "ZANACO Zambia National Commercial Bank - Deposit Slip Date: 30/04/2026 Student / Reference No: Amount (ZMW): 1CU100011 K 5,820.38 Batch / Transaction Ref: TXNZANACO2025011\n1CU100011\nK 5,820.38\n30/04/2026\nTXNZANACO202501 1",
+        "filename": "zanaco_011.png",
+        "confidence_threshold": 0.65
+      },
+      "expected": {
+        "file": "zanaco/zanaco_011.png",
+        "bank": "zanaco",
+        "student_id": "100011",
+        "amount": 5820.38,
+        "date": "2026-04-30",
+        "batch_reference": "ZANACO2025011"
+      },
+      "fields": {
+        "student_id": true,
+        "amount": true,
+        "date": true,
+        "batch_reference": false
+      }
+    },
+    {
+      "file": "zanaco/zanaco_012.png",
+      "predicted": {
+        "student_id": "100012",
+        "amount": 6827.08,
+        "date": "2026-06-09",
+        "batch_reference": "ZANACO2025012",
+        "confidence": 0.8462,
+        "needs_manual_entry": false,
+        "template": "zanaco",
+        "template_name": "Zanaco",
+        "fields_found": 4,
+        "region_confidence": {
+          "student_id": 0.58,
+          "amount": 0.945,
+          "date": 0.96,
+          "batch_ref": 0.9
+        },
+        "raw_text": "ZANACO Zambia National Commercial Bank - Deposit Slip Date: 09/06/2026 Student / Reference No: Amount (ZMW): 1CU100012 K 6,827.08 Batch / Transaction Ref: TXNZANACO2025012\n1CU100012\nK 6,827.08\n09/06/2026\nTXNZANACO2025012",
+        "filename": "zanaco_012.png",
+        "confidence_threshold": 0.65
+      },
+      "expected": {
+        "file": "zanaco/zanaco_012.png",
+        "bank": "zanaco",
+        "student_id": "100012",
+        "amount": 6827.08,
+        "date": "2026-06-09",
+        "batch_reference": "ZANACO2025012"
+      },
+      "fields": {
+        "student_id": true,
+        "amount": true,
+        "date": true,
+        "batch_reference": true
+      }
+    },
+    {
+      "file": "zanaco/zanaco_013.png",
+      "predicted": {
+        "student_id": "100013",
+        "amount": 7173.82,
+        "date": "2026-04-18",
+        "batch_reference": "ZANACO2025013",
+        "confidence": 0.8575,
+        "needs_manual_entry": false,
+        "template": "zanaco",
+        "template_name": "Zanaco",
+        "fields_found": 4,
+        "region_confidence": {
+          "student_id": 0.63,
+          "amount": 0.94,
+          "date": 0.96,
+          "batch_ref": 0.9
+        },
+        "raw_text": "ZANACO Zambia National Commercial Bank - Deposit Slip Date: 18/04/2026 Student / Reference No: Amount (ZMW): 1CU100013 K 7,173.82 Batch / Transaction Ref: TXNZANACO2025013\n1CU100013\nK 7,173.82\n18/04/2026\nTXNZANACO2025013",
+        "filename": "zanaco_013.png",
+        "confidence_threshold": 0.65
+      },
+      "expected": {
+        "file": "zanaco/zanaco_013.png",
+        "bank": "zanaco",
+        "student_id": "100013",
+        "amount": 7173.82,
+        "date": "2026-04-18",
+        "batch_reference": "ZANACO2025013"
+      },
+      "fields": {
+        "student_id": true,
+        "amount": true,
+        "date": true,
+        "batch_reference": true
+      }
+    },
+    {
+      "file": "zanaco/zanaco_014.png",
+      "predicted": {
+        "student_id": "100014",
+        "amount": 2660.95,
+        "date": "2026-04-22",
+        "batch_reference": "ZANACO2025014",
+        "confidence": 0.8438,
+        "needs_manual_entry": false,
+        "template": "zanaco",
+        "template_name": "Zanaco",
+        "fields_found": 4,
+        "region_confidence": {
+          "student_id": 0.56,
+          "amount": 0.945,
+          "date": 0.96,
+          "batch_ref": 0.91
+        },
+        "raw_text": "ZANACO Zambia National Commercial Bank - Deposit Slip Date: 22/04/2026 Student / Reference No: Amount (ZMW): 1CU100014 K 2,660.95 Batch / Transaction Ref: TXNZANACO2025014\n1CU100014\nK 2,660.95\n22/04/2026\nTXNZANACO2025014",
+        "filename": "zanaco_014.png",
+        "confidence_threshold": 0.65
+      },
+      "expected": {
+        "file": "zanaco/zanaco_014.png",
+        "bank": "zanaco",
+        "student_id": "100014",
+        "amount": 2660.95,
+        "date": "2026-04-22",
+        "batch_reference": "ZANACO2025014"
+      },
+      "fields": {
+        "student_id": true,
+        "amount": true,
+        "date": true,
+        "batch_reference": true
+      }
+    },
+    {
+      "file": "zanaco/zanaco_015.png",
+      "predicted": {
+        "student_id": "100015",
+        "amount": 7754.96,
+        "date": "2026-06-19",
+        "batch_reference": "ZANACO2025015",
+        "confidence": 0.7312,
+        "needs_manual_entry": false,
+        "template": "zanaco",
+        "template_name": "Zanaco",
+        "fields_found": 4,
+        "region_confidence": {
+          "student_id": 0.12,
+          "amount": 0.935,
+          "date": 0.96,
+          "batch_ref": 0.91
+        },
+        "raw_text": "ZANACO Zambia National Commercial Bank - Deposit Slip Date: 19/06/2026 Student / Reference No: Amount (ZMW): 1CU100015 K 7,754.96 Batch / Transaction Ref: TXNZANACO2025015\nICU100015\nK 7,754.96\n19/06/2026\nTXNZANACO2025015",
+        "filename": "zanaco_015.png",
+        "confidence_threshold": 0.65
+      },
+      "expected": {
+        "file": "zanaco/zanaco_015.png",
+        "bank": "zanaco",
+        "student_id": "100015",
+        "amount": 7754.96,
+        "date": "2026-06-19",
+        "batch_reference": "ZANACO2025015"
+      },
+      "fields": {
+        "student_id": true,
+        "amount": true,
+        "date": true,
+        "batch_reference": true
+      }
+    },
+    {
+      "file": "zanaco/zanaco_016.png",
+      "predicted": {
+        "student_id": "100016",
+        "amount": 6727.41,
+        "date": "2026-04-20",
+        "batch_reference": "ZANACO2025016",
+        "confidence": 0.7238,
+        "needs_manual_entry": false,
+        "template": "zanaco",
+        "template_name": "Zanaco",
+        "fields_found": 4,
+        "region_confidence": {
+          "student_id": 0.08,
+          "amount": 0.945,
+          "date": 0.96,
+          "batch_ref": 0.91
+        },
+        "raw_text": "ZANACO Zambia National Commercial Bank - Deposit Slip Date: 20/04/2026 Student / Reference No: Amount (ZMW): 1CU100016 K 6,727.41 Batch / Transaction Ref: TXNZANACO2025016\n1ICU100016\nK 6,727.41\n20/04/2026\nTXNZANACO2025016",
+        "filename": "zanaco_016.png",
+        "confidence_threshold": 0.65
+      },
+      "expected": {
+        "file": "zanaco/zanaco_016.png",
+        "bank": "zanaco",
+        "student_id": "100016",
+        "amount": 6727.41,
+        "date": "2026-04-20",
+        "batch_reference": "ZANACO2025016"
+      },
+      "fields": {
+        "student_id": true,
+        "amount": true,
+        "date": true,
+        "batch_reference": true
+      }
+    },
+    {
+      "file": "zanaco/zanaco_017.png",
+      "predicted": {
+        "student_id": "100017",
+        "amount": 5648.91,
+        "date": "2026-05-03",
+        "batch_reference": "ZANACO2025017",
+        "confidence": 0.8462,
+        "needs_manual_entry": false,
+        "template": "zanaco",
+        "template_name": "Zanaco",
+        "fields_found": 4,
+        "region_confidence": {
+          "student_id": 0.58,
+          "amount": 0.935,
+          "date": 0.96,
+          "batch_ref": 0.91
+        },
+        "raw_text": "ZANACO Zambia National Commercial Bank - Deposit Slip Date: 03/05/2026 Student / Reference No: Amount (ZMW): 1CU100017 K 5,648.91 Batch / Transaction Ref: TXNZANACO2025017\n1CU100017\nK 5,648.91\n03/05/2026\nTXNZANACO2025017",
+        "filename": "zanaco_017.png",
+        "confidence_threshold": 0.65
+      },
+      "expected": {
+        "file": "zanaco/zanaco_017.png",
+        "bank": "zanaco",
+        "student_id": "100017",
+        "amount": 5648.91,
+        "date": "2026-05-03",
+        "batch_reference": "ZANACO2025017"
+      },
+      "fields": {
+        "student_id": true,
+        "amount": true,
+        "date": true,
+        "batch_reference": true
+      }
+    },
+    {
+      "file": "zanaco/zanaco_018.png",
+      "predicted": {
+        "student_id": "100018",
+        "amount": 6842.64,
+        "date": "2026-06-17",
+        "batch_reference": "ZANACO2025018",
+        "confidence": 0.8363,
+        "needs_manual_entry": false,
+        "template": "zanaco",
+        "template_name": "Zanaco",
+        "fields_found": 4,
+        "region_confidence": {
+          "student_id": 0.54,
+          "amount": 0.935,
+          "date": 0.96,
+          "batch_ref": 0.91
+        },
+        "raw_text": "ZANACO Zambia National Commercial Bank - Deposit Slip Date: 17/06/2026 Student / Reference No: Amount (ZMW): 1CU100018 K 6,842.64 Batch / Transaction Ref: TXNZANACO2025018\n1CU100018\nK 6,842.64\n17/06/2026\nTXNZANACO2025018",
+        "filename": "zanaco_018.png",
+        "confidence_threshold": 0.65
+      },
+      "expected": {
+        "file": "zanaco/zanaco_018.png",
+        "bank": "zanaco",
+        "student_id": "100018",
+        "amount": 6842.64,
+        "date": "2026-06-17",
+        "batch_reference": "ZANACO2025018"
+      },
+      "fields": {
+        "student_id": true,
+        "amount": true,
+        "date": true,
+        "batch_reference": true
+      }
+    },
+    {
+      "file": "zanaco/zanaco_019.png",
+      "predicted": {
+        "student_id": "100019",
+        "amount": 8367.37,
+        "date": "2026-04-21",
+        "batch_reference": "ZANACO2025019",
+        "confidence": 0.7588,
+        "needs_manual_entry": false,
+        "template": "zanaco",
+        "template_name": "Zanaco",
+        "fields_found": 4,
+        "region_confidence": {
+          "student_id": 0.22,
+          "amount": 0.945,
+          "date": 0.96,
+          "batch_ref": 0.91
+        },
+        "raw_text": "ZANACO Zambia National Commercial Bank - Deposit Slip Date: 21/04/2026 Student / Reference No: Amount (ZMW): 1CU100019 K 8,367.37 Batch / Transaction Ref: TXNZANACO2025019\nICU100019\nK 8,367.37\n21/04/2026\nTXNZANACO2025019",
+        "filename": "zanaco_019.png",
+        "confidence_threshold": 0.65
+      },
+      "expected": {
+        "file": "zanaco/zanaco_019.png",
+        "bank": "zanaco",
+        "student_id": "100019",
+        "amount": 8367.37,
+        "date": "2026-04-21",
+        "batch_reference": "ZANACO2025019"
+      },
+      "fields": {
+        "student_id": true,
+        "amount": true,
+        "date": true,
+        "batch_reference": true
+      }
+    },
+    {
+      "file": "zanaco/zanaco_020.png",
+      "predicted": {
+        "student_id": "100020",
+        "amount": 7738.86,
+        "date": "2026-05-10",
+        "batch_reference": "ZANACO2025020",
+        "confidence": 0.7462,
+        "needs_manual_entry": false,
+        "template": "zanaco",
+        "template_name": "Zanaco",
+        "fields_found": 4,
+        "region_confidence": {
+          "student_id": 0.17,
+          "amount": 0.945,
+          "date": 0.96,
+          "batch_ref": 0.91
+        },
+        "raw_text": "ZANACO Zambia National Commercial Bank - Deposit Slip Date: 10/05/2026 Student / Reference No: Amount (ZMW): 1CU100020 K 7,738.86 Batch / Transaction Ref: TXNZANACO2025020\nICU100020\nK 7,738.86\n10/05/2026\nTXNZANACO2025020",
+        "filename": "zanaco_020.png",
+        "confidence_threshold": 0.65
+      },
+      "expected": {
+        "file": "zanaco/zanaco_020.png",
+        "bank": "zanaco",
+        "student_id": "100020",
+        "amount": 7738.86,
+        "date": "2026-05-10",
+        "batch_reference": "ZANACO2025020"
+      },
+      "fields": {
+        "student_id": true,
+        "amount": true,
+        "date": true,
+        "batch_reference": true
+      }
+    },
+    {
+      "file": "zanaco/zanaco_021.png",
+      "predicted": {
+        "student_id": "100021",
+        "amount": 5169.07,
+        "date": "2026-04-17",
+        "batch_reference": "ZANACO2025021",
+        "confidence": 0.7913,
+        "needs_manual_entry": false,
+        "template": "zanaco",
+        "template_name": "Zanaco",
+        "fields_found": 4,
+        "region_confidence": {
+          "student_id": 0.35,
+          "amount": 0.945,
+          "date": 0.96,
+          "batch_ref": 0.91
+        },
+        "raw_text": "ZANACO Zambia National Commercial Bank - Deposit Slip Date: 17/04/2026 Student / Reference No: Amount (ZMW): 1CU100021 K 5,169.07 Batch / Transaction Ref: TXNZANACO2025021\nICU100021\nK 5,169.07\n17/04/2026\nTXNZANACO2025021",
+        "filename": "zanaco_021.png",
+        "confidence_threshold": 0.65
+      },
+      "expected": {
+        "file": "zanaco/zanaco_021.png",
+        "bank": "zanaco",
+        "student_id": "100021",
+        "amount": 5169.07,
+        "date": "2026-04-17",
+        "batch_reference": "ZANACO2025021"
+      },
+      "fields": {
+        "student_id": true,
+        "amount": true,
+        "date": true,
+        "batch_reference": true
+      }
+    },
+    {
+      "file": "zanaco/zanaco_022.png",
+      "predicted": {
+        "student_id": "100022",
+        "amount": 5735.73,
+        "date": "2026-05-01",
+        "batch_reference": "ZANACO2025022",
+        "confidence": 0.7575,
+        "needs_manual_entry": false,
+        "template": "zanaco",
+        "template_name": "Zanaco",
+        "fields_found": 4,
+        "region_confidence": {
+          "student_id": 0.24,
+          "amount": 0.93,
+          "date": 0.95,
+          "batch_ref": 0.91
+        },
+        "raw_text": "ZANACO Zambia National Commercial Bank - Deposit Slip Date: 01/05/2026 Student / Reference No: Amount (ZMW): 1CU100022 K 5,735.73 Batch / Transaction Ref: TXNZANACO2025022\nICU100022\nK 5,735.73\n01/05/2026\nTXNZANACO2025022",
+        "filename": "zanaco_022.png",
+        "confidence_threshold": 0.65
+      },
+      "expected": {
+        "file": "zanaco/zanaco_022.png",
+        "bank": "zanaco",
+        "student_id": "100022",
+        "amount": 5735.73,
+        "date": "2026-05-01",
+        "batch_reference": "ZANACO2025022"
+      },
+      "fields": {
+        "student_id": true,
+        "amount": true,
+        "date": true,
+        "batch_reference": true
+      }
+    },
+    {
+      "file": "zanaco/zanaco_023.png",
+      "predicted": {
+        "student_id": "100023",
+        "amount": 6085.51,
+        "date": "2026-04-26",
+        "batch_reference": "ZANACO2025023",
+        "confidence": 0.7712,
+        "needs_manual_entry": false,
+        "template": "zanaco",
+        "template_name": "Zanaco",
+        "fields_found": 4,
+        "region_confidence": {
+          "student_id": 0.27,
+          "amount": 0.945,
+          "date": 0.96,
+          "batch_ref": 0.91
+        },
+        "raw_text": "ZANACO Zambia National Commercial Bank - Deposit Slip Date: 26/04/2026 Student / Reference No: Amount (ZMW): 1CU100023 K 6,085.51 Batch / Transaction Ref: TXNZANACO2025023\n1ICU100023\nK 6,085.51\n26/04/2026\nTXNZANACO2025023",
+        "filename": "zanaco_023.png",
+        "confidence_threshold": 0.65
+      },
+      "expected": {
+        "file": "zanaco/zanaco_023.png",
+        "bank": "zanaco",
+        "student_id": "100023",
+        "amount": 6085.51,
+        "date": "2026-04-26",
+        "batch_reference": "ZANACO2025023"
+      },
+      "fields": {
+        "student_id": true,
+        "amount": true,
+        "date": true,
+        "batch_reference": true
+      }
+    },
+    {
+      "file": "zanaco/zanaco_024.png",
+      "predicted": {
+        "student_id": "100024",
+        "amount": 6993.47,
+        "date": "2026-05-04",
+        "batch_reference": "ZANACO2025024",
+        "confidence": 0.7362,
+        "needs_manual_entry": false,
+        "template": "zanaco",
+        "template_name": "Zanaco",
+        "fields_found": 4,
+        "region_confidence": {
+          "student_id": 0.13,
+          "amount": 0.945,
+          "date": 0.96,
+          "batch_ref": 0.91
+        },
+        "raw_text": "ZANACO Zambia National Commercial Bank - Deposit Slip Date: 04/05/2026 Student / Reference No: Amount (ZMW): 1CU100024 K 6,993.47 Batch / Transaction Ref: TXNZANACO2025024\nICU100024\nK 6,993.47\n04/05/2026\nTXNZANACO2025024",
+        "filename": "zanaco_024.png",
+        "confidence_threshold": 0.65
+      },
+      "expected": {
+        "file": "zanaco/zanaco_024.png",
+        "bank": "zanaco",
+        "student_id": "100024",
+        "amount": 6993.47,
+        "date": "2026-05-04",
+        "batch_reference": "ZANACO2025024"
+      },
+      "fields": {
+        "student_id": true,
+        "amount": true,
+        "date": true,
+        "batch_reference": true
+      }
+    },
+    {
+      "file": "zanaco/zanaco_025.png",
+      "predicted": {
+        "student_id": "100025",
+        "amount": 5109.86,
+        "date": "2026-04-25",
+        "batch_reference": "ZANACO2025025",
+        "confidence": 0.7438,
+        "needs_manual_entry": false,
+        "template": "zanaco",
+        "template_name": "Zanaco",
+        "fields_found": 4,
+        "region_confidence": {
+          "student_id": 0.17,
+          "amount": 0.945,
+          "date": 0.96,
+          "batch_ref": 0.9
+        },
+        "raw_text": "ZANACO Zambia National Commercial Bank - Deposit Slip Date: 25/04/2026 Student / Reference No: Amount (ZMW): 1CU100025 K 5,109.86 Batch / Transaction Ref: TXNZANACO2025025\nICU100025\nK 5,109.86\n25/04/2026\nTXNZANACO2025025",
+        "filename": "zanaco_025.png",
+        "confidence_threshold": 0.65
+      },
+      "expected": {
+        "file": "zanaco/zanaco_025.png",
+        "bank": "zanaco",
+        "student_id": "100025",
+        "amount": 5109.86,
+        "date": "2026-04-25",
+        "batch_reference": "ZANACO2025025"
+      },
+      "fields": {
+        "student_id": true,
+        "amount": true,
+        "date": true,
+        "batch_reference": true
+      }
+    },
+    {
+      "file": "zanaco/zanaco_026.png",
+      "predicted": {
+        "student_id": "100026",
+        "amount": 3177.32,
+        "date": "2026-05-15",
+        "batch_reference": "ZANACO2025026",
+        "confidence": 0.765,
+        "needs_manual_entry": false,
+        "template": "zanaco",
+        "template_name": "Zanaco",
+        "fields_found": 4,
+        "region_confidence": {
+          "student_id": 0.26,
+          "amount": 0.94,
+          "date": 0.95,
+          "batch_ref": 0.91
+        },
+        "raw_text": "ZANACO Zambia National Commercial Bank - Deposit Slip Date: 15/05/2026 Student / Reference No: Amount (ZMW): 1CU100026 K 3,177.32 Batch / Transaction Ref: TXNZANACO2025026\nICU100026\nK 3,177.32\n15/05/2026\nTXNZANACO2025026",
+        "filename": "zanaco_026.png",
+        "confidence_threshold": 0.65
+      },
+      "expected": {
+        "file": "zanaco/zanaco_026.png",
+        "bank": "zanaco",
+        "student_id": "100026",
+        "amount": 3177.32,
+        "date": "2026-05-15",
+        "batch_reference": "ZANACO2025026"
+      },
+      "fields": {
+        "student_id": true,
+        "amount": true,
+        "date": true,
+        "batch_reference": true
+      }
+    },
+    {
+      "file": "zanaco/zanaco_027.png",
+      "predicted": {
+        "student_id": "100027",
+        "amount": 5267.45,
+        "date": "2026-06-24",
+        "batch_reference": "ZANACO2025027",
+        "confidence": 0.7425,
+        "needs_manual_entry": false,
+        "template": "zanaco",
+        "template_name": "Zanaco",
+        "fields_found": 4,
+        "region_confidence": {
+          "student_id": 0.17,
+          "amount": 0.94,
+          "date": 0.96,
+          "batch_ref": 0.9
+        },
+        "raw_text": "ZANACO Zambia National Commercial Bank - Deposit Slip Date: 24/06/2026 Student / Reference No: Amount (ZMW): 1CU100027 K 5,267.45 Batch / Transaction Ref: TXNZANACO2025027\nICU100027\nK 5,267.45\n24/06/2026\nTXNZANACO2025027",
+        "filename": "zanaco_027.png",
+        "confidence_threshold": 0.65
+      },
+      "expected": {
+        "file": "zanaco/zanaco_027.png",
+        "bank": "zanaco",
+        "student_id": "100027",
+        "amount": 5267.45,
+        "date": "2026-06-24",
+        "batch_reference": "ZANACO2025027"
+      },
+      "fields": {
+        "student_id": true,
+        "amount": true,
+        "date": true,
+        "batch_reference": true
+      }
+    },
+    {
+      "file": "zanaco/zanaco_028.png",
+      "predicted": {
+        "student_id": "100028",
+        "amount": 4193.54,
+        "date": "2026-06-01",
+        "batch_reference": "ZANACO2025028",
+        "confidence": 0.7125,
+        "needs_manual_entry": false,
+        "template": "zanaco",
+        "template_name": "Zanaco",
+        "fields_found": 4,
+        "region_confidence": {
+          "student_id": 0.05,
+          "amount": 0.94,
+          "date": 0.96,
+          "batch_ref": 0.9
+        },
+        "raw_text": "ZANACO Zambia National Commercial Bank - Deposit Slip Date: 01/06/2026 Student / Reference No: Amount (ZMW): 1CU100028 K 4,193.54 Batch / Transaction Ref: TXNZANACO2025028\nICU100028\nK 4,193.54\n01/06/2026\nTXNZANACO2025028",
+        "filename": "zanaco_028.png",
+        "confidence_threshold": 0.65
+      },
+      "expected": {
+        "file": "zanaco/zanaco_028.png",
+        "bank": "zanaco",
+        "student_id": "100028",
+        "amount": 4193.54,
+        "date": "2026-06-01",
+        "batch_reference": "ZANACO2025028"
+      },
+      "fields": {
+        "student_id": true,
+        "amount": true,
+        "date": true,
+        "batch_reference": true
+      }
+    },
+    {
+      "file": "zanaco/zanaco_029.png",
+      "predicted": {
+        "student_id": "100029",
+        "amount": 6126.64,
+        "date": "2026-06-29",
+        "batch_reference": "ZANACO2025029",
+        "confidence": 0.7475,
+        "needs_manual_entry": false,
+        "template": "zanaco",
+        "template_name": "Zanaco",
+        "fields_found": 4,
+        "region_confidence": {
+          "student_id": 0.18,
+          "amount": 0.94,
+          "date": 0.96,
+          "batch_ref": 0.91
+        },
+        "raw_text": "ZANACO Zambia National Commercial Bank - Deposit Slip Date: 29/06/2026 Student / Reference No: Amount (ZMW): 1CU100029 K 6,126.64 Batch / Transaction Ref: TXNZANACO2025029\nICU100029\nK 6,126.64\n29/06/2026\nTXNZANACO2025029",
+        "filename": "zanaco_029.png",
+        "confidence_threshold": 0.65
+      },
+      "expected": {
+        "file": "zanaco/zanaco_029.png",
+        "bank": "zanaco",
+        "student_id": "100029",
+        "amount": 6126.64,
+        "date": "2026-06-29",
+        "batch_reference": "ZANACO2025029"
+      },
+      "fields": {
+        "student_id": true,
+        "amount": true,
+        "date": true,
+        "batch_reference": true
+      }
+    },
+    {
+      "file": "zanaco/zanaco_030.png",
+      "predicted": {
+        "student_id": "100030",
+        "amount": 5547.7,
+        "date": "2026-05-25",
+        "batch_reference": "ZANACO2025030",
+        "confidence": 0.755,
+        "needs_manual_entry": false,
+        "template": "zanaco",
+        "template_name": "Zanaco",
+        "fields_found": 4,
+        "region_confidence": {
+          "student_id": 0.23,
+          "amount": 0.94,
+          "date": 0.96,
+          "batch_ref": 0.89
+        },
+        "raw_text": "ZANACO Zambia National Commercial Bank - Deposit Slip Date: 25/05/2026 Student / Reference No: Amount (ZMW): 1CU100030 K 5,547.70 Batch / Transaction Ref: TXNZANACO2025030\nICU100030\nK 5,547.70\n25/05/2026\nTXNZANACO2025030",
+        "filename": "zanaco_030.png",
+        "confidence_threshold": 0.65
+      },
+      "expected": {
+        "file": "zanaco/zanaco_030.png",
+        "bank": "zanaco",
+        "student_id": "100030",
+        "amount": 5547.7,
+        "date": "2026-05-25",
+        "batch_reference": "ZANACO2025030"
+      },
+      "fields": {
+        "student_id": true,
+        "amount": true,
+        "date": true,
+        "batch_reference": true
+      }
+    },
+    {
+      "file": "zanaco/zanaco_031.png",
+      "predicted": {
+        "student_id": "100031",
+        "amount": 4675.41,
+        "date": "2026-05-20",
+        "batch_reference": "ZANACO2025031",
+        "confidence": 0.7137,
+        "needs_manual_entry": false,
+        "template": "zanaco",
+        "template_name": "Zanaco",
+        "fields_found": 4,
+        "region_confidence": {
+          "student_id": 0.04,
+          "amount": 0.945,
+          "date": 0.96,
+          "batch_ref": 0.91
+        },
+        "raw_text": "ZANACO Zambia National Commercial Bank - Deposit Slip Date: 20/05/2026 Student / Reference No: Amount (ZMW): 1CU100031 K 4,675.41 Batch / Transaction Ref: TXNZANACO2025031\nICU100031\nK 4,675.41\n20/05/2026\nTXNZANACO2025031",
+        "filename": "zanaco_031.png",
+        "confidence_threshold": 0.65
+      },
+      "expected": {
+        "file": "zanaco/zanaco_031.png",
+        "bank": "zanaco",
+        "student_id": "100031",
+        "amount": 4675.41,
+        "date": "2026-05-20",
+        "batch_reference": "ZANACO2025031"
+      },
+      "fields": {
+        "student_id": true,
+        "amount": true,
+        "date": true,
+        "batch_reference": true
+      }
+    },
+    {
+      "file": "zanaco/zanaco_032.png",
+      "predicted": {
+        "student_id": "100032",
+        "amount": 7838.36,
+        "date": "2026-04-30",
+        "batch_reference": "ZANACO2025032",
+        "confidence": 0.7863,
+        "needs_manual_entry": false,
+        "template": "zanaco",
+        "template_name": "Zanaco",
+        "fields_found": 4,
+        "region_confidence": {
+          "student_id": 0.34,
+          "amount": 0.945,
+          "date": 0.96,
+          "batch_ref": 0.9
+        },
+        "raw_text": "ZANACO Zambia National Commercial Bank - Deposit Slip Date: 30/04/2026 Student / Reference No: Amount (ZMW): 1CU100032 K 7,838.36 Batch / Transaction Ref: TXNZANACO2025032\nICU100032\nK 7,838.36\n30/04/2026\nTXNZANACO2025032",
+        "filename": "zanaco_032.png",
+        "confidence_threshold": 0.65
+      },
+      "expected": {
+        "file": "zanaco/zanaco_032.png",
+        "bank": "zanaco",
+        "student_id": "100032",
+        "amount": 7838.36,
+        "date": "2026-04-30",
+        "batch_reference": "ZANACO2025032"
+      },
+      "fields": {
+        "student_id": true,
+        "amount": true,
+        "date": true,
+        "batch_reference": true
+      }
+    },
+    {
+      "file": "zanaco/zanaco_033.png",
+      "predicted": {
+        "student_id": "100033",
+        "amount": 5638.73,
+        "date": "2026-06-02",
+        "batch_reference": "ZANACO2025033",
+        "confidence": 0.765,
+        "needs_manual_entry": false,
+        "template": "zanaco",
+        "template_name": "Zanaco",
+        "fields_found": 4,
+        "region_confidence": {
+          "student_id": 0.27,
+          "amount": 0.93,
+          "date": 0.96,
+          "batch_ref": 0.9
+        },
+        "raw_text": "ZANACO Zambia National Commercial Bank - Deposit Slip Date: 02/06/2026 Student / Reference No: Amount (ZMW): 1CU100033 K 5,638.73 Batch / Transaction Ref: TXNZANACO2025033\n1ICU100033\nK 5,638.73\n02/06/2026\nTXNZANACO2025033",
+        "filename": "zanaco_033.png",
+        "confidence_threshold": 0.65
+      },
+      "expected": {
+        "file": "zanaco/zanaco_033.png",
+        "bank": "zanaco",
+        "student_id": "100033",
+        "amount": 5638.73,
+        "date": "2026-06-02",
+        "batch_reference": "ZANACO2025033"
+      },
+      "fields": {
+        "student_id": true,
+        "amount": true,
+        "date": true,
+        "batch_reference": true
+      }
+    },
+    {
+      "file": "zanaco/zanaco_034.png",
+      "predicted": {
+        "student_id": "100034",
+        "amount": 3533.24,
+        "date": "2026-06-07",
+        "batch_reference": "ZANACO2025034",
+        "confidence": 0.7438,
+        "needs_manual_entry": false,
+        "template": "zanaco",
+        "template_name": "Zanaco",
+        "fields_found": 4,
+        "region_confidence": {
+          "student_id": 0.16,
+          "amount": 0.945,
+          "date": 0.96,
+          "batch_ref": 0.91
+        },
+        "raw_text": "ZANACO Zambia National Commercial Bank - Deposit Slip Date: 07/06/2026 Student / Reference No: Amount (ZMW): 1CU100034 K 3,533.24 Batch / Transaction Ref: TXNZANACO2025034\nICU100034\nK 3,533.24\n07/06/2026\nTXNZANACO2025034",
+        "filename": "zanaco_034.png",
+        "confidence_threshold": 0.65
+      },
+      "expected": {
+        "file": "zanaco/zanaco_034.png",
+        "bank": "zanaco",
+        "student_id": "100034",
+        "amount": 3533.24,
+        "date": "2026-06-07",
+        "batch_reference": "ZANACO2025034"
+      },
+      "fields": {
+        "student_id": true,
+        "amount": true,
+        "date": true,
+        "batch_reference": true
+      }
+    },
+    {
+      "file": "zanaco/zanaco_035.png",
+      "predicted": {
+        "student_id": "100035",
+        "amount": 2672.56,
+        "date": "2026-06-30",
+        "batch_reference": "ZANACO2025035",
+        "confidence": 0.8337,
+        "needs_manual_entry": false,
+        "template": "zanaco",
+        "template_name": "Zanaco",
+        "fields_found": 4,
+        "region_confidence": {
+          "student_id": 0.52,
+          "amount": 0.945,
+          "date": 0.96,
+          "batch_ref": 0.91
+        },
+        "raw_text": "ZANACO Zambia National Commercial Bank - Deposit Slip Date: 30/06/2026 Student / Reference No: Amount (ZMW): 1CU100035 K 2,672.56 Batch / Transaction Ref: TXNZANACO2025035\nICU100035\nK 2,672.56\n30/06/2026\nTXNZANACO2025035",
+        "filename": "zanaco_035.png",
+        "confidence_threshold": 0.65
+      },
+      "expected": {
+        "file": "zanaco/zanaco_035.png",
+        "bank": "zanaco",
+        "student_id": "100035",
+        "amount": 2672.56,
+        "date": "2026-06-30",
+        "batch_reference": "ZANACO2025035"
+      },
+      "fields": {
+        "student_id": true,
+        "amount": true,
+        "date": true,
+        "batch_reference": true
+      }
+    },
+    {
+      "file": "zanaco/zanaco_036.png",
+      "predicted": {
+        "student_id": "100036",
+        "amount": 7223.29,
+        "date": "2026-06-28",
+        "batch_reference": "ZANACO2025036",
+        "confidence": 0.77,
+        "needs_manual_entry": false,
+        "template": "zanaco",
+        "template_name": "Zanaco",
+        "fields_found": 4,
+        "region_confidence": {
+          "student_id": 0.27,
+          "amount": 0.94,
+          "date": 0.96,
+          "batch_ref": 0.91
+        },
+        "raw_text": "ZANACO Zambia National Commercial Bank - Deposit Slip Date: 28/06/2026 Student / Reference No: Amount (ZMW): 1CU100036 K 7,223.29 Batch / Transaction Ref: TXNZANACO2025036\nICU100036\nK 7,223.29\n28/06/2026\nTXNZANACO2025036",
+        "filename": "zanaco_036.png",
+        "confidence_threshold": 0.65
+      },
+      "expected": {
+        "file": "zanaco/zanaco_036.png",
+        "bank": "zanaco",
+        "student_id": "100036",
+        "amount": 7223.29,
+        "date": "2026-06-28",
+        "batch_reference": "ZANACO2025036"
+      },
+      "fields": {
+        "student_id": true,
+        "amount": true,
+        "date": true,
+        "batch_reference": true
+      }
+    },
+    {
+      "file": "zanaco/zanaco_037.png",
+      "predicted": {
+        "student_id": "100037",
+        "amount": 7310.61,
+        "date": "2026-05-24",
+        "batch_reference": "ZANACO2025037",
+        "confidence": 0.7438,
+        "needs_manual_entry": false,
+        "template": "zanaco",
+        "template_name": "Zanaco",
+        "fields_found": 4,
+        "region_confidence": {
+          "student_id": 0.16,
+          "amount": 0.945,
+          "date": 0.96,
+          "batch_ref": 0.91
+        },
+        "raw_text": "ZANACO Zambia National Commercial Bank - Deposit Slip Date: 24/05/2026 Student / Reference No: Amount (ZMW): 1CU100037 K 7,310.61 Batch / Transaction Ref: TXNZANACO2025037\n1CU100037\nK 7,310.61\n24/05/2026\nTXNZANACO2025037",
+        "filename": "zanaco_037.png",
+        "confidence_threshold": 0.65
+      },
+      "expected": {
+        "file": "zanaco/zanaco_037.png",
+        "bank": "zanaco",
+        "student_id": "100037",
+        "amount": 7310.61,
+        "date": "2026-05-24",
+        "batch_reference": "ZANACO2025037"
+      },
+      "fields": {
+        "student_id": true,
+        "amount": true,
+        "date": true,
+        "batch_reference": true
+      }
+    },
+    {
+      "file": "zanaco/zanaco_038.png",
+      "predicted": {
+        "student_id": "100038",
+        "amount": 8008.12,
+        "date": "2026-05-18",
+        "batch_reference": "ZANACO2025038",
+        "confidence": 0.7162,
+        "needs_manual_entry": false,
+        "template": "zanaco",
+        "template_name": "Zanaco",
+        "fields_found": 4,
+        "region_confidence": {
+          "student_id": 0.06,
+          "amount": 0.945,
+          "date": 0.96,
+          "batch_ref": 0.9
+        },
+        "raw_text": "ZANACO Zambia National Commercial Bank - Deposit Slip Date: 18/05/2026 Student / Reference No: Amount (ZMW): 1CU100038 K 8,008.12 Batch / Transaction Ref: TXNZANACO2025038\nICU100038\nK 8,008.12\n18/05/2026\nTXNZANACO2025038",
+        "filename": "zanaco_038.png",
+        "confidence_threshold": 0.65
+      },
+      "expected": {
+        "file": "zanaco/zanaco_038.png",
+        "bank": "zanaco",
+        "student_id": "100038",
+        "amount": 8008.12,
+        "date": "2026-05-18",
+        "batch_reference": "ZANACO2025038"
+      },
+      "fields": {
+        "student_id": true,
+        "amount": true,
+        "date": true,
+        "batch_reference": true
+      }
+    },
+    {
+      "file": "zanaco/zanaco_039.png",
+      "predicted": {
+        "student_id": "100039",
+        "amount": 8211.04,
+        "date": "2026-05-10",
+        "batch_reference": "ZANACO2025039",
+        "confidence": 0.7875,
+        "needs_manual_entry": false,
+        "template": "zanaco",
+        "template_name": "Zanaco",
+        "fields_found": 4,
+        "region_confidence": {
+          "student_id": 0.35,
+          "amount": 0.94,
+          "date": 0.96,
+          "batch_ref": 0.9
+        },
+        "raw_text": "ZANACO Zambia National Commercial Bank - Deposit Slip Date: 10/05/2026 Student / Reference No: Amount (ZMW): 1CU100039 K 8,211.04 Batch / Transaction Ref: TXNZANACO2025039\nICU100039\nK 8,211.04\n10/05/2026\nTXNZANACO2025039",
+        "filename": "zanaco_039.png",
+        "confidence_threshold": 0.65
+      },
+      "expected": {
+        "file": "zanaco/zanaco_039.png",
+        "bank": "zanaco",
+        "student_id": "100039",
+        "amount": 8211.04,
+        "date": "2026-05-10",
+        "batch_reference": "ZANACO2025039"
+      },
+      "fields": {
+        "student_id": true,
+        "amount": true,
+        "date": true,
+        "batch_reference": true
+      }
+    },
+    {
+      "file": "fnb/fnb_000.png",
+      "predicted": {
+        "student_id": "101000",
+        "amount": 7267.64,
+        "date": "2026-05-30",
+        "batch_reference": "FNB2025000",
+        "confidence": 0.9275,
+        "needs_manual_entry": false,
+        "template": "fnb",
+        "template_name": "FNB",
+        "fields_found": 4,
+        "region_confidence": {
+          "student_id": 0.91,
+          "amount": 0.93,
+          "date": 0.96,
+          "batch_ref": 0.91
+        },
+        "raw_text": "FNB FIRST. NATIONAL BANK - Cash Deposit DATE 30/05/2026 Student ID: AMT: STU-101000 ZMW 7,267.64 SERIAL / REF: REFFNB2025000\nSTU-101000\nZMW 7,267.64\n30/05/2026\nREFFNB2025000",
+        "filename": "fnb_000.png",
+        "confidence_threshold": 0.65
+      },
+      "expected": {
+        "file": "fnb/fnb_000.png",
+        "bank": "fnb",
+        "student_id": "101000",
+        "amount": 7267.64,
+        "date": "2026-05-30",
+        "batch_reference": "FNB2025000"
+      },
+      "fields": {
+        "student_id": true,
+        "amount": true,
+        "date": true,
+        "batch_reference": true
+      }
+    },
+    {
+      "file": "fnb/fnb_001.png",
+      "predicted": {
+        "student_id": "101001",
+        "amount": 8160.12,
+        "date": "2026-07-14",
+        "batch_reference": "FNB2025001",
+        "confidence": 0.925,
+        "needs_manual_entry": false,
+        "template": "fnb",
+        "template_name": "FNB",
+        "fields_found": 4,
+        "region_confidence": {
+          "student_id": 0.91,
+          "amount": 0.93,
+          "date": 0.96,
+          "batch_ref": 0.9
+        },
+        "raw_text": "FNB FIRST NATIONAL BANK - Cash Deposit DATE 14/07/2026 Student ID: AMT: STU-101001 ZMW 8,160.12 SERIAL / REF: REFFNB2025001\nSTU-101001\nZMW 8,160.12\n14/07/2026\nREFFNB2025001",
+        "filename": "fnb_001.png",
+        "confidence_threshold": 0.65
+      },
+      "expected": {
+        "file": "fnb/fnb_001.png",
+        "bank": "fnb",
+        "student_id": "101001",
+        "amount": 8160.12,
+        "date": "2026-07-14",
+        "batch_reference": "FNB2025001"
+      },
+      "fields": {
+        "student_id": true,
+        "amount": true,
+        "date": true,
+        "batch_reference": true
+      }
+    },
+    {
+      "file": "fnb/fnb_002.png",
+      "predicted": {
+        "student_id": "101002",
+        "amount": 5498.8,
+        "date": "2026-04-22",
+        "batch_reference": "FNB2025002",
+        "confidence": 0.9325,
+        "needs_manual_entry": false,
+        "template": "fnb",
+        "template_name": "FNB",
+        "fields_found": 4,
+        "region_confidence": {
+          "student_id": 0.91,
+          "amount": 0.94,
+          "date": 0.96,
+          "batch_ref": 0.92
+        },
+        "raw_text": "FNB FIRST NATIONAL BANK - Cash Deposit DATE 22/04/2026 Student ID: AMT: STU-101002 ZMW 5,498.80 SERIAL / REF: REFFNB2025002\nSTU-101002\nZMW 5,498.80\n22/04/2026\nREFFNB2025002",
+        "filename": "fnb_002.png",
+        "confidence_threshold": 0.65
+      },
+      "expected": {
+        "file": "fnb/fnb_002.png",
+        "bank": "fnb",
+        "student_id": "101002",
+        "amount": 5498.8,
+        "date": "2026-04-22",
+        "batch_reference": "FNB2025002"
+      },
+      "fields": {
+        "student_id": true,
+        "amount": true,
+        "date": true,
+        "batch_reference": true
+      }
+    },
+    {
+      "file": "fnb/fnb_003.png",
+      "predicted": {
+        "student_id": "101003",
+        "amount": 7505.79,
+        "date": "2026-06-02",
+        "batch_reference": "FNB2025003",
+        "confidence": 0.9275,
+        "needs_manual_entry": false,
+        "template": "fnb",
+        "template_name": "FNB",
+        "fields_found": 4,
+        "region_confidence": {
+          "student_id": 0.91,
+          "amount": 0.94,
+          "date": 0.96,
+          "batch_ref": 0.9
+        },
+        "raw_text": "FNB FIRST NATIONAL BANK - Cash Deposit DATE 02/06/2026 Student ID: AMT: STU-101003 ZMW 7,505.79 SERIAL / REF: REFFNB2025003\nSTU-101003\nZMW 7,505.79\n02/06/2026\nREFFNB2025003",
+        "filename": "fnb_003.png",
+        "confidence_threshold": 0.65
+      },
+      "expected": {
+        "file": "fnb/fnb_003.png",
+        "bank": "fnb",
+        "student_id": "101003",
+        "amount": 7505.79,
+        "date": "2026-06-02",
+        "batch_reference": "FNB2025003"
+      },
+      "fields": {
+        "student_id": true,
+        "amount": true,
+        "date": true,
+        "batch_reference": true
+      }
+    },
+    {
+      "file": "fnb/fnb_004.png",
+      "predicted": {
+        "student_id": "101004",
+        "amount": 3852.94,
+        "date": "2026-05-22",
+        "batch_reference": "FNB2025004",
+        "confidence": 0.9275,
+        "needs_manual_entry": false,
+        "template": "fnb",
+        "template_name": "FNB",
+        "fields_found": 4,
+        "region_confidence": {
+          "student_id": 0.91,
+          "amount": 0.93,
+          "date": 0.95,
+          "batch_ref": 0.92
+        },
+        "raw_text": "FNB FIRST NATIONAL BANK - Cash Deposit DATE 22/05/2026 Student ID: AMT: STU-101004 ZMW 3,852.94 SERIAL / REF: REFFNB2025004\nSTU-101004\nZMW 3,852.94\n22/05/2026\nREFFNB2025004",
+        "filename": "fnb_004.png",
+        "confidence_threshold": 0.65
+      },
+      "expected": {
+        "file": "fnb/fnb_004.png",
+        "bank": "fnb",
+        "student_id": "101004",
+        "amount": 3852.94,
+        "date": "2026-05-22",
+        "batch_reference": "FNB2025004"
+      },
+      "fields": {
+        "student_id": true,
+        "amount": true,
+        "date": true,
+        "batch_reference": true
+      }
+    },
+    {
+      "file": "fnb/fnb_005.png",
+      "predicted": {
+        "student_id": "101005",
+        "amount": 6614.58,
+        "date": "2026-05-25",
+        "batch_reference": "FNB2025005",
+        "confidence": 0.9263,
+        "needs_manual_entry": false,
+        "template": "fnb",
+        "template_name": "FNB",
+        "fields_found": 4,
+        "region_confidence": {
+          "student_id": 0.91,
+          "amount": 0.935,
+          "date": 0.96,
+          "batch_ref": 0.9
+        },
+        "raw_text": "FNB FIRST NATIONAL BANK - Cash Deposit DATE 25/05/2026 Student ID: AMT: STU-101005 ZMW 6,614.58 SERIAL / REF: REFFNB2025005\nSTU-101005\nZMW 6,614.58\n25/05/2026\nREFFNB2025005",
+        "filename": "fnb_005.png",
+        "confidence_threshold": 0.65
+      },
+      "expected": {
+        "file": "fnb/fnb_005.png",
+        "bank": "fnb",
+        "student_id": "101005",
+        "amount": 6614.58,
+        "date": "2026-05-25",
+        "batch_reference": "FNB2025005"
+      },
+      "fields": {
+        "student_id": true,
+        "amount": true,
+        "date": true,
+        "batch_reference": true
+      }
+    },
+    {
+      "file": "fnb/fnb_006.png",
+      "predicted": {
+        "student_id": "101006",
+        "amount": 5431.38,
+        "date": "2026-05-10",
+        "batch_reference": "FNB2025006",
+        "confidence": 0.93,
+        "needs_manual_entry": false,
+        "template": "fnb",
+        "template_name": "FNB",
+        "fields_found": 4,
+        "region_confidence": {
+          "student_id": 0.91,
+          "amount": 0.93,
+          "date": 0.96,
+          "batch_ref": 0.92
+        },
+        "raw_text": "FNB FIRST NATIONAL BANK - Cash Deposit DATE 10/05/2026 Student ID: AMT: STU-101006 ZMW 5,431.38 SERIAL / REF: REFFNB2025006\nSTU-101006\nZMW 5,431.38\n10/05/2026\nREFFNB2025006",
+        "filename": "fnb_006.png",
+        "confidence_threshold": 0.65
+      },
+      "expected": {
+        "file": "fnb/fnb_006.png",
+        "bank": "fnb",
+        "student_id": "101006",
+        "amount": 5431.38,
+        "date": "2026-05-10",
+        "batch_reference": "FNB2025006"
+      },
+      "fields": {
+        "student_id": true,
+        "amount": true,
+        "date": true,
+        "batch_reference": true
+      }
+    },
+    {
+      "file": "fnb/fnb_007.png",
+      "predicted": {
+        "student_id": "101007",
+        "amount": 7522.86,
+        "date": "2026-05-08",
+        "batch_reference": "FNB2025007",
+        "confidence": 0.93,
+        "needs_manual_entry": false,
+        "template": "fnb",
+        "template_name": "FNB",
+        "fields_found": 4,
+        "region_confidence": {
+          "student_id": 0.91,
+          "amount": 0.93,
+          "date": 0.96,
+          "batch_ref": 0.92
+        },
+        "raw_text": "FNB FIRST NATIONAL BANK - Cash Deposit DATE 08/05/2026 Student ID: AMT: STU-101007 ZMW 7,522.86 SERIAL / REF: REFFNB2025007\nSTU-101007\nZMW 7,522.86\n08/05/2026\nREFFNB2025007",
+        "filename": "fnb_007.png",
+        "confidence_threshold": 0.65
+      },
+      "expected": {
+        "file": "fnb/fnb_007.png",
+        "bank": "fnb",
+        "student_id": "101007",
+        "amount": 7522.86,
+        "date": "2026-05-08",
+        "batch_reference": "FNB2025007"
+      },
+      "fields": {
+        "student_id": true,
+        "amount": true,
+        "date": true,
+        "batch_reference": true
+      }
+    },
+    {
+      "file": "fnb/fnb_008.png",
+      "predicted": {
+        "student_id": "101008",
+        "amount": 6782.49,
+        "date": "2026-04-23",
+        "batch_reference": "FNB2025008",
+        "confidence": 0.9263,
+        "needs_manual_entry": false,
+        "template": "fnb",
+        "template_name": "FNB",
+        "fields_found": 4,
+        "region_confidence": {
+          "student_id": 0.91,
+          "amount": 0.935,
+          "date": 0.96,
+          "batch_ref": 0.9
+        },
+        "raw_text": "FNB FIRST NATIONAL BANK - Cash Deposit DATE 23/04/2026 Student ID: AMT: STU-101008 ZMW 6,782.49 SERIAL / REF: REFFNB2025008\nSTU-101008\nZMW 6,782.49\n23/04/2026\nREFFNB2025008",
+        "filename": "fnb_008.png",
+        "confidence_threshold": 0.65
+      },
+      "expected": {
+        "file": "fnb/fnb_008.png",
+        "bank": "fnb",
+        "student_id": "101008",
+        "amount": 6782.49,
+        "date": "2026-04-23",
+        "batch_reference": "FNB2025008"
+      },
+      "fields": {
+        "student_id": true,
+        "amount": true,
+        "date": true,
+        "batch_reference": true
+      }
+    },
+    {
+      "file": "fnb/fnb_009.png",
+      "predicted": {
+        "student_id": "101009",
+        "amount": 3244.54,
+        "date": "2026-06-19",
+        "batch_reference": "FNB2025009",
+        "confidence": 0.93,
+        "needs_manual_entry": false,
+        "template": "fnb",
+        "template_name": "FNB",
+        "fields_found": 4,
+        "region_confidence": {
+          "student_id": 0.91,
+          "amount": 0.93,
+          "date": 0.96,
+          "batch_ref": 0.92
+        },
+        "raw_text": "FNB FIRST NATIONAL BANK - Cash Deposit DATE 19/06/2026 Student ID: AMT: STU-101009 ZMW 3,244.54 SERIAL / REF: REFFNB2025009\nSTU-101009\nZMW 3,244.54\n19/06/2026\nREFFNB2025009",
+        "filename": "fnb_009.png",
+        "confidence_threshold": 0.65
+      },
+      "expected": {
+        "file": "fnb/fnb_009.png",
+        "bank": "fnb",
+        "student_id": "101009",
+        "amount": 3244.54,
+        "date": "2026-06-19",
+        "batch_reference": "FNB2025009"
+      },
+      "fields": {
+        "student_id": true,
+        "amount": true,
+        "date": true,
+        "batch_reference": true
+      }
+    },
+    {
+      "file": "fnb/fnb_010.png",
+      "predicted": {
+        "student_id": "101010",
+        "amount": 8294.09,
+        "date": "2026-06-30",
+        "batch_reference": "FNB2025010",
+        "confidence": 0.9275,
+        "needs_manual_entry": false,
+        "template": "fnb",
+        "template_name": "FNB",
+        "fields_found": 4,
+        "region_confidence": {
+          "student_id": 0.91,
+          "amount": 0.93,
+          "date": 0.96,
+          "batch_ref": 0.91
+        },
+        "raw_text": "FNB FIRST NATIONAL BANK - Cash Deposit DATE 30/06/2026 Student ID: AMT: STU-101010 ZMW 8,294.09 SERIAL / REF: REFFNB2025010\nSTU-101010\nZMW 8,294.09\n30/06/2026\nREFFNB2025010",
+        "filename": "fnb_010.png",
+        "confidence_threshold": 0.65
+      },
+      "expected": {
+        "file": "fnb/fnb_010.png",
+        "bank": "fnb",
+        "student_id": "101010",
+        "amount": 8294.09,
+        "date": "2026-06-30",
+        "batch_reference": "FNB2025010"
+      },
+      "fields": {
+        "student_id": true,
+        "amount": true,
+        "date": true,
+        "batch_reference": true
+      }
+    },
+    {
+      "file": "fnb/fnb_011.png",
+      "predicted": {
+        "student_id": "101011",
+        "amount": 3488.95,
+        "date": "2026-05-29",
+        "batch_reference": "FNB2025011",
+        "confidence": 0.925,
+        "needs_manual_entry": false,
+        "template": "fnb",
+        "template_name": "FNB",
+        "fields_found": 4,
+        "region_confidence": {
+          "student_id": 0.91,
+          "amount": 0.93,
+          "date": 0.96,
+          "batch_ref": 0.9
+        },
+        "raw_text": "FNB FIRST NATIONAL BANK - Cash Deposit DATE 29/05/2026 Student ID: AMT: STU-101011 ZMW 3,488.95 SERIAL / REF: REFFNB2025011\nSTU-101011\nZMW 3,488.95\n29/05/2026\nREFFNB2025011",
+        "filename": "fnb_011.png",
+        "confidence_threshold": 0.65
+      },
+      "expected": {
+        "file": "fnb/fnb_011.png",
+        "bank": "fnb",
+        "student_id": "101011",
+        "amount": 3488.95,
+        "date": "2026-05-29",
+        "batch_reference": "FNB2025011"
+      },
+      "fields": {
+        "student_id": true,
+        "amount": true,
+        "date": true,
+        "batch_reference": true
+      }
+    },
+    {
+      "file": "fnb/fnb_012.png",
+      "predicted": {
+        "student_id": "101012",
+        "amount": 6379.88,
+        "date": "2026-06-21",
+        "batch_reference": "FNB2025012",
+        "confidence": 0.9263,
+        "needs_manual_entry": false,
+        "template": "fnb",
+        "template_name": "FNB",
+        "fields_found": 4,
+        "region_confidence": {
+          "student_id": 0.91,
+          "amount": 0.935,
+          "date": 0.96,
+          "batch_ref": 0.9
+        },
+        "raw_text": "FNB FIRST NATIONAL BANK - Cash Deposit DATE 21/06/2026 Student ID: AMT: STU-101012 ZMW 6,379.88 SERIAL / REF: REFFNB2025012\nSTU-101012\nZMW 6,379.88\n21/06/2026\nREFFNB2025012",
+        "filename": "fnb_012.png",
+        "confidence_threshold": 0.65
+      },
+      "expected": {
+        "file": "fnb/fnb_012.png",
+        "bank": "fnb",
+        "student_id": "101012",
+        "amount": 6379.88,
+        "date": "2026-06-21",
+        "batch_reference": "FNB2025012"
+      },
+      "fields": {
+        "student_id": true,
+        "amount": true,
+        "date": true,
+        "batch_reference": true
+      }
+    },
+    {
+      "file": "fnb/fnb_013.png",
+      "predicted": {
+        "student_id": "101013",
+        "amount": 4119.52,
+        "date": "2026-07-02",
+        "batch_reference": "FNB2025013",
+        "confidence": 0.9213,
+        "needs_manual_entry": false,
+        "template": "fnb",
+        "template_name": "FNB",
+        "fields_found": 4,
+        "region_confidence": {
+          "student_id": 0.91,
+          "amount": 0.925,
+          "date": 0.96,
+          "batch_ref": 0.89
+        },
+        "raw_text": "FNB FIRST NATIONAL BANK - Cash Deposit DATE 02/07/2026 Student ID: AMT: STU-101013 ZMW 4,119.52 SERIAL / REF: REFFNB2025013\nSTU-101013\nZMW 4,119.52\n02/07/2026\nREFFNB2025013",
+        "filename": "fnb_013.png",
+        "confidence_threshold": 0.65
+      },
+      "expected": {
+        "file": "fnb/fnb_013.png",
+        "bank": "fnb",
+        "student_id": "101013",
+        "amount": 4119.52,
+        "date": "2026-07-02",
+        "batch_reference": "FNB2025013"
+      },
+      "fields": {
+        "student_id": true,
+        "amount": true,
+        "date": true,
+        "batch_reference": true
+      }
+    },
+    {
+      "file": "fnb/fnb_014.png",
+      "predicted": {
+        "student_id": "101014",
+        "amount": 2966.85,
+        "date": "2026-04-29",
+        "batch_reference": "FNB2025014",
+        "confidence": 0.925,
+        "needs_manual_entry": false,
+        "template": "fnb",
+        "template_name": "FNB",
+        "fields_found": 4,
+        "region_confidence": {
+          "student_id": 0.9,
+          "amount": 0.93,
+          "date": 0.96,
+          "batch_ref": 0.91
+        },
+        "raw_text": "FNB FIRST NATIONAL BANK - Cash Deposit DATE 29/04/2026 Student ID: AMT: STU-101014 ZMW 2,966.85 SERIAL / REF: REFFNB2025014\nSTU-101014\nZMW 2,966.85\n29/04/2026\nREFFNB2025014",
+        "filename": "fnb_014.png",
+        "confidence_threshold": 0.65
+      },
+      "expected": {
+        "file": "fnb/fnb_014.png",
+        "bank": "fnb",
+        "student_id": "101014",
+        "amount": 2966.85,
+        "date": "2026-04-29",
+        "batch_reference": "FNB2025014"
+      },
+      "fields": {
+        "student_id": true,
+        "amount": true,
+        "date": true,
+        "batch_reference": true
+      }
+    },
+    {
+      "file": "fnb/fnb_015.png",
+      "predicted": {
+        "student_id": "101015",
+        "amount": 7172.78,
+        "date": "2026-06-03",
+        "batch_reference": "FNB2025015",
+        "confidence": 0.9225,
+        "needs_manual_entry": false,
+        "template": "fnb",
+        "template_name": "FNB",
+        "fields_found": 4,
+        "region_confidence": {
+          "student_id": 0.9,
+          "amount": 0.93,
+          "date": 0.96,
+          "batch_ref": 0.9
+        },
+        "raw_text": "FNB FIRST NATIONAL BANK - Cash Deposit DATE 03/06/2026 Student ID: AMT: STU-101015 ZMW 7,172.78 SERIAL / REF: REFFNB2025015\nSTU-101015\nZMW 7,172.78\n03/06/2026\nREFFNB2025015",
+        "filename": "fnb_015.png",
+        "confidence_threshold": 0.65
+      },
+      "expected": {
+        "file": "fnb/fnb_015.png",
+        "bank": "fnb",
+        "student_id": "101015",
+        "amount": 7172.78,
+        "date": "2026-06-03",
+        "batch_reference": "FNB2025015"
+      },
+      "fields": {
+        "student_id": true,
+        "amount": true,
+        "date": true,
+        "batch_reference": true
+      }
+    },
+    {
+      "file": "fnb/fnb_016.png",
+      "predicted": {
+        "student_id": "101016",
+        "amount": 5418.96,
+        "date": "2026-05-30",
+        "batch_reference": "FNB2025016",
+        "confidence": 0.9238,
+        "needs_manual_entry": false,
+        "template": "fnb",
+        "template_name": "FNB",
+        "fields_found": 4,
+        "region_confidence": {
+          "student_id": 0.9,
+          "amount": 0.925,
+          "date": 0.96,
+          "batch_ref": 0.91
+        },
+        "raw_text": "FNB FIRST NATIONAL BANK - Cash Deposit DATE 30/05/2026 Student ID: AMT: STU-101016 ZMW 5,418.96 SERIAL / REF: REFFNB2025016\nSTU-101016\nZMW 5,418.96\n30/05/2026\nREFFNB2025016",
+        "filename": "fnb_016.png",
+        "confidence_threshold": 0.65
+      },
+      "expected": {
+        "file": "fnb/fnb_016.png",
+        "bank": "fnb",
+        "student_id": "101016",
+        "amount": 5418.96,
+        "date": "2026-05-30",
+        "batch_reference": "FNB2025016"
+      },
+      "fields": {
+        "student_id": true,
+        "amount": true,
+        "date": true,
+        "batch_reference": true
+      }
+    },
+    {
+      "file": "fnb/fnb_017.png",
+      "predicted": {
+        "student_id": "101017",
+        "amount": 5252.5,
+        "date": "2026-05-31",
+        "batch_reference": "FNB2025017",
+        "confidence": 0.925,
+        "needs_manual_entry": false,
+        "template": "fnb",
+        "template_name": "FNB",
+        "fields_found": 4,
+        "region_confidence": {
+          "student_id": 0.9,
+          "amount": 0.93,
+          "date": 0.96,
+          "batch_ref": 0.91
+        },
+        "raw_text": "FNB FIRST NATIONAL BANK - Cash Deposit DATE 31/05/2026 Student ID: AMT: STU-101017 ZMW 5,252.50 SERIAL / REF: REFFNB2025017\nSTU-101017\nZMW 5,252.50\n31/05/2026\nREFFNB2025017",
+        "filename": "fnb_017.png",
+        "confidence_threshold": 0.65
+      },
+      "expected": {
+        "file": "fnb/fnb_017.png",
+        "bank": "fnb",
+        "student_id": "101017",
+        "amount": 5252.5,
+        "date": "2026-05-31",
+        "batch_reference": "FNB2025017"
+      },
+      "fields": {
+        "student_id": true,
+        "amount": true,
+        "date": true,
+        "batch_reference": true
+      }
+    },
+    {
+      "file": "fnb/fnb_018.png",
+      "predicted": {
+        "student_id": "101018",
+        "amount": 4306.8,
+        "date": "2026-06-03",
+        "batch_reference": "FNB2025018",
+        "confidence": 0.9238,
+        "needs_manual_entry": false,
+        "template": "fnb",
+        "template_name": "FNB",
+        "fields_found": 4,
+        "region_confidence": {
+          "student_id": 0.9,
+          "amount": 0.935,
+          "date": 0.96,
+          "batch_ref": 0.9
+        },
+        "raw_text": "FNB FIRST NATIONAL BANK - Cash Deposit DATE 03/06/2026 Student ID: AMT: STU-101018 ZMW 4,306.80 SERIAL / REF: REFFNB2025018\nSTU-101018\nZMW 4,306.80\n03/06/2026\nREFFNB2025018",
+        "filename": "fnb_018.png",
+        "confidence_threshold": 0.65
+      },
+      "expected": {
+        "file": "fnb/fnb_018.png",
+        "bank": "fnb",
+        "student_id": "101018",
+        "amount": 4306.8,
+        "date": "2026-06-03",
+        "batch_reference": "FNB2025018"
+      },
+      "fields": {
+        "student_id": true,
+        "amount": true,
+        "date": true,
+        "batch_reference": true
+      }
+    },
+    {
+      "file": "fnb/fnb_019.png",
+      "predicted": {
+        "student_id": "101019",
+        "amount": 7848.23,
+        "date": "2026-04-22",
+        "batch_reference": "FNB2025019",
+        "confidence": 0.925,
+        "needs_manual_entry": false,
+        "template": "fnb",
+        "template_name": "FNB",
+        "fields_found": 4,
+        "region_confidence": {
+          "student_id": 0.91,
+          "amount": 0.93,
+          "date": 0.96,
+          "batch_ref": 0.9
+        },
+        "raw_text": "FNB FIRST NATIONAL BANK - Cash Deposit DATE 22/04/2026 Student ID: AMT: STU-101019 ZMW 7,848.23 SERIAL / REF: REFFNB2025019\nSTU-101019\nZMW 7,848.23\n22/04/2026\nREFFNB2025019",
+        "filename": "fnb_019.png",
+        "confidence_threshold": 0.65
+      },
+      "expected": {
+        "file": "fnb/fnb_019.png",
+        "bank": "fnb",
+        "student_id": "101019",
+        "amount": 7848.23,
+        "date": "2026-04-22",
+        "batch_reference": "FNB2025019"
+      },
+      "fields": {
+        "student_id": true,
+        "amount": true,
+        "date": true,
+        "batch_reference": true
+      }
+    },
+    {
+      "file": "fnb/fnb_020.png",
+      "predicted": {
+        "student_id": "101020",
+        "amount": 7641.74,
+        "date": "2026-04-30",
+        "batch_reference": "FNB2025020",
+        "confidence": 0.9287,
+        "needs_manual_entry": false,
+        "template": "fnb",
+        "template_name": "FNB",
+        "fields_found": 4,
+        "region_confidence": {
+          "student_id": 0.9,
+          "amount": 0.935,
+          "date": 0.96,
+          "batch_ref": 0.92
+        },
+        "raw_text": "FNB FIRST NATIONAL BANK - Cash Deposit DATE 30/04/2026 Student ID: AMT: STU-101020 ZMW 7,641.74 SERIAL / REF: REFFNB2025020\nSTU-101020\nZMW 7,641.74\n30/04/2026\nREFFNB2025020",
+        "filename": "fnb_020.png",
+        "confidence_threshold": 0.65
+      },
+      "expected": {
+        "file": "fnb/fnb_020.png",
+        "bank": "fnb",
+        "student_id": "101020",
+        "amount": 7641.74,
+        "date": "2026-04-30",
+        "batch_reference": "FNB2025020"
+      },
+      "fields": {
+        "student_id": true,
+        "amount": true,
+        "date": true,
+        "batch_reference": true
+      }
+    },
+    {
+      "file": "fnb/fnb_021.png",
+      "predicted": {
+        "student_id": "101021",
+        "amount": 4235.75,
+        "date": "2026-05-15",
+        "batch_reference": "FNB2025021",
+        "confidence": 0.925,
+        "needs_manual_entry": false,
+        "template": "fnb",
+        "template_name": "FNB",
+        "fields_found": 4,
+        "region_confidence": {
+          "student_id": 0.91,
+          "amount": 0.93,
+          "date": 0.96,
+          "batch_ref": 0.9
+        },
+        "raw_text": "FNB FIRST NATIONAL BANK - Cash Deposit DATE 15/05/2026 Student ID: AMT: STU-101021 ZMW 4,235.75 SERIAL / REF: REFFNB2025021\nSTU-101021\nZMW 4,235.75\n15/05/2026\nREFFNB2025021",
+        "filename": "fnb_021.png",
+        "confidence_threshold": 0.65
+      },
+      "expected": {
+        "file": "fnb/fnb_021.png",
+        "bank": "fnb",
+        "student_id": "101021",
+        "amount": 4235.75,
+        "date": "2026-05-15",
+        "batch_reference": "FNB2025021"
+      },
+      "fields": {
+        "student_id": true,
+        "amount": true,
+        "date": true,
+        "batch_reference": true
+      }
+    },
+    {
+      "file": "fnb/fnb_022.png",
+      "predicted": {
+        "student_id": "101022",
+        "amount": 6700.68,
+        "date": "2026-06-22",
+        "batch_reference": "FNB2025022",
+        "confidence": 0.9275,
+        "needs_manual_entry": false,
+        "template": "fnb",
+        "template_name": "FNB",
+        "fields_found": 4,
+        "region_confidence": {
+          "student_id": 0.9,
+          "amount": 0.94,
+          "date": 0.96,
+          "batch_ref": 0.91
+        },
+        "raw_text": "FNB FIRST NATIONAL BANK - Cash Deposit DATE 22/06/2026 Student ID: AMT: STU-101022 ZMW 6,700.68 SERIAL / REF: REFFNB2025022\nSTU-101022\nZMW 6,700.68\n22/06/2026\nREFFNB2025022",
+        "filename": "fnb_022.png",
+        "confidence_threshold": 0.65
+      },
+      "expected": {
+        "file": "fnb/fnb_022.png",
+        "bank": "fnb",
+        "student_id": "101022",
+        "amount": 6700.68,
+        "date": "2026-06-22",
+        "batch_reference": "FNB2025022"
+      },
+      "fields": {
+        "student_id": true,
+        "amount": true,
+        "date": true,
+        "batch_reference": true
+      }
+    },
+    {
+      "file": "fnb/fnb_023.png",
+      "predicted": {
+        "student_id": "101023",
+        "amount": 6842.24,
+        "date": "2026-05-01",
+        "batch_reference": "FNB2025023",
+        "confidence": 0.925,
+        "needs_manual_entry": false,
+        "template": "fnb",
+        "template_name": "FNB",
+        "fields_found": 4,
+        "region_confidence": {
+          "student_id": 0.91,
+          "amount": 0.93,
+          "date": 0.96,
+          "batch_ref": 0.9
+        },
+        "raw_text": "FNB FIRST NATIONAL BANK - Cash Deposit DATE 01/05/2026 Student ID: AMT: STU-101023 ZMW 6,842.24 SERIAL / REF: REFFNB2025023\nSTU-101023\nZMW 6,842.24\n01/05/2026\nREFFNB2025023",
+        "filename": "fnb_023.png",
+        "confidence_threshold": 0.65
+      },
+      "expected": {
+        "file": "fnb/fnb_023.png",
+        "bank": "fnb",
+        "student_id": "101023",
+        "amount": 6842.24,
+        "date": "2026-05-01",
+        "batch_reference": "FNB2025023"
+      },
+      "fields": {
+        "student_id": true,
+        "amount": true,
+        "date": true,
+        "batch_reference": true
+      }
+    },
+    {
+      "file": "fnb/fnb_024.png",
+      "predicted": {
+        "student_id": "101024",
+        "amount": 7998.05,
+        "date": "2026-05-11",
+        "batch_reference": "FNB2025024",
+        "confidence": 0.9275,
+        "needs_manual_entry": false,
+        "template": "fnb",
+        "template_name": "FNB",
+        "fields_found": 4,
+        "region_confidence": {
+          "student_id": 0.9,
+          "amount": 0.93,
+          "date": 0.96,
+          "batch_ref": 0.92
+        },
+        "raw_text": "FNB FIRST NATIONAL BANK - Cash Deposit DATE 11/05/2026 Student ID: AMT: STU-101024 ZMW 7,998.05 SERIAL / REF: REFFNB2025024\nSTU-101024\nZMW 7,998.05\n11/05/2026\nREFFNB2025024",
+        "filename": "fnb_024.png",
+        "confidence_threshold": 0.65
+      },
+      "expected": {
+        "file": "fnb/fnb_024.png",
+        "bank": "fnb",
+        "student_id": "101024",
+        "amount": 7998.05,
+        "date": "2026-05-11",
+        "batch_reference": "FNB2025024"
+      },
+      "fields": {
+        "student_id": true,
+        "amount": true,
+        "date": true,
+        "batch_reference": true
+      }
+    },
+    {
+      "file": "fnb/fnb_025.png",
+      "predicted": {
+        "student_id": "101025",
+        "amount": 3002.74,
+        "date": "2026-07-15",
+        "batch_reference": "FNB2025025",
+        "confidence": 0.9263,
+        "needs_manual_entry": false,
+        "template": "fnb",
+        "template_name": "FNB",
+        "fields_found": 4,
+        "region_confidence": {
+          "student_id": 0.9,
+          "amount": 0.935,
+          "date": 0.96,
+          "batch_ref": 0.91
+        },
+        "raw_text": "FNB FIRST NATIONAL BANK - Cash Deposit DATE 15/07/2026 Student ID: AMT: STU-101025 ZMW 3,002.74 SERIAL / REF: REFFNB2025025\nSTU-101025\nZMW 3,002.74\n15/07/2026\nREFFNB2025025",
+        "filename": "fnb_025.png",
+        "confidence_threshold": 0.65
+      },
+      "expected": {
+        "file": "fnb/fnb_025.png",
+        "bank": "fnb",
+        "student_id": "101025",
+        "amount": 3002.74,
+        "date": "2026-07-15",
+        "batch_reference": "FNB2025025"
+      },
+      "fields": {
+        "student_id": true,
+        "amount": true,
+        "date": true,
+        "batch_reference": true
+      }
+    },
+    {
+      "file": "fnb/fnb_026.png",
+      "predicted": {
+        "student_id": "101026",
+        "amount": 4714.8,
+        "date": "2026-06-02",
+        "batch_reference": "FNB2025026",
+        "confidence": 0.93,
+        "needs_manual_entry": false,
+        "template": "fnb",
+        "template_name": "FNB",
+        "fields_found": 4,
+        "region_confidence": {
+          "student_id": 0.91,
+          "amount": 0.93,
+          "date": 0.96,
+          "batch_ref": 0.92
+        },
+        "raw_text": "FNB FIRST NATIONAL BANK - Cash Deposit DATE 02/06/2026 Student ID: AMT: STU-101026 ZMW 4,714.80 SERIAL / REF: REFFNB2025026\nSTU-101026\nZMW 4,714.80\n02/06/2026\nREFFNB2025026",
+        "filename": "fnb_026.png",
+        "confidence_threshold": 0.65
+      },
+      "expected": {
+        "file": "fnb/fnb_026.png",
+        "bank": "fnb",
+        "student_id": "101026",
+        "amount": 4714.8,
+        "date": "2026-06-02",
+        "batch_reference": "FNB2025026"
+      },
+      "fields": {
+        "student_id": true,
+        "amount": true,
+        "date": true,
+        "batch_reference": true
+      }
+    },
+    {
+      "file": "fnb/fnb_027.png",
+      "predicted": {
+        "student_id": "101027",
+        "amount": 5508.74,
+        "date": "2026-07-15",
+        "batch_reference": "FNB2025027",
+        "confidence": 0.925,
+        "needs_manual_entry": false,
+        "template": "fnb",
+        "template_name": "FNB",
+        "fields_found": 4,
+        "region_confidence": {
+          "student_id": 0.9,
+          "amount": 0.93,
+          "date": 0.96,
+          "batch_ref": 0.91
+        },
+        "raw_text": "FNB FIRST NATIONAL BANK - Cash Deposit DATE 15/07/2026 Student ID: AMT: STU-101027 ZMW 5,508.74 SERIAL / REF: REFFNB2025027\nSTU-101027\nZMW 5,508.74\n15/07/2026\nREFFNB2025027",
+        "filename": "fnb_027.png",
+        "confidence_threshold": 0.65
+      },
+      "expected": {
+        "file": "fnb/fnb_027.png",
+        "bank": "fnb",
+        "student_id": "101027",
+        "amount": 5508.74,
+        "date": "2026-07-15",
+        "batch_reference": "FNB2025027"
+      },
+      "fields": {
+        "student_id": true,
+        "amount": true,
+        "date": true,
+        "batch_reference": true
+      }
+    },
+    {
+      "file": "fnb/fnb_028.png",
+      "predicted": {
+        "student_id": "101028",
+        "amount": 6163.4,
+        "date": "2026-05-26",
+        "batch_reference": "FNB2025028",
+        "confidence": 0.9225,
+        "needs_manual_entry": false,
+        "template": "fnb",
+        "template_name": "FNB",
+        "fields_found": 4,
+        "region_confidence": {
+          "student_id": 0.9,
+          "amount": 0.93,
+          "date": 0.95,
+          "batch_ref": 0.91
+        },
+        "raw_text": "FNB FIRST NATIONAL BANK - Cash Deposit DATE 26/05/2026 Student ID: AMT: STU-101028 ZMW 6,163.40 SERIAL / REF: REFFNB2025028\nSTU-101028\nZMW 6,163.40\n26/05/2026\nREFFNB2025028",
+        "filename": "fnb_028.png",
+        "confidence_threshold": 0.65
+      },
+      "expected": {
+        "file": "fnb/fnb_028.png",
+        "bank": "fnb",
+        "student_id": "101028",
+        "amount": 6163.4,
+        "date": "2026-05-26",
+        "batch_reference": "FNB2025028"
+      },
+      "fields": {
+        "student_id": true,
+        "amount": true,
+        "date": true,
+        "batch_reference": true
+      }
+    },
+    {
+      "file": "fnb/fnb_029.png",
+      "predicted": {
+        "student_id": "101029",
+        "amount": 7987.52,
+        "date": "2026-04-24",
+        "batch_reference": "FNB2025029",
+        "confidence": 0.925,
+        "needs_manual_entry": false,
+        "template": "fnb",
+        "template_name": "FNB",
+        "fields_found": 4,
+        "region_confidence": {
+          "student_id": 0.9,
+          "amount": 0.93,
+          "date": 0.96,
+          "batch_ref": 0.91
+        },
+        "raw_text": "FNB FIRST NATIONAL BANK - Cash Deposit DATE 24/04/2026 Student ID: AMT: STU-101029 ZMW 7,987.52 SERIAL / REF: REFFNB2025029\nSTU-101029\nZMW 7,987.52\n24/04/2026\nREFFNB2025029",
+        "filename": "fnb_029.png",
+        "confidence_threshold": 0.65
+      },
+      "expected": {
+        "file": "fnb/fnb_029.png",
+        "bank": "fnb",
+        "student_id": "101029",
+        "amount": 7987.52,
+        "date": "2026-04-24",
+        "batch_reference": "FNB2025029"
+      },
+      "fields": {
+        "student_id": true,
+        "amount": true,
+        "date": true,
+        "batch_reference": true
+      }
+    },
+    {
+      "file": "fnb/fnb_030.png",
+      "predicted": {
+        "student_id": "101030",
+        "amount": 3880.44,
+        "date": "2026-05-13",
+        "batch_reference": "FNB2025030",
+        "confidence": 0.9275,
+        "needs_manual_entry": false,
+        "template": "fnb",
+        "template_name": "FNB",
+        "fields_found": 4,
+        "region_confidence": {
+          "student_id": 0.91,
+          "amount": 0.93,
+          "date": 0.96,
+          "batch_ref": 0.91
+        },
+        "raw_text": "FNB FIRST. NATIONAL BANK - Cash Deposit DATE 13/05/2026 Student ID: AMT: STU-101030 ZMW 3,880.44 SERIAL / REF: REFFNB2025030\nSTU-101030\nZMW 3,880.44\n13/05/2026\nREFFNB2025030",
+        "filename": "fnb_030.png",
+        "confidence_threshold": 0.65
+      },
+      "expected": {
+        "file": "fnb/fnb_030.png",
+        "bank": "fnb",
+        "student_id": "101030",
+        "amount": 3880.44,
+        "date": "2026-05-13",
+        "batch_reference": "FNB2025030"
+      },
+      "fields": {
+        "student_id": true,
+        "amount": true,
+        "date": true,
+        "batch_reference": true
+      }
+    },
+    {
+      "file": "fnb/fnb_031.png",
+      "predicted": {
+        "student_id": "101031",
+        "amount": 4895.07,
+        "date": "2026-06-19",
+        "batch_reference": "FNB2025031",
+        "confidence": 0.9287,
+        "needs_manual_entry": false,
+        "template": "fnb",
+        "template_name": "FNB",
+        "fields_found": 4,
+        "region_confidence": {
+          "student_id": 0.91,
+          "amount": 0.935,
+          "date": 0.96,
+          "batch_ref": 0.91
+        },
+        "raw_text": "FNB FIRST NATIONAL BANK - Cash Deposit DATE 19/06/2026 Student ID: AMT: STU-101031 ZMW 4,895.07 SERIAL / REF: REFFNB2025031\nSTU-101031\nZMW 4,895.07\n19/06/2026\nREFFNB2025031",
+        "filename": "fnb_031.png",
+        "confidence_threshold": 0.65
+      },
+      "expected": {
+        "file": "fnb/fnb_031.png",
+        "bank": "fnb",
+        "student_id": "101031",
+        "amount": 4895.07,
+        "date": "2026-06-19",
+        "batch_reference": "FNB2025031"
+      },
+      "fields": {
+        "student_id": true,
+        "amount": true,
+        "date": true,
+        "batch_reference": true
+      }
+    },
+    {
+      "file": "fnb/fnb_032.png",
+      "predicted": {
+        "student_id": "101032",
+        "amount": 7125.9,
+        "date": "2026-05-01",
+        "batch_reference": "FNB2025032",
+        "confidence": 0.9287,
+        "needs_manual_entry": false,
+        "template": "fnb",
+        "template_name": "FNB",
+        "fields_found": 4,
+        "region_confidence": {
+          "student_id": 0.91,
+          "amount": 0.935,
+          "date": 0.96,
+          "batch_ref": 0.91
+        },
+        "raw_text": "FNB FIRST NATIONAL BANK - Cash Deposit DATE 01/05/2026 Student ID: AMT: STU-101032 ZMW 7,125.90 SERIAL / REF: REFFNB2025032\nSTU-101032\nZMW 7,125.90\n01/05/2026\nREFFNB2025032",
+        "filename": "fnb_032.png",
+        "confidence_threshold": 0.65
+      },
+      "expected": {
+        "file": "fnb/fnb_032.png",
+        "bank": "fnb",
+        "student_id": "101032",
+        "amount": 7125.9,
+        "date": "2026-05-01",
+        "batch_reference": "FNB2025032"
+      },
+      "fields": {
+        "student_id": true,
+        "amount": true,
+        "date": true,
+        "batch_reference": true
+      }
+    },
+    {
+      "file": "fnb/fnb_033.png",
+      "predicted": {
+        "student_id": "101033",
+        "amount": 7387.0,
+        "date": "2026-07-04",
+        "batch_reference": "FNB2025033",
+        "confidence": 0.92,
+        "needs_manual_entry": false,
+        "template": "fnb",
+        "template_name": "FNB",
+        "fields_found": 4,
+        "region_confidence": {
+          "student_id": 0.88,
+          "amount": 0.94,
+          "date": 0.96,
+          "batch_ref": 0.9
+        },
+        "raw_text": "FNB FIRST NATIONAL BANK - Cash Deposit DATE 04/07/2026 Student ID: AMT: STU-101033 ZMW 7,387.00 SERIAL / REF: REFFNB2025033\nSTU-101033\nZMW 7,387.00\n04/07/2026\nREFFNB2025033",
+        "filename": "fnb_033.png",
+        "confidence_threshold": 0.65
+      },
+      "expected": {
+        "file": "fnb/fnb_033.png",
+        "bank": "fnb",
+        "student_id": "101033",
+        "amount": 7387.0,
+        "date": "2026-07-04",
+        "batch_reference": "FNB2025033"
+      },
+      "fields": {
+        "student_id": true,
+        "amount": true,
+        "date": true,
+        "batch_reference": true
+      }
+    },
+    {
+      "file": "fnb/fnb_034.png",
+      "predicted": {
+        "student_id": "101034",
+        "amount": 8315.46,
+        "date": "2026-05-12",
+        "batch_reference": "FNB2025034",
+        "confidence": 0.9275,
+        "needs_manual_entry": false,
+        "template": "fnb",
+        "template_name": "FNB",
+        "fields_found": 4,
+        "region_confidence": {
+          "student_id": 0.91,
+          "amount": 0.94,
+          "date": 0.95,
+          "batch_ref": 0.91
+        },
+        "raw_text": "FNB FIRST NATIONAL BANK - Cash Deposit DATE 12/05/2026 Student ID: AMT: STU-101034 ZMW 8,315.46 SERIAL / REF: REFFNB2025034\nSTU-101034\nZMW 8,315.46\n12/05/2026\nREFFNB2025034",
+        "filename": "fnb_034.png",
+        "confidence_threshold": 0.65
+      },
+      "expected": {
+        "file": "fnb/fnb_034.png",
+        "bank": "fnb",
+        "student_id": "101034",
+        "amount": 8315.46,
+        "date": "2026-05-12",
+        "batch_reference": "FNB2025034"
+      },
+      "fields": {
+        "student_id": true,
+        "amount": true,
+        "date": true,
+        "batch_reference": true
+      }
+    },
+    {
+      "file": "fnb/fnb_035.png",
+      "predicted": {
+        "student_id": "101035",
+        "amount": 7979.7,
+        "date": "2026-05-10",
+        "batch_reference": "FNB2025035",
+        "confidence": 0.9225,
+        "needs_manual_entry": false,
+        "template": "fnb",
+        "template_name": "FNB",
+        "fields_found": 4,
+        "region_confidence": {
+          "student_id": 0.89,
+          "amount": 0.94,
+          "date": 0.96,
+          "batch_ref": 0.9
+        },
+        "raw_text": "FNB FIRST NATIONAL BANK - Cash Deposit DATE 10/05/2026 Student ID: AMT: STU-101035 ZMW 7,979.70 SERIAL / REF: REFFNB2025035\nSTU-101035\nZMW 7,979.70\n10/05/2026\nREFFNB2025035",
+        "filename": "fnb_035.png",
+        "confidence_threshold": 0.65
+      },
+      "expected": {
+        "file": "fnb/fnb_035.png",
+        "bank": "fnb",
+        "student_id": "101035",
+        "amount": 7979.7,
+        "date": "2026-05-10",
+        "batch_reference": "FNB2025035"
+      },
+      "fields": {
+        "student_id": true,
+        "amount": true,
+        "date": true,
+        "batch_reference": true
+      }
+    },
+    {
+      "file": "fnb/fnb_036.png",
+      "predicted": {
+        "student_id": "101036",
+        "amount": 7065.94,
+        "date": "2026-05-26",
+        "batch_reference": "FNB2025036",
+        "confidence": 0.9263,
+        "needs_manual_entry": false,
+        "template": "fnb",
+        "template_name": "FNB",
+        "fields_found": 4,
+        "region_confidence": {
+          "student_id": 0.91,
+          "amount": 0.935,
+          "date": 0.95,
+          "batch_ref": 0.91
+        },
+        "raw_text": "FNB FIRST NATIONAL BANK - Cash Deposit DATE 26/05/2026 Student ID: AMT: STU-101036 ZMW 7,065.94 SERIAL / REF: REFFNB2025036\nSTU-101036\nZMW 7,065.94\n26/05/2026\nREFFNB2025036",
+        "filename": "fnb_036.png",
+        "confidence_threshold": 0.65
+      },
+      "expected": {
+        "file": "fnb/fnb_036.png",
+        "bank": "fnb",
+        "student_id": "101036",
+        "amount": 7065.94,
+        "date": "2026-05-26",
+        "batch_reference": "FNB2025036"
+      },
+      "fields": {
+        "student_id": true,
+        "amount": true,
+        "date": true,
+        "batch_reference": true
+      }
+    },
+    {
+      "file": "fnb/fnb_037.png",
+      "predicted": {
+        "student_id": "101037",
+        "amount": 7437.26,
+        "date": "2026-06-20",
+        "batch_reference": "FNB2025037",
+        "confidence": 0.9187,
+        "needs_manual_entry": false,
+        "template": "fnb",
+        "template_name": "FNB",
+        "fields_found": 4,
+        "region_confidence": {
+          "student_id": 0.91,
+          "amount": 0.915,
+          "date": 0.96,
+          "batch_ref": 0.89
+        },
+        "raw_text": "FNB FIRST NATIONAL BANK - Cash Deposit DATE 20/06/2026 Student ID: AMT: STU-101037 ZMW 7,437.26 SERIAL / REF: REFFNB2025037\nSTU-101037\nZMW 7,437.26\n20/06/2026\nREFFNB2025037",
+        "filename": "fnb_037.png",
+        "confidence_threshold": 0.65
+      },
+      "expected": {
+        "file": "fnb/fnb_037.png",
+        "bank": "fnb",
+        "student_id": "101037",
+        "amount": 7437.26,
+        "date": "2026-06-20",
+        "batch_reference": "FNB2025037"
+      },
+      "fields": {
+        "student_id": true,
+        "amount": true,
+        "date": true,
+        "batch_reference": true
+      }
+    },
+    {
+      "file": "fnb/fnb_038.png",
+      "predicted": {
+        "student_id": "101038",
+        "amount": 8201.25,
+        "date": "2026-05-05",
+        "batch_reference": "FNB2025038",
+        "confidence": 0.9175,
+        "needs_manual_entry": false,
+        "template": "fnb",
+        "template_name": "FNB",
+        "fields_found": 4,
+        "region_confidence": {
+          "student_id": 0.9,
+          "amount": 0.93,
+          "date": 0.95,
+          "batch_ref": 0.89
+        },
+        "raw_text": "FNB FIRST NATIONAL BANK - Cash Deposit DATE 05/05/2026 Student ID: AMT: STU-101038 ZMW 8,201.25 SERIAL / REF: REFFNB2025038\nSTU-101038\nZMW 8,201.25\n05/05/2026\nREFFNB2025038",
+        "filename": "fnb_038.png",
+        "confidence_threshold": 0.65
+      },
+      "expected": {
+        "file": "fnb/fnb_038.png",
+        "bank": "fnb",
+        "student_id": "101038",
+        "amount": 8201.25,
+        "date": "2026-05-05",
+        "batch_reference": "FNB2025038"
+      },
+      "fields": {
+        "student_id": true,
+        "amount": true,
+        "date": true,
+        "batch_reference": true
+      }
+    },
+    {
+      "file": "fnb/fnb_039.png",
+      "predicted": {
+        "student_id": "101039",
+        "amount": 7578.73,
+        "date": "2026-06-20",
+        "batch_reference": "FNB2025039",
+        "confidence": 0.9238,
+        "needs_manual_entry": false,
+        "template": "fnb",
+        "template_name": "FNB",
+        "fields_found": 4,
+        "region_confidence": {
+          "student_id": 0.91,
+          "amount": 0.925,
+          "date": 0.96,
+          "batch_ref": 0.9
+        },
+        "raw_text": "FNB FIRST NATIONAL BANK - Cash Deposit DATE 20/06/2026 Student ID: AMT: STU-101039 ZMW 7,578.73 SERIAL / REF: REFFNB2025039\nSTU-101039\nZMW 7,578.73\n20/06/2026\nREFFNB2025039",
+        "filename": "fnb_039.png",
+        "confidence_threshold": 0.65
+      },
+      "expected": {
+        "file": "fnb/fnb_039.png",
+        "bank": "fnb",
+        "student_id": "101039",
+        "amount": 7578.73,
+        "date": "2026-06-20",
+        "batch_reference": "FNB2025039"
+      },
+      "fields": {
+        "student_id": true,
+        "amount": true,
+        "date": true,
+        "batch_reference": true
+      }
+    }
+  ]
+}

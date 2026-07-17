@@ -1,156 +1,140 @@
-const { Gateway, Wallets } = require('fabric-network');
-const path = require('path');
-const fs = require('fs');
+const env = require('../config/environment');
 const logger = require('../utils/logger');
+const { computePaymentHash } = require('../utils/paymentHash');
+const fabricGateway = require('./fabricGateway');
 
-const FABRIC_CONFIG = {
-  connectionProfilePath:
-    process.env.FABRIC_CONNECTION_PROFILE ||
-    path.join(__dirname, '../../../blockchain/network/connection-profile.json'),
-  walletPath:
-    process.env.FABRIC_WALLET_PATH ||
-    path.join(__dirname, '../../../blockchain/wallet'),
-  channelName: process.env.FABRIC_CHANNEL || 'payments-channel',
-  chaincodeName: process.env.FABRIC_CHAINCODE || 'payment-contract',
-  identity: process.env.FABRIC_IDENTITY || 'admin',
-};
+const REQUIRED_CLEARANCE_SEMESTERS = parseInt(process.env.CLEARANCE_REQUIRED_SEMESTERS || '8', 10);
 
-async function getGateway() {
-  const ccpPath = FABRIC_CONFIG.connectionProfilePath;
-  if (!fs.existsSync(ccpPath)) {
-    throw new Error(`Connection profile not found: ${ccpPath}`);
-  }
-  const ccp = JSON.parse(fs.readFileSync(ccpPath, 'utf8'));
+/**
+ * Record verified payment on Fabric ledger (source of truth).
+ * Postgres is updated afterward as the fast-query cache.
+ */
+async function matchPaymentOnChain(payment) {
+  const studentId = String(payment.student_id);
+  const amount = String(parseFloat(payment.amount));
+  const semester = String(payment.semester || '');
+  const batchNumber = String(payment.batch_number || payment.reference || '');
+  const paymentHash = computePaymentHash(studentId, amount, semester, batchNumber);
 
-  const walletPath = FABRIC_CONFIG.walletPath;
-  const wallet = await Wallets.newFileSystemWallet(walletPath);
-
-  const gateway = new Gateway();
-  await gateway.connect(ccp, {
-    wallet,
-    identity: FABRIC_CONFIG.identity,
-    discovery: { enabled: true, asLocalhost: true },
-  });
-
-  return gateway;
-}
-
-async function recordPayment(payment) {
-  let gateway;
   try {
-    gateway = await getGateway();
-    const network = await gateway.getNetwork(FABRIC_CONFIG.channelName);
-    const contract = network.getContract(FABRIC_CONFIG.chaincodeName);
-
-    const studentName =
-      payment.student_name ||
-      [payment.first_name, payment.last_name].filter(Boolean).join(' ') ||
-      'Unknown';
-
-    const payload = JSON.stringify({
-      id: payment.payment_id,
-      studentId: String(payment.student_id),
-      studentName,
-      semester: String(payment.semester || ''),
-      academicYear: String(payment.academic_year || ''),
-      amount: parseFloat(payment.amount),
-      currency: 'ZMW',
-      reference: payment.batch_number || '',
-      status: 'verified',
-      timestamp: new Date().toISOString(),
-    });
-
-    const result = await contract.submitTransaction('RecordPayment', payload);
-    const txId = result && result.length > 0 ? Buffer.from(result).toString('hex') : null;
-    return txId || Buffer.from(JSON.stringify({ id: payment.payment_id, ts: Date.now() })).toString('hex').slice(0, 64);
+    await fabricGateway.submitTransaction(
+      'MatchPayment',
+      paymentHash,
+      studentId,
+      amount,
+      semester,
+      batchNumber
+    );
+    logger.info('MatchPayment committed on ledger', { paymentHash, studentId, semester });
+    return paymentHash;
   } catch (fabricError) {
-    if (process.env.NODE_ENV === 'development') {
-      logger.warn('Fabric unavailable - using dev placeholder hash');
-      return '0x' + Buffer.from(JSON.stringify(payment)).toString('hex').slice(0, 64);
+    if (env.BLOCKCHAIN_OPTIONAL) {
+      logger.warn('Fabric unavailable (BLOCKCHAIN_OPTIONAL=true) — Postgres-only verify', {
+        error: fabricError.message,
+      });
+      return null;
     }
     throw fabricError;
-  } finally {
-    if (gateway) {
-      gateway.disconnect();
-    }
   }
 }
 
-async function queryPayment(studentId, semester, academicYear) {
-  let gateway;
+async function checkClearanceEligibilityOnChain(studentId, requiredSemesters = REQUIRED_CLEARANCE_SEMESTERS) {
   try {
-    gateway = await getGateway();
-    const network = await gateway.getNetwork(FABRIC_CONFIG.channelName);
-    const contract = network.getContract(FABRIC_CONFIG.chaincodeName);
-
-    const result = await contract.evaluateTransaction(
-      'QueryPayment',
-      studentId,
-      semester,
-      academicYear
+    const result = await fabricGateway.evaluateTransaction(
+      'CheckClearanceEligibility',
+      String(studentId),
+      String(requiredSemesters)
     );
-    return result ? JSON.parse(result.toString()) : null;
-  } finally {
-    if (gateway) {
-      gateway.disconnect();
+    const parsed = JSON.parse(result.toString());
+    return {
+      eligible: Boolean(parsed.eligible),
+      missingSemesters: Array.isArray(parsed.missingSemesters)
+        ? parsed.missingSemesters.map(Number)
+        : [],
+      source: 'ledger',
+    };
+  } catch (fabricError) {
+    if (env.BLOCKCHAIN_OPTIONAL) {
+      logger.warn('Fabric clearance check unavailable — caller should not rely on Postgres-only path', {
+        error: fabricError.message,
+      });
+      return null;
     }
+    throw fabricError;
   }
 }
 
-async function getAllPayments(studentId) {
-  let gateway;
-  try {
-    gateway = await getGateway();
-    const network = await gateway.getNetwork(FABRIC_CONFIG.channelName);
-    const contract = network.getContract(FABRIC_CONFIG.chaincodeName);
+async function getStudentPaymentHistoryOnChain(studentId) {
+  const result = await fabricGateway.evaluateTransaction('GetStudentPaymentHistory', String(studentId));
+  if (!result || result.length === 0) return [];
+  const parsed = JSON.parse(result.toString());
+  return Array.isArray(parsed) ? parsed : [];
+}
 
-    const result = await contract.evaluateTransaction('GetAllPayments', studentId);
-    if (!result || result.length === 0) return [];
-    const str = result.toString();
-    const parsed = str ? JSON.parse(str) : [];
-    return Array.isArray(parsed) ? parsed : [];
-  } finally {
-    if (gateway) {
-      gateway.disconnect();
-    }
-  }
+async function queryPaymentOnChain(studentId, semester, academicYear = '') {
+  const result = await fabricGateway.evaluateTransaction(
+    'QueryPayment',
+    String(studentId),
+    String(semester),
+    String(academicYear)
+  );
+  if (!result || result.length === 0) return null;
+  return JSON.parse(result.toString());
 }
 
 async function checkFabricHealth() {
+  return fabricGateway.checkHealth();
+}
+
+/**
+ * Anchor an OCR batch with a single Merkle root transaction (Pseudocode 1).
+ */
+async function submitBatchRootOnChain(merkleRoot, batchId, paymentCount) {
   try {
-    const gateway = await getGateway();
-    await gateway.getNetwork(FABRIC_CONFIG.channelName);
-    gateway.disconnect();
-    return { connected: true };
-  } catch (err) {
-    return { connected: false, error: err.message };
+    await fabricGateway.submitTransaction(
+      'SubmitBatchRoot',
+      String(merkleRoot),
+      String(batchId),
+      String(paymentCount)
+    );
+    logger.info('SubmitBatchRoot committed on ledger', { merkleRoot, batchId, paymentCount });
+    return merkleRoot;
+  } catch (fabricError) {
+    if (env.BLOCKCHAIN_OPTIONAL) {
+      logger.warn('Fabric unavailable — batch root not anchored', { error: fabricError.message });
+      return null;
+    }
+    throw fabricError;
   }
 }
 
-async function recordPaymentOnBlockchain(paymentData) {
-  return recordPayment(paymentData);
+// --- Legacy aliases used by existing controllers ---
+
+async function recordPayment(payment) {
+  return matchPaymentOnChain(payment);
 }
 
-async function recordPaymentOnChain(payload) {
-  const paymentData = payload?.paymentData || payload;
-  return recordPayment(paymentData);
+async function recordPaymentOnBlockchain(payment) {
+  return matchPaymentOnChain(payment);
 }
 
-async function getPaymentFromChain(txId) {
-  try {
-    // Would require chaincode support for GetPaymentByTxId
-    return null;
-  } catch {
-    return null;
-  }
+async function queryPayment(studentId, semester, academicYear) {
+  return queryPaymentOnChain(studentId, semester, academicYear);
+}
+
+async function getAllPayments(studentId) {
+  return getStudentPaymentHistoryOnChain(studentId);
 }
 
 module.exports = {
+  matchPaymentOnChain,
+  checkClearanceEligibilityOnChain,
+  getStudentPaymentHistoryOnChain,
   recordPayment,
   recordPaymentOnBlockchain,
-  recordPaymentOnChain,
   queryPayment,
   getAllPayments,
   checkFabricHealth,
-  getPaymentFromChain,
+  submitBatchRootOnChain,
+  REQUIRED_CLEARANCE_SEMESTERS,
 };

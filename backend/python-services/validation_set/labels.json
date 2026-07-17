@@ -1,0 +1,642 @@
+[
+  {
+    "file": "zanaco/zanaco_000.png",
+    "bank": "zanaco",
+    "student_id": "100000",
+    "amount": 6336.56,
+    "date": "2026-07-12",
+    "batch_reference": "ZANACO2025000"
+  },
+  {
+    "file": "zanaco/zanaco_001.png",
+    "bank": "zanaco",
+    "student_id": "100001",
+    "amount": 2836.72,
+    "date": "2026-05-31",
+    "batch_reference": "ZANACO2025001"
+  },
+  {
+    "file": "zanaco/zanaco_002.png",
+    "bank": "zanaco",
+    "student_id": "100002",
+    "amount": 4749.05,
+    "date": "2026-06-27",
+    "batch_reference": "ZANACO2025002"
+  },
+  {
+    "file": "zanaco/zanaco_003.png",
+    "bank": "zanaco",
+    "student_id": "100003",
+    "amount": 3965.18,
+    "date": "2026-05-24",
+    "batch_reference": "ZANACO2025003"
+  },
+  {
+    "file": "zanaco/zanaco_004.png",
+    "bank": "zanaco",
+    "student_id": "100004",
+    "amount": 5895.57,
+    "date": "2026-06-22",
+    "batch_reference": "ZANACO2025004"
+  },
+  {
+    "file": "zanaco/zanaco_005.png",
+    "bank": "zanaco",
+    "student_id": "100005",
+    "amount": 3519.9,
+    "date": "2026-07-05",
+    "batch_reference": "ZANACO2025005"
+  },
+  {
+    "file": "zanaco/zanaco_006.png",
+    "bank": "zanaco",
+    "student_id": "100006",
+    "amount": 2613.62,
+    "date": "2026-06-05",
+    "batch_reference": "ZANACO2025006"
+  },
+  {
+    "file": "zanaco/zanaco_007.png",
+    "bank": "zanaco",
+    "student_id": "100007",
+    "amount": 5012.68,
+    "date": "2026-05-24",
+    "batch_reference": "ZANACO2025007"
+  },
+  {
+    "file": "zanaco/zanaco_008.png",
+    "bank": "zanaco",
+    "student_id": "100008",
+    "amount": 6643.0,
+    "date": "2026-05-24",
+    "batch_reference": "ZANACO2025008"
+  },
+  {
+    "file": "zanaco/zanaco_009.png",
+    "bank": "zanaco",
+    "student_id": "100009",
+    "amount": 5510.92,
+    "date": "2026-04-28",
+    "batch_reference": "ZANACO2025009"
+  },
+  {
+    "file": "zanaco/zanaco_010.png",
+    "bank": "zanaco",
+    "student_id": "100010",
+    "amount": 8023.13,
+    "date": "2026-07-08",
+    "batch_reference": "ZANACO2025010"
+  },
+  {
+    "file": "zanaco/zanaco_011.png",
+    "bank": "zanaco",
+    "student_id": "100011",
+    "amount": 5820.38,
+    "date": "2026-04-30",
+    "batch_reference": "ZANACO2025011"
+  },
+  {
+    "file": "zanaco/zanaco_012.png",
+    "bank": "zanaco",
+    "student_id": "100012",
+    "amount": 6827.08,
+    "date": "2026-06-09",
+    "batch_reference": "ZANACO2025012"
+  },
+  {
+    "file": "zanaco/zanaco_013.png",
+    "bank": "zanaco",
+    "student_id": "100013",
+    "amount": 7173.82,
+    "date": "2026-04-18",
+    "batch_reference": "ZANACO2025013"
+  },
+  {
+    "file": "zanaco/zanaco_014.png",
+    "bank": "zanaco",
+    "student_id": "100014",
+    "amount": 2660.95,
+    "date": "2026-04-22",
+    "batch_reference": "ZANACO2025014"
+  },
+  {
+    "file": "zanaco/zanaco_015.png",
+    "bank": "zanaco",
+    "student_id": "100015",
+    "amount": 7754.96,
+    "date": "2026-06-19",
+    "batch_reference": "ZANACO2025015"
+  },
+  {
+    "file": "zanaco/zanaco_016.png",
+    "bank": "zanaco",
+    "student_id": "100016",
+    "amount": 6727.41,
+    "date": "2026-04-20",
+    "batch_reference": "ZANACO2025016"
+  },
+  {
+    "file": "zanaco/zanaco_017.png",
+    "bank": "zanaco",
+    "student_id": "100017",
+    "amount": 5648.91,
+    "date": "2026-05-03",
+    "batch_reference": "ZANACO2025017"
+  },
+  {
+    "file": "zanaco/zanaco_018.png",
+    "bank": "zanaco",
+    "student_id": "100018",
+    "amount": 6842.64,
+    "date": "2026-06-17",
+    "batch_reference": "ZANACO2025018"
+  },
+  {
+    "file": "zanaco/zanaco_019.png",
+    "bank": "zanaco",
+    "student_id": "100019",
+    "amount": 8367.37,
+    "date": "2026-04-21",
+    "batch_reference": "ZANACO2025019"
+  },
+  {
+    "file": "zanaco/zanaco_020.png",
+    "bank": "zanaco",
+    "student_id": "100020",
+    "amount": 7738.86,
+    "date": "2026-05-10",
+    "batch_reference": "ZANACO2025020"
+  },
+  {
+    "file": "zanaco/zanaco_021.png",
+    "bank": "zanaco",
+    "student_id": "100021",
+    "amount": 5169.07,
+    "date": "2026-04-17",
+    "batch_reference": "ZANACO2025021"
+  },
+  {
+    "file": "zanaco/zanaco_022.png",
+    "bank": "zanaco",
+    "student_id": "100022",
+    "amount": 5735.73,
+    "date": "2026-05-01",
+    "batch_reference": "ZANACO2025022"
+  },
+  {
+    "file": "zanaco/zanaco_023.png",
+    "bank": "zanaco",
+    "student_id": "100023",
+    "amount": 6085.51,
+    "date": "2026-04-26",
+    "batch_reference": "ZANACO2025023"
+  },
+  {
+    "file": "zanaco/zanaco_024.png",
+    "bank": "zanaco",
+    "student_id": "100024",
+    "amount": 6993.47,
+    "date": "2026-05-04",
+    "batch_reference": "ZANACO2025024"
+  },
+  {
+    "file": "zanaco/zanaco_025.png",
+    "bank": "zanaco",
+    "student_id": "100025",
+    "amount": 5109.86,
+    "date": "2026-04-25",
+    "batch_reference": "ZANACO2025025"
+  },
+  {
+    "file": "zanaco/zanaco_026.png",
+    "bank": "zanaco",
+    "student_id": "100026",
+    "amount": 3177.32,
+    "date": "2026-05-15",
+    "batch_reference": "ZANACO2025026"
+  },
+  {
+    "file": "zanaco/zanaco_027.png",
+    "bank": "zanaco",
+    "student_id": "100027",
+    "amount": 5267.45,
+    "date": "2026-06-24",
+    "batch_reference": "ZANACO2025027"
+  },
+  {
+    "file": "zanaco/zanaco_028.png",
+    "bank": "zanaco",
+    "student_id": "100028",
+    "amount": 4193.54,
+    "date": "2026-06-01",
+    "batch_reference": "ZANACO2025028"
+  },
+  {
+    "file": "zanaco/zanaco_029.png",
+    "bank": "zanaco",
+    "student_id": "100029",
+    "amount": 6126.64,
+    "date": "2026-06-29",
+    "batch_reference": "ZANACO2025029"
+  },
+  {
+    "file": "zanaco/zanaco_030.png",
+    "bank": "zanaco",
+    "student_id": "100030",
+    "amount": 5547.7,
+    "date": "2026-05-25",
+    "batch_reference": "ZANACO2025030"
+  },
+  {
+    "file": "zanaco/zanaco_031.png",
+    "bank": "zanaco",
+    "student_id": "100031",
+    "amount": 4675.41,
+    "date": "2026-05-20",
+    "batch_reference": "ZANACO2025031"
+  },
+  {
+    "file": "zanaco/zanaco_032.png",
+    "bank": "zanaco",
+    "student_id": "100032",
+    "amount": 7838.36,
+    "date": "2026-04-30",
+    "batch_reference": "ZANACO2025032"
+  },
+  {
+    "file": "zanaco/zanaco_033.png",
+    "bank": "zanaco",
+    "student_id": "100033",
+    "amount": 5638.73,
+    "date": "2026-06-02",
+    "batch_reference": "ZANACO2025033"
+  },
+  {
+    "file": "zanaco/zanaco_034.png",
+    "bank": "zanaco",
+    "student_id": "100034",
+    "amount": 3533.24,
+    "date": "2026-06-07",
+    "batch_reference": "ZANACO2025034"
+  },
+  {
+    "file": "zanaco/zanaco_035.png",
+    "bank": "zanaco",
+    "student_id": "100035",
+    "amount": 2672.56,
+    "date": "2026-06-30",
+    "batch_reference": "ZANACO2025035"
+  },
+  {
+    "file": "zanaco/zanaco_036.png",
+    "bank": "zanaco",
+    "student_id": "100036",
+    "amount": 7223.29,
+    "date": "2026-06-28",
+    "batch_reference": "ZANACO2025036"
+  },
+  {
+    "file": "zanaco/zanaco_037.png",
+    "bank": "zanaco",
+    "student_id": "100037",
+    "amount": 7310.61,
+    "date": "2026-05-24",
+    "batch_reference": "ZANACO2025037"
+  },
+  {
+    "file": "zanaco/zanaco_038.png",
+    "bank": "zanaco",
+    "student_id": "100038",
+    "amount": 8008.12,
+    "date": "2026-05-18",
+    "batch_reference": "ZANACO2025038"
+  },
+  {
+    "file": "zanaco/zanaco_039.png",
+    "bank": "zanaco",
+    "student_id": "100039",
+    "amount": 8211.04,
+    "date": "2026-05-10",
+    "batch_reference": "ZANACO2025039"
+  },
+  {
+    "file": "fnb/fnb_000.png",
+    "bank": "fnb",
+    "student_id": "101000",
+    "amount": 7267.64,
+    "date": "2026-05-30",
+    "batch_reference": "FNB2025000"
+  },
+  {
+    "file": "fnb/fnb_001.png",
+    "bank": "fnb",
+    "student_id": "101001",
+    "amount": 8160.12,
+    "date": "2026-07-14",
+    "batch_reference": "FNB2025001"
+  },
+  {
+    "file": "fnb/fnb_002.png",
+    "bank": "fnb",
+    "student_id": "101002",
+    "amount": 5498.8,
+    "date": "2026-04-22",
+    "batch_reference": "FNB2025002"
+  },
+  {
+    "file": "fnb/fnb_003.png",
+    "bank": "fnb",
+    "student_id": "101003",
+    "amount": 7505.79,
+    "date": "2026-06-02",
+    "batch_reference": "FNB2025003"
+  },
+  {
+    "file": "fnb/fnb_004.png",
+    "bank": "fnb",
+    "student_id": "101004",
+    "amount": 3852.94,
+    "date": "2026-05-22",
+    "batch_reference": "FNB2025004"
+  },
+  {
+    "file": "fnb/fnb_005.png",
+    "bank": "fnb",
+    "student_id": "101005",
+    "amount": 6614.58,
+    "date": "2026-05-25",
+    "batch_reference": "FNB2025005"
+  },
+  {
+    "file": "fnb/fnb_006.png",
+    "bank": "fnb",
+    "student_id": "101006",
+    "amount": 5431.38,
+    "date": "2026-05-10",
+    "batch_reference": "FNB2025006"
+  },
+  {
+    "file": "fnb/fnb_007.png",
+    "bank": "fnb",
+    "student_id": "101007",
+    "amount": 7522.86,
+    "date": "2026-05-08",
+    "batch_reference": "FNB2025007"
+  },
+  {
+    "file": "fnb/fnb_008.png",
+    "bank": "fnb",
+    "student_id": "101008",
+    "amount": 6782.49,
+    "date": "2026-04-23",
+    "batch_reference": "FNB2025008"
+  },
+  {
+    "file": "fnb/fnb_009.png",
+    "bank": "fnb",
+    "student_id": "101009",
+    "amount": 3244.54,
+    "date": "2026-06-19",
+    "batch_reference": "FNB2025009"
+  },
+  {
+    "file": "fnb/fnb_010.png",
+    "bank": "fnb",
+    "student_id": "101010",
+    "amount": 8294.09,
+    "date": "2026-06-30",
+    "batch_reference": "FNB2025010"
+  },
+  {
+    "file": "fnb/fnb_011.png",
+    "bank": "fnb",
+    "student_id": "101011",
+    "amount": 3488.95,
+    "date": "2026-05-29",
+    "batch_reference": "FNB2025011"
+  },
+  {
+    "file": "fnb/fnb_012.png",
+    "bank": "fnb",
+    "student_id": "101012",
+    "amount": 6379.88,
+    "date": "2026-06-21",
+    "batch_reference": "FNB2025012"
+  },
+  {
+    "file": "fnb/fnb_013.png",
+    "bank": "fnb",
+    "student_id": "101013",
+    "amount": 4119.52,
+    "date": "2026-07-02",
+    "batch_reference": "FNB2025013"
+  },
+  {
+    "file": "fnb/fnb_014.png",
+    "bank": "fnb",
+    "student_id": "101014",
+    "amount": 2966.85,
+    "date": "2026-04-29",
+    "batch_reference": "FNB2025014"
+  },
+  {
+    "file": "fnb/fnb_015.png",
+    "bank": "fnb",
+    "student_id": "101015",
+    "amount": 7172.78,
+    "date": "2026-06-03",
+    "batch_reference": "FNB2025015"
+  },
+  {
+    "file": "fnb/fnb_016.png",
+    "bank": "fnb",
+    "student_id": "101016",
+    "amount": 5418.96,
+    "date": "2026-05-30",
+    "batch_reference": "FNB2025016"
+  },
+  {
+    "file": "fnb/fnb_017.png",
+    "bank": "fnb",
+    "student_id": "101017",
+    "amount": 5252.5,
+    "date": "2026-05-31",
+    "batch_reference": "FNB2025017"
+  },
+  {
+    "file": "fnb/fnb_018.png",
+    "bank": "fnb",
+    "student_id": "101018",
+    "amount": 4306.8,
+    "date": "2026-06-03",
+    "batch_reference": "FNB2025018"
+  },
+  {
+    "file": "fnb/fnb_019.png",
+    "bank": "fnb",
+    "student_id": "101019",
+    "amount": 7848.23,
+    "date": "2026-04-22",
+    "batch_reference": "FNB2025019"
+  },
+  {
+    "file": "fnb/fnb_020.png",
+    "bank": "fnb",
+    "student_id": "101020",
+    "amount": 7641.74,
+    "date": "2026-04-30",
+    "batch_reference": "FNB2025020"
+  },
+  {
+    "file": "fnb/fnb_021.png",
+    "bank": "fnb",
+    "student_id": "101021",
+    "amount": 4235.75,
+    "date": "2026-05-15",
+    "batch_reference": "FNB2025021"
+  },
+  {
+    "file": "fnb/fnb_022.png",
+    "bank": "fnb",
+    "student_id": "101022",
+    "amount": 6700.68,
+    "date": "2026-06-22",
+    "batch_reference": "FNB2025022"
+  },
+  {
+    "file": "fnb/fnb_023.png",
+    "bank": "fnb",
+    "student_id": "101023",
+    "amount": 6842.24,
+    "date": "2026-05-01",
+    "batch_reference": "FNB2025023"
+  },
+  {
+    "file": "fnb/fnb_024.png",
+    "bank": "fnb",
+    "student_id": "101024",
+    "amount": 7998.05,
+    "date": "2026-05-11",
+    "batch_reference": "FNB2025024"
+  },
+  {
+    "file": "fnb/fnb_025.png",
+    "bank": "fnb",
+    "student_id": "101025",
+    "amount": 3002.74,
+    "date": "2026-07-15",
+    "batch_reference": "FNB2025025"
+  },
+  {
+    "file": "fnb/fnb_026.png",
+    "bank": "fnb",
+    "student_id": "101026",
+    "amount": 4714.8,
+    "date": "2026-06-02",
+    "batch_reference": "FNB2025026"
+  },
+  {
+    "file": "fnb/fnb_027.png",
+    "bank": "fnb",
+    "student_id": "101027",
+    "amount": 5508.74,
+    "date": "2026-07-15",
+    "batch_reference": "FNB2025027"
+  },
+  {
+    "file": "fnb/fnb_028.png",
+    "bank": "fnb",
+    "student_id": "101028",
+    "amount": 6163.4,
+    "date": "2026-05-26",
+    "batch_reference": "FNB2025028"
+  },
+  {
+    "file": "fnb/fnb_029.png",
+    "bank": "fnb",
+    "student_id": "101029",
+    "amount": 7987.52,
+    "date": "2026-04-24",
+    "batch_reference": "FNB2025029"
+  },
+  {
+    "file": "fnb/fnb_030.png",
+    "bank": "fnb",
+    "student_id": "101030",
+    "amount": 3880.44,
+    "date": "2026-05-13",
+    "batch_reference": "FNB2025030"
+  },
+  {
+    "file": "fnb/fnb_031.png",
+    "bank": "fnb",
+    "student_id": "101031",
+    "amount": 4895.07,
+    "date": "2026-06-19",
+    "batch_reference": "FNB2025031"
+  },
+  {
+    "file": "fnb/fnb_032.png",
+    "bank": "fnb",
+    "student_id": "101032",
+    "amount": 7125.9,
+    "date": "2026-05-01",
+    "batch_reference": "FNB2025032"
+  },
+  {
+    "file": "fnb/fnb_033.png",
+    "bank": "fnb",
+    "student_id": "101033",
+    "amount": 7387.0,
+    "date": "2026-07-04",
+    "batch_reference": "FNB2025033"
+  },
+  {
+    "file": "fnb/fnb_034.png",
+    "bank": "fnb",
+    "student_id": "101034",
+    "amount": 8315.46,
+    "date": "2026-05-12",
+    "batch_reference": "FNB2025034"
+  },
+  {
+    "file": "fnb/fnb_035.png",
+    "bank": "fnb",
+    "student_id": "101035",
+    "amount": 7979.7,
+    "date": "2026-05-10",
+    "batch_reference": "FNB2025035"
+  },
+  {
+    "file": "fnb/fnb_036.png",
+    "bank": "fnb",
+    "student_id": "101036",
+    "amount": 7065.94,
+    "date": "2026-05-26",
+    "batch_reference": "FNB2025036"
+  },
+  {
+    "file": "fnb/fnb_037.png",
+    "bank": "fnb",
+    "student_id": "101037",
+    "amount": 7437.26,
+    "date": "2026-06-20",
+    "batch_reference": "FNB2025037"
+  },
+  {
+    "file": "fnb/fnb_038.png",
+    "bank": "fnb",
+    "student_id": "101038",
+    "amount": 8201.25,
+    "date": "2026-05-05",
+    "batch_reference": "FNB2025038"
+  },
+  {
+    "file": "fnb/fnb_039.png",
+    "bank": "fnb",
+    "student_id": "101039",
+    "amount": 7578.73,
+    "date": "2026-06-20",
+    "batch_reference": "FNB2025039"
+  }
+]

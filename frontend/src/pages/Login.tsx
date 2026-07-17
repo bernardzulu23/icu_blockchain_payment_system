@@ -5,6 +5,7 @@ import { toast } from 'react-toastify';
 import { Eye, EyeOff } from 'lucide-react';
 import { authService } from '../api/services';
 import { useTheme } from '../contexts/ThemeContext';
+import { getHomeForRole } from '../utils/routing';
 
 type LoginFormData = {
   role: 'staff' | 'student';
@@ -34,7 +35,7 @@ export default function Login() {
         res = await authService.staffLogin(data.identifier, data.password);
         localStorage.setItem('token', res.data.token);
         toast.success('Welcome back!');
-        navigate('/');
+        navigate(getHomeForRole(res.data.user?.role));
       }
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;

@@ -1,14 +1,13 @@
 import { useQuery } from 'react-query';
-import { apiClient } from '../../api/client';
+import { clearanceService } from '../../api/services';
 import LoadingSpinner from '../../components/LoadingSpinner';
 
 export default function RegistrarDashboard() {
-  const { data: clearances, isLoading } = useQuery(
-    'clearance-requests',
-    () => apiClient.get('/clearance').then((r) => r.data).catch(() => ({ requests: [] }))
+  const { data, isLoading, isError, error } = useQuery('clearance-requests', () =>
+    clearanceService.list().then((r) => r.data)
   );
 
-  const requests = clearances?.requests ?? [];
+  const requests = data?.requests ?? [];
 
   return (
     <div>
@@ -18,6 +17,12 @@ export default function RegistrarDashboard() {
       {isLoading ? (
         <div className="flex justify-center py-12">
           <LoadingSpinner size="lg" />
+        </div>
+      ) : isError ? (
+        <div className="card text-red-500">
+          Failed to load clearance requests.{' '}
+          {(error as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+            'Please try again.'}
         </div>
       ) : (
         <div className="card">
@@ -32,14 +37,18 @@ export default function RegistrarDashboard() {
                 <thead>
                   <tr className="border-b border-slate-200 dark:border-slate-700">
                     <th className="text-left py-2 text-slate-600 dark:text-slate-400">Student</th>
+                    <th className="text-left py-2 text-slate-600 dark:text-slate-400">Number</th>
                     <th className="text-left py-2 text-slate-600 dark:text-slate-400">Type</th>
                     <th className="text-left py-2 text-slate-600 dark:text-slate-400">Status</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {requests.map((r: { clearance_id: string; student_id: string; clearance_type: string; status: string }) => (
+                  {requests.map((r) => (
                     <tr key={r.clearance_id} className="border-b border-slate-100 dark:border-slate-700/50">
-                      <td className="py-3 text-slate-800 dark:text-slate-200">{r.student_id}</td>
+                      <td className="py-3 text-slate-800 dark:text-slate-200">
+                        {r.student_name || r.student_id}
+                      </td>
+                      <td className="py-3 text-slate-800 dark:text-slate-200">{r.student_number || '—'}</td>
                       <td className="py-3 text-slate-800 dark:text-slate-200">{r.clearance_type}</td>
                       <td className="py-3 text-slate-800 dark:text-slate-200">{r.status}</td>
                     </tr>

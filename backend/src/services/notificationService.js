@@ -108,6 +108,8 @@ async function sendNotification({
   channels = ['email'],
   proofPdfUrl = null,
 }) {
+  let emailSent = false;
+  let smsSent = false;
   try {
     if (recipient_type === 'student') {
       const { rows } = await pool.query(
@@ -123,10 +125,10 @@ async function sendNotification({
         emailBody += `<p>Your proof-of-no-balance document (PDF) is available at: <a href="${proofLink}">Download proof document</a>. Open the PDF with your student number as the password.</p>`;
       }
       if (channels.includes('email') && student.email) {
-        await sendEmail(student.email, title, emailBody);
+        emailSent = await sendEmail(student.email, title, emailBody);
       }
       if (channels.includes('sms') && student.phone) {
-        await sendSms(student.phone, message);
+        smsSent = await sendSms(student.phone, message);
       }
     } else if (recipient_type === 'user') {
       const { rows } = await pool.query(
@@ -136,10 +138,22 @@ async function sendNotification({
       const user = rows[0];
       if (!user) return false;
       if (channels.includes('email') && user.email) {
-        await sendEmail(user.email, title, `<p>${message}</p>`);
+        emailSent = await sendEmail(user.email, title, `<p>${message}</p>`);
       }
     }
-    return true;
+
+    const Notification = require('../models/Notification');
+    await Notification.create({
+      recipientId: recipient_id,
+      recipientType: recipient_type,
+      notificationType: type,
+      title,
+      message,
+      sentViaEmail: emailSent,
+      sentViaSms: smsSent,
+    });
+
+    return emailSent || smsSent || true;
   } catch (err) {
     logger.error('Send notification failed:', err);
     return false;

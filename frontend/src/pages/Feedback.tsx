@@ -1,18 +1,34 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
+import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { toast } from 'react-toastify';
-import { feedbackService } from '../api/services';
+import { feedbackService, type Feedback as FeedbackItem } from '../api/services';
+import CrudTable from '../components/CrudTable';
 import { useAuth } from '../hooks/useAuth';
 
 type FormData = { message: string; rating?: number };
 
 export default function Feedback() {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [submitted, setSubmitted] = useState(false);
   const { register, handleSubmit, reset, formState: { errors } } = useForm<FormData>();
 
   const isAdmin = user?.role === 'admin';
+
+  const { data: myFeedback, isLoading: loadingMine } = useQuery(
+    'my-feedback',
+    () => feedbackService.getMine().then((r) => r.data),
+    { enabled: !isAdmin }
+  );
+
+  const deleteMutation = useMutation((id: string) => feedbackService.remove(id), {
+    onSuccess: () => {
+      toast.success('Feedback deleted');
+      queryClient.invalidateQueries('my-feedback');
+    },
+  });
 
   const onSubmit = async (data: FormData) => {
     try {
@@ -20,6 +36,7 @@ export default function Feedback() {
       toast.success('Thank you for your feedback!');
       setSubmitted(true);
       reset();
+      queryClient.invalidateQueries('my-feedback');
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
       toast.error(msg || 'Failed to submit feedback');
@@ -99,6 +116,31 @@ export default function Feedback() {
             Submit Feedback
           </button>
         </form>
+      )}
+
+      {!isAdmin && (
+        <div className="mt-10">
+          <h2 className="font-display text-lg font-semibold text-slate-800 dark:text-slate-100 mb-4">My Feedback</h2>
+          <div className="card">
+            <CrudTable<FeedbackItem>
+              loading={loadingMine}
+              rows={myFeedback?.items ?? []}
+              rowKey={(f) => f.feedback_id}
+              columns={[
+                {
+                  key: 'rating',
+                  label: 'Rating',
+                  render: (f) => (f.rating != null ? '★'.repeat(f.rating) : '—'),
+                },
+                { key: 'message', label: 'Message' },
+                { key: 'created_at', label: 'Date', render: (f) => new Date(f.created_at).toLocaleString() },
+              ]}
+              onDelete={(f) => {
+                if (confirm('Delete this feedback?')) deleteMutation.mutate(f.feedback_id);
+              }}
+            />
+          </div>
+        </div>
       )}
     </div>
   );

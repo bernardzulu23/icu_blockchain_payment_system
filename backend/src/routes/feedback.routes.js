@@ -1,7 +1,7 @@
 const express = require('express');
 const feedbackController = require('../controllers/feedbackController');
 const { authenticateToken } = require('../middleware/auth');
-const { requireRole } = require('../middleware/rbac');
+const { requireRole, requireAdmin } = require('../middleware/rbac');
 
 const router = express.Router();
 
@@ -13,10 +13,10 @@ router.post(
   feedbackController.submitFeedback
 );
 
-router.get(
-  '/',
-  requireRole('admin'),
-  feedbackController.getAllFeedback
-);
+router.get('/mine', requireRole('student', 'accountant', 'registrar'), feedbackController.getMyFeedback);
+router.get('/', requireAdmin, feedbackController.getAllFeedback);
+router.get('/:id', feedbackController.getById);
+router.put('/:id', feedbackController.updateFeedback);
+router.delete('/:id', feedbackController.removeFeedback);
 
 module.exports = router;

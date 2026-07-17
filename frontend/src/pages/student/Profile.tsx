@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
-import { Upload, User, Lock } from 'lucide-react';
+import { Upload, User, Lock, Pencil } from 'lucide-react';
 import { studentService, type StudentProfile } from '../../api/services';
 
 const getProfilePictureUrl = (path: string | undefined) => {
@@ -21,11 +21,16 @@ export default function Profile() {
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
+  const [editing, setEditing] = useState(false);
+  const [form, setForm] = useState({ email: '', phone: '' });
 
   useEffect(() => {
     studentService
       .getProfile()
-      .then((r) => setProfile(r.data))
+      .then((r) => {
+        setProfile(r.data);
+        setForm({ email: r.data.email || '', phone: r.data.phone || '' });
+      })
       .catch(() => toast.error('Failed to load profile'))
       .finally(() => setLoading(false));
   }, []);
@@ -73,6 +78,17 @@ export default function Profile() {
     }
   };
 
+  const handleSaveProfile = async () => {
+    try {
+      const res = await studentService.updateProfile({ email: form.email, phone: form.phone });
+      setProfile(res.data);
+      setEditing(false);
+      toast.success('Profile updated');
+    } catch {
+      toast.error('Failed to update profile');
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-16">
@@ -96,6 +112,19 @@ export default function Profile() {
       <h1 className="font-display text-2xl font-bold text-slate-800 dark:text-slate-100 mb-8">
         My Profile
       </h1>
+
+      <div className="flex justify-end mb-4">
+        {!editing ? (
+          <button type="button" className="btn-secondary text-sm flex items-center gap-2" onClick={() => setEditing(true)}>
+            <Pencil className="w-4 h-4" /> Edit contact info
+          </button>
+        ) : (
+          <div className="flex gap-2">
+            <button type="button" className="btn-primary text-sm" onClick={handleSaveProfile}>Save</button>
+            <button type="button" className="btn-secondary text-sm" onClick={() => { setEditing(false); setForm({ email: profile.email || '', phone: profile.phone || '' }); }}>Cancel</button>
+          </div>
+        )}
+      </div>
 
       <div className="card p-8 space-y-8">
         <div className="flex flex-col sm:flex-row items-center gap-6">
@@ -129,7 +158,7 @@ export default function Profile() {
             </p>
             <p className="text-xs text-slate-500 dark:text-slate-500 flex items-center justify-center sm:justify-start gap-1">
               <Lock className="w-3 h-3" />
-              Other fields are set by admin and cannot be changed
+              Name, program, and semester are set by admin
             </p>
           </div>
         </div>
@@ -200,20 +229,20 @@ export default function Profile() {
             </p>
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">
-              Email
-            </label>
-            <p className="text-slate-800 dark:text-slate-100 font-medium">
-              {profile.email || '—'}
-            </p>
+            <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Email</label>
+            {editing ? (
+              <input className="input-field w-full" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+            ) : (
+              <p className="text-slate-800 dark:text-slate-100 font-medium">{profile.email || '—'}</p>
+            )}
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">
-              Phone
-            </label>
-            <p className="text-slate-800 dark:text-slate-100 font-medium">
-              {profile.phone || '—'}
-            </p>
+            <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Phone</label>
+            {editing ? (
+              <input className="input-field w-full" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+            ) : (
+              <p className="text-slate-800 dark:text-slate-100 font-medium">{profile.phone || '—'}</p>
+            )}
           </div>
         </div>
       </div>

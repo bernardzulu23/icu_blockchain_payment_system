@@ -18,7 +18,11 @@ export default function BatchVerification() {
     {
       onSuccess: (res) => {
         setResult(res.data);
-        toast.success(`Processed ${res.data.totalProcessed} payments`);
+        if (res.data.preview) {
+          toast.info(res.data.message || 'Preview only — upload a bank statement to save matches');
+        } else {
+          toast.success(`Processed ${res.data.totalProcessed} payments`);
+        }
       },
       onError: (err: unknown) => {
         const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
@@ -39,10 +43,11 @@ export default function BatchVerification() {
   return (
     <div>
       <h1 className="font-display text-2xl font-bold text-slate-800 dark:text-slate-100 mb-8">
-        Batch Verification
+        Batch Verification Preview
       </h1>
       <p className="text-slate-600 dark:text-slate-400 mb-8">
-        Upload student payments CSV and bank statement (PDF/CSV) to cross-reference 50+ payments in one click.
+        Upload student payments CSV and bank statement to preview matches. Results are not saved — use Upload
+        Statement on the accountant dashboard to persist matches to the database.
       </p>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div className="card">

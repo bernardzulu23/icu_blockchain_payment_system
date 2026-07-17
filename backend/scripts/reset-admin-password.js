@@ -5,12 +5,13 @@
 require('dotenv').config();
 const { pool, connectDB } = require('../src/config/database');
 const bcrypt = require('bcrypt');
+const env = require('../src/config/environment');
 
 async function reset() {
   await connectDB();
   const client = await pool.connect();
   try {
-    const hash = await bcrypt.hash('admin123', 10);
+    const hash = await bcrypt.hash('admin123', env.BCRYPT_ROUNDS);
     const result = await client.query(
       `UPDATE users SET password_hash = $1 WHERE username = 'admin' OR email = 'admin@icu.edu.zm' RETURNING user_id, username, email`,
       [hash]

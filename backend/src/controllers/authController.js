@@ -1,4 +1,5 @@
 const bcrypt = require('bcrypt');
+const { hashPassword } = require('../utils/password');
 const jwt = require('jsonwebtoken');
 const { query, getClient } = require('../config/database');
 const User = require('../models/User');
@@ -245,7 +246,7 @@ async function studentRegister(req, res) {
       });
     }
 
-    const password_hash = await bcrypt.hash(password, 12);
+    const password_hash = await hashPassword(password);
     const student_id = `STU${Date.now()}`;
 
     const insertResult = await client.query(
@@ -462,7 +463,7 @@ async function resetPassword(req, res) {
         [userResult.rows[0].user_id]
       );
       const userContact = userContactRows[0] || {};
-      const passwordHash = await bcrypt.hash(newPassword, 12);
+      const passwordHash = await hashPassword(newPassword);
       await client.query(
         `UPDATE users
          SET password_hash = $1, reset_token_hash = NULL, reset_token_expires_at = NULL
@@ -513,7 +514,7 @@ async function resetPassword(req, res) {
     const studentContact = studentContactRows[0] || {};
     const studentName = `${studentContact.first_name || ''} ${studentContact.last_name || ''}`.trim();
 
-    const passwordHash = await bcrypt.hash(newPassword, 12);
+    const passwordHash = await hashPassword(newPassword);
     await client.query(
       `UPDATE students
        SET password_hash = $1, reset_token_hash = NULL, reset_token_expires_at = NULL

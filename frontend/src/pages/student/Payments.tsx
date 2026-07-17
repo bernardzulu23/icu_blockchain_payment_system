@@ -1,6 +1,8 @@
-import { useQuery } from 'react-query';
-import { studentService, type Payment } from '../../api/services';
-import LoadingSpinner from '../../components/LoadingSpinner';
+import { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from 'react-query';
+import { toast } from 'react-toastify';
+import CrudTable from '../../components/CrudTable';
+import { studentService, paymentService, type Payment } from '../../api/services';
 
 const statusBadge = (status: Payment['status']) => {
   const styles: Record<string, string> = {
@@ -15,51 +17,78 @@ const statusBadge = (status: Payment['status']) => {
 };
 
 export default function StudentPayments() {
+  const queryClient = useQueryClient();
+  const [editing, setEditing] = useState<Payment | null>(null);
+  const [form, setForm] = useState({ amount: '', reference: '' });
+
   const { data, isLoading } = useQuery('my-payments', () => studentService.myPayments().then((r) => r.data));
 
   const payments = data?.payments ?? [];
 
+  const updateMutation = useMutation(
+    () => paymentService.update(editing!.id, { amount: parseFloat(form.amount), reference: form.reference }),
+    {
+      onSuccess: () => {
+        toast.success('Payment updated');
+        queryClient.invalidateQueries('my-payments');
+        setEditing(null);
+      },
+      onError: () => { toast.error('Update failed — only pending payments can be edited'); },
+    }
+  );
+
+  const deleteMutation = useMutation((id: string) => paymentService.remove(id), {
+    onSuccess: () => {
+      toast.success('Payment removed');
+      queryClient.invalidateQueries('my-payments');
+    },
+    onError: () => { toast.error('Delete failed — only pending payments can be removed'); },
+  });
+
   return (
     <div>
-      <h1 className="font-display text-2xl font-bold text-slate-800 dark:text-slate-100 mb-8">
-        My Payments
-      </h1>
-      {isLoading ? (
-        <div className="flex justify-center py-12">
-          <LoadingSpinner size="lg" />
-        </div>
-      ) : (
-        <div className="card overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-slate-200 dark:border-slate-700">
-                <th className="text-left py-2 text-slate-600 dark:text-slate-400">Semester</th>
-                <th className="text-left py-2 text-slate-600 dark:text-slate-400">Amount</th>
-                <th className="text-left py-2 text-slate-600 dark:text-slate-400">Reference</th>
-                <th className="text-left py-2 text-slate-600 dark:text-slate-400">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {payments.length === 0 ? (
-                <tr>
-                  <td colSpan={4} className="py-8 text-center text-slate-500 dark:text-slate-400">
-                    No payments yet
-                  </td>
-                </tr>
-              ) : (
-                payments.map((p) => (
-                  <tr key={p.id} className="border-b border-slate-100 dark:border-slate-700/50">
-                    <td className="py-3 text-slate-800 dark:text-slate-200">
-                      {p.semester || '-'} {p.academicYear || ''}
-                    </td>
-                    <td className="py-3 text-slate-800 dark:text-slate-200">{p.amount?.toLocaleString?.() ?? p.amount} ZMW</td>
-                    <td className="py-3 font-mono text-sm text-slate-600 dark:text-slate-400">{p.reference}</td>
-                    <td className="py-3">{statusBadge(p.status)}</td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+      <h1 className="font-display text-2xl font-bold text-slate-800 dark:text-slate-100 mb-8">My Payments</h1>
+
+      <div className="card">
+        <CrudTable<Payment>
+          loading={isLoading}
+          rows={payments}
+          rowKey={(p) => p.id}
+          columns={[
+            {
+              key: 'semester',
+              label: 'Semester',
+              render: (p) => `${p.semester || '—'} ${p.academicYear || ''}`.trim(),
+            },
+            { key: 'amount', label: 'Amount', render: (p) => `${p.amount?.toLocaleString?.() ?? p.amount} ZMW` },
+            { key: 'reference', label: 'Reference', className: 'font-mono text-sm' },
+            { key: 'status', label: 'Status', render: (p) => statusBadge(p.status) },
+          ]}
+          onEdit={(p) => {
+            if (p.status !== 'pending') return toast.info('Only pending payments can be edited');
+            setEditing(p);
+            setForm({ amount: String(p.amount), reference: p.reference });
+          }}
+          onDelete={(p) => {
+            if (p.status !== 'pending') return toast.info('Only pending payments can be deleted');
+            if (confirm('Remove this payment submission?')) deleteMutation.mutate(p.id);
+          }}
+        />
+      </div>
+
+      {editing && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+          <div className="card max-w-md w-full">
+            <h2 className="text-lg font-semibold mb-4">Edit Payment</h2>
+            <div className="space-y-3">
+              <input className="input-field" type="number" placeholder="Amount" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} />
+              <input className="input-field" placeholder="Reference" value={form.reference} onChange={(e) => setForm({ ...form, reference: e.target.value })} />
+            </div>
+            <div className="flex gap-3 mt-6">
+              <button type="button" className="btn-primary flex-1" disabled={updateMutation.isLoading} onClick={() => updateMutation.mutate()}>Save</button>
+              <button type="button" className="btn-secondary flex-1" onClick={() => setEditing(null)}>Cancel</button>
+            </div>
+          </div>
         </div>
       )}
     </div>

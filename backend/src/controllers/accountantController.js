@@ -1,15 +1,23 @@
 const { query, getClient } = require('../config/database');
-const { uploadToStorage } = require('../services/storageService');
+const { uploadToStorage, readStoredFile, isRemoteUrl } = require('../services/storageService');
 const { createAuditLog, log: auditLog } = require('../services/auditService');
 const { sendNotification, sendPaymentVerified } = require('../services/notificationService');
 const { generateStatementPDF, generateStatement, generateProofOfNoBalancePDF } = require('../services/pdfService');
-const { recordPaymentOnBlockchain, recordPayment } = require('../services/blockchainService');
+const { recordPaymentOnBlockchain, recordPayment, checkClearanceEligibilityOnChain, REQUIRED_CLEARANCE_SEMESTERS } = require('../services/blockchainService');
+const BankStatement = require('../models/BankStatement');
+const BankTransaction = require('../models/BankTransaction');
 const matchingService = require('../services/matchingService');
+const {
+  createReconciliationPreview,
+  approveReconciliationBatch,
+  getReconciliationBatch,
+} = require('../services/batchReconciliationService');
 
 const EXPECTED_SEMESTERS = ['1', '2', '3', '4', '5', '6', '7', '8'];
 const MIN_STUDENT_NUMBERS = 1;
 const axios = require('axios');
 const logger = require('../utils/logger');
+const env = require('../config/environment');
 const path = require('path');
 const fs = require('fs');
 
@@ -66,9 +74,13 @@ async function uploadBankStatement(req, res) {
 
     logger.info(`Bank statement uploaded: ${statement.statement_id} by ${user_id}`);
 
-    processBankStatement(statement.statement_id, statementUrl, user_id).catch((err) => {
-      logger.error('Background processing error:', err);
-    });
+    if (process.env.VERCEL) {
+      await processBankStatement(statement.statement_id, statementUrl, user_id);
+    } else {
+      processBankStatement(statement.statement_id, statementUrl, user_id).catch((err) => {
+        logger.error('Background processing error:', err);
+      });
+    }
 
     res.status(201).json({
       success: true,
@@ -104,22 +116,27 @@ async function processBankStatement(statementId, statementUrl, uploadedBy) {
   try {
     logger.info(`Starting background processing for statement: ${statementId}`);
 
-    const fullPath = path.join(process.cwd(), statementUrl.replace(/^\//, ''));
+    const fullPath = isRemoteUrl(statementUrl)
+      ? null
+      : path.join(process.cwd(), statementUrl.replace(/^\//, ''));
     const { rows: payments } = await client.query(
       `SELECT payment_id, batch_number, amount, payment_date FROM student_payments WHERE status IN ('pending', 'manual_review')`
     );
 
-    const pythonServiceUrl = process.env.PYTHON_SERVICE_URL || 'http://localhost:8000';
+    const pythonServiceUrl = env.PYTHON_SERVICE_URL;
     let transactions = [];
     let usedPythonService = false;
 
-    // Try Python service first (extract-transactions)
-    if (fs.existsSync(fullPath)) {
+    // Try Python service first (extract-transactions) when configured
+    if (pythonServiceUrl) {
       try {
+        const apiBase = process.env.VERCEL_URL
+          ? `https://${process.env.VERCEL_URL}`
+          : `http://localhost:${process.env.PORT || 5000}`;
         const extractResponse = await axios.post(
           `${pythonServiceUrl}/extract-transactions`,
           {
-            pdf_url: statementUrl.startsWith('/') ? `http://localhost:${process.env.PORT || 5000}${statementUrl}` : statementUrl,
+            pdf_url: isRemoteUrl(statementUrl) ? statementUrl : `${apiBase}${statementUrl}`,
             pdf_path: fullPath,
             statement_id: statementId,
           },
@@ -135,24 +152,10 @@ async function processBankStatement(statementId, statementUrl, uploadedBy) {
       }
     }
 
-    await client.query('BEGIN');
-
-    let extractedCount = 0;
-
-    if (transactions.length > 0) {
-      for (const txn of transactions) {
-        const txnDate = txn.date || new Date().toISOString().split('T')[0];
-        await client.query(
-          `INSERT INTO bank_transactions (statement_id, batch_number, amount, transaction_date, depositor_name)
-           VALUES ($1, $2, $3, $4, $5)`,
-          [statementId, txn.batch_number, txn.amount, txnDate, txn.depositor_name || '']
-        );
-        extractedCount++;
-      }
-    } else if (fs.existsSync(fullPath)) {
+    if (transactions.length === 0) {
       try {
+        const pdfBuffer = await readStoredFile(statementUrl);
         const pdfParse = require('pdf-parse');
-        const pdfBuffer = fs.readFileSync(fullPath);
         const pdfData = await pdfParse(pdfBuffer);
         const text = pdfData.text || '';
         const amountRegex = /(\d+(?:\.\d{2})?)/g;
@@ -170,12 +173,12 @@ async function processBankStatement(statementId, statementUrl, uploadedBy) {
                   const key = `${ref}-${val}`;
                   if (!seen.has(key)) {
                     seen.add(key);
-                    await client.query(
-                      `INSERT INTO bank_transactions (statement_id, batch_number, amount, transaction_date, depositor_name)
-                       VALUES ($1, $2, $3, CURRENT_DATE, $4)`,
-                      [statementId, ref, val, '']
-                    );
-                    extractedCount++;
+                    transactions.push({
+                      batch_number: ref,
+                      amount: val,
+                      date: new Date().toISOString().split('T')[0],
+                      depositor_name: '',
+                    });
                   }
                 }
               }
@@ -187,14 +190,24 @@ async function processBankStatement(statementId, statementUrl, uploadedBy) {
       }
     }
 
-    if (extractedCount === 0) {
-      for (const p of payments) {
+    await client.query('BEGIN');
+
+    let extractedCount = 0;
+
+    if (transactions.length > 0) {
+      for (const txn of transactions) {
+        const txnDate = txn.date || new Date().toISOString().split('T')[0];
         await client.query(
           `INSERT INTO bank_transactions (statement_id, batch_number, amount, transaction_date, depositor_name)
            VALUES ($1, $2, $3, $4, $5)`,
-          [statementId, p.batch_number, p.amount, p.payment_date, '']
+          [statementId, txn.batch_number, txn.amount, txnDate, txn.depositor_name || '']
         );
+        extractedCount++;
       }
+    }
+
+    if (extractedCount === 0) {
+      logger.warn(`No transactions extracted from bank statement ${statementId}`);
     }
 
     let matchedCount = 0;
@@ -581,10 +594,17 @@ async function verifyPayment(req, res) {
         verified_by: full_name,
         verified_date: new Date(),
       });
-      logger.info(`Payment recorded on blockchain: ${payment_id}, TX: ${blockchainTxId}`);
+      if (blockchainTxId) {
+        logger.info(`MatchPayment committed on ledger: ${payment_id}, hash: ${blockchainTxId}`);
+      }
     } catch (blockchainError) {
+      await client.query('ROLLBACK');
       logger.error('Blockchain recording failed:', blockchainError);
-      blockchainTxId = `ERROR_${Date.now()}`;
+      return res.status(503).json({
+        error: 'Blockchain unavailable',
+        message:
+          'Payment could not be recorded on the blockchain. Start the Fabric network or set BLOCKCHAIN_OPTIONAL=true for development.',
+      });
     }
 
     const statementPdfUrl = await generateStatementPDF({
@@ -856,10 +876,105 @@ async function batchVerify(req, res) {
       bankFile.buffer,
       bankFile.mimetype
     );
-    res.json(result);
+    res.json({ preview: true, message: 'Preview only — results are not saved. Upload a bank statement to persist matches.', ...result });
   } catch (err) {
     logger.error('Batch verify error:', err);
     res.status(500).json({ error: 'Batch verification failed' });
+  }
+}
+
+/**
+ * OCR-based batch reconciliation: bank PDF + deposit slip images.
+ * Returns side-by-side matches with confidence for accountant review.
+ */
+async function batchReconcileOcr(req, res) {
+  const started = Date.now();
+  try {
+    const bankFile = req.files?.bankStatement?.[0];
+    const slipFiles = req.files?.slips || [];
+    const { bank_name: bankHint, statement_id: statementId } = req.body;
+    const userId = req.user.user_id || req.user.userId;
+
+    if (!bankFile) {
+      return res.status(400).json({ error: 'Bank statement PDF required' });
+    }
+    if (!slipFiles.length) {
+      return res.status(400).json({ error: 'At least one deposit slip image required' });
+    }
+    if (!env.PYTHON_SERVICE_URL) {
+      return res.status(503).json({
+        error: 'OCR service unavailable',
+        message: 'Set PYTHON_SERVICE_URL and run the Python microservice with Tesseract installed',
+      });
+    }
+
+    const result = await createReconciliationPreview({
+      bankFile,
+      slipFiles,
+      bankHint,
+      statementId: statementId || null,
+      uploadedBy: userId,
+    });
+
+    await createAuditLog({
+      user_id: userId,
+      user_type: req.user.role,
+      action: 'BATCH_OCR_RECONCILE_PREVIEW',
+      entity_type: 'batch_reconciliation',
+      entity_id: result.batch_id,
+      details: {
+        processing_ms: result.processing_ms,
+        manual_flag_rate: result.manual_flag_rate,
+        matched_count: result.matching?.matched_count,
+      },
+      ip_address: req.ip,
+    });
+
+    res.json({
+      success: true,
+      preview: true,
+      message: 'Review OCR results and approve to commit on-chain',
+      controller_overhead_ms: Date.now() - started - result.processing_ms,
+      ...result,
+    });
+  } catch (err) {
+    logger.error('Batch OCR reconcile error:', err);
+    res.status(500).json({ error: 'Batch OCR reconciliation failed', message: err.message });
+  }
+}
+
+async function approveBatchReconcile(req, res) {
+  try {
+    const { batchId } = req.params;
+    const { approved_match_indexes: approvedMatchIndexes } = req.body || {};
+    const userId = req.user.user_id || req.user.userId;
+
+    const result = await approveReconciliationBatch(batchId, userId, approvedMatchIndexes);
+
+    await createAuditLog({
+      user_id: userId,
+      user_type: req.user.role,
+      action: 'BATCH_OCR_RECONCILE_COMMIT',
+      entity_type: 'batch_reconciliation',
+      entity_id: batchId,
+      details: result,
+      ip_address: req.ip,
+    });
+
+    res.json({ success: true, ...result });
+  } catch (err) {
+    logger.error('Approve batch reconcile error:', err);
+    res.status(500).json({ error: 'Failed to approve batch reconciliation', message: err.message });
+  }
+}
+
+async function getBatchReconcile(req, res) {
+  try {
+    const run = await getReconciliationBatch(req.params.batchId);
+    if (!run) return res.status(404).json({ error: 'Batch reconciliation run not found' });
+    res.json(run);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch batch reconciliation' });
   }
 }
 
@@ -946,8 +1061,24 @@ async function bulkPaymentStatus(req, res) {
 
       const rec = paymentsByStudent.get(student.student_id) || { semesters: new Set(), totalAmount: 0 };
       const paidSemesters = [...rec.semesters].sort();
-      const missingSemesters = EXPECTED_SEMESTERS.filter((s) => !rec.semesters.has(s));
-      const clearanceEligible = missingSemesters.length === 0;
+
+      let missingSemesters = EXPECTED_SEMESTERS.filter((s) => !rec.semesters.has(s));
+      let clearanceEligible = missingSemesters.length === 0;
+      let eligibilitySource = 'postgres_cache';
+
+      try {
+        const chainResult = await checkClearanceEligibilityOnChain(
+          student.student_id,
+          REQUIRED_CLEARANCE_SEMESTERS
+        );
+        if (chainResult) {
+          clearanceEligible = chainResult.eligible;
+          missingSemesters = chainResult.missingSemesters.map(String);
+          eligibilitySource = chainResult.source;
+        }
+      } catch (chainErr) {
+        logger.warn(`On-chain clearance check skipped for ${student.student_number}:`, chainErr.message);
+      }
 
       if (clearanceEligible) clearanceEligibleCount++;
 
@@ -959,6 +1090,7 @@ async function bulkPaymentStatus(req, res) {
         paid_semesters: paidSemesters,
         missing_semesters: missingSemesters,
         clearance_eligible: clearanceEligible,
+        eligibility_source: eligibilitySource,
         total_verified_payments: rec.semesters.size,
         total_verified_amount: Math.round(rec.totalAmount * 100) / 100,
       });
@@ -984,13 +1116,59 @@ async function bulkPaymentStatus(req, res) {
   }
 }
 
+async function listBankStatements(req, res) {
+  try {
+    const result = await BankStatement.list(req.query);
+    res.json(result);
+  } catch (err) {
+    logger.error('List bank statements error:', err);
+    res.status(500).json({ error: 'Failed to list bank statements' });
+  }
+}
+
+async function getBankStatement(req, res) {
+  try {
+    const statement = await BankStatement.findById(req.params.id);
+    if (!statement) return res.status(404).json({ error: 'Bank statement not found' });
+    res.json(statement);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch bank statement' });
+  }
+}
+
+async function listBankTransactions(req, res) {
+  try {
+    const result = await BankTransaction.listByStatement(req.params.id, req.query);
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to list transactions' });
+  }
+}
+
+async function deleteBankStatement(req, res) {
+  try {
+    const deleted = await BankStatement.remove(req.params.id);
+    if (!deleted) return res.status(404).json({ error: 'Bank statement not found' });
+    res.json({ success: true, message: 'Bank statement deleted' });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to delete bank statement' });
+  }
+}
+
 module.exports = {
   uploadBankStatement,
+  listBankStatements,
+  getBankStatement,
+  listBankTransactions,
+  deleteBankStatement,
   verifyAllAutoMatched,
   getPendingPayments,
   verifyPayment,
   bulkVerifyPayments,
   getVerificationStats,
   batchVerify,
+  batchReconcileOcr,
+  approveBatchReconcile,
+  getBatchReconcile,
   bulkPaymentStatus,
 };
