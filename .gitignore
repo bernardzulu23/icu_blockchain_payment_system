@@ -21,6 +21,10 @@ build/
 *.egg-info/
 .eggs/
 
+# Use npm (package-lock.json) — avoid pnpm/yarn lockfiles confusing Vercel
+pnpm-lock.yaml
+yarn.lock
+
 # IDE
 .idea/
 .vscode/
