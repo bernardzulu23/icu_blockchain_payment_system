@@ -40,7 +40,7 @@ export default function SubmitPayment() {
   const [depositSlipPreview, setDepositSlipPreview] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [duplicateCheck, setDuplicateCheck] = useState<DuplicateCheck | null>(null);
-  const [checkingDuplicate, setCheckingDuplicate] = useState(false);
+  const [, setCheckingDuplicate] = useState(false);
 
   const semester = watch('semester');
   const academicYear = watch('academic_year');

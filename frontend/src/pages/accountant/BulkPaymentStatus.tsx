@@ -56,7 +56,7 @@ export default function BulkPaymentStatus() {
         toast.success(`Verification complete: ${res.data.summary.found} students found`);
       },
       onError: (err: unknown) => {
-        const res = err as { response?: { data?: { message?: string } } };
+        const res = err as { response?: { data?: { message?: string; error?: string } } };
         const msg = res.response?.data?.message || res.response?.data?.error || 'Verification failed';
         toast.error(msg);
       },

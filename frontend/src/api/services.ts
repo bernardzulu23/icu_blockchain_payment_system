@@ -9,6 +9,11 @@ export interface CreateStudentData {
   email?: string;
   phone?: string;
   program?: string;
+  department?: string;
+  dateOfBirth?: string;
+  currentSemester?: number | string;
+  currentTerm?: number | string;
+  admissionYear?: number | string;
   password: string;
 }
 

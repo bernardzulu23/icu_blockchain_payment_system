@@ -1,5 +1,5 @@
 import { useQuery } from 'react-query';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { useAuth } from '../hooks/useAuth';
 import { accountantService, adminService, paymentService } from '../api/services';
 import LoadingSpinner from '../components/LoadingSpinner';

@@ -5,7 +5,7 @@ import {
   batchService,
   type OcrReconciliationResult,
   type OcrMatchPair,
-} from '../api/services';
+} from '../../api/services';
 
 function confidenceClass(conf: number) {
   if (conf >= 0.8) return 'text-green-600 dark:text-green-400';
@@ -64,7 +64,9 @@ export default function BatchReconciliation() {
         setBankFile(null);
         setSlipFiles([]);
       },
-      onError: () => toast.error('Failed to commit batch reconciliation'),
+      onError: () => {
+        toast.error('Failed to commit batch reconciliation');
+      },
     }
   );
 
