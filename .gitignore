@@ -11,7 +11,7 @@ env/
 # Environment & Secrets
 .env
 .env.local
-.env.*.local
+.vercel
 *.pem
 *.key
 
@@ -44,8 +44,9 @@ coverage/
 htmlcov/
 
 # Blockchain
-blockchain/fabric-samples/
-blockchain/wallet/
+blockchain/wallet/*
+!blockchain/wallet/.gitkeep
+blockchain/network/connection-profile.json
 
 # Uploads
 uploads/*

@@ -10,6 +10,7 @@ const router = express.Router();
 router.get('/check-payment', studentController.checkPayment);
 
 router.get('/profile', authenticateToken, requireStudent, studentController.getProfile);
+router.put('/profile', authenticateToken, requireStudent, studentController.updateProfile);
 router.post(
   '/profile/picture',
   authenticateToken,
@@ -18,13 +19,13 @@ router.post(
   studentController.uploadProfilePicture
 );
 
-router.post(
-  '/',
-  authenticateToken,
-  requireAccountant,
-  studentValidators.create,
-  handleValidation,
-  studentController.create
-);
+router.use(authenticateToken);
+router.use(requireAccountant);
+
+router.get('/', studentController.list);
+router.get('/:id', studentController.getById);
+router.post('/', studentValidators.create, handleValidation, studentController.create);
+router.put('/:id', studentController.update);
+router.delete('/:id', studentController.remove);
 
 module.exports = router;

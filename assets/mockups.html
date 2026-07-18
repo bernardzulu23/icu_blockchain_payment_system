@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ICU Blockchain Payment System — UI Mockups</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #f1f5f9;
+      color: #343a40;
+      padding: 2rem;
+      line-height: 1.5;
+    }
+    h1 { font-size: 1.75rem; color: #204E66; margin-bottom: 0.5rem; }
+    .subtitle { color: #6c757d; margin-bottom: 2rem; font-size: 0.95rem; }
+    .mockup {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,.08);
+      margin-bottom: 2.5rem;
+      overflow: hidden;
+    }
+    .mockup-title { padding: 0.75rem 1.25rem; font-weight: 600; font-size: 1rem; color: #fff; }
+    .mockup-body { padding: 1.5rem; }
+
+    /* Student Dashboard — teal-blue header, light blue-grey sidebar */
+    .student-mockup .mockup-title { background: #204E66; }
+    .student-layout { display: flex; min-height: 320px; }
+    .student-header {
+      background: #204E66;
+      color: #fff;
+      padding: 0.75rem 1.25rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .sidebar {
+      width: 200px;
+      background: #E8F0F5;
+      border-right: 1px solid #dee2e6;
+      padding: 1rem;
+    }
+    .sidebar-item {
+      padding: 0.5rem 0.75rem;
+      margin-bottom: 0.25rem;
+      border-radius: 6px;
+      font-size: 0.875rem;
+      color: #333;
+    }
+    .sidebar-item.active { background: #428BCA; color: #fff; font-weight: 500; }
+    .main {
+      flex: 1;
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      background: #F5F7FA;
+    }
+    .header-row { display: flex; justify-content: space-between; align-items: center; }
+    .welcome { font-size: 1.1rem; font-weight: 500; color: #343a40; }
+    .user-badge { font-size: 0.8rem; color: #6c757d; }
+    .stats-row { display: flex; gap: 1rem; }
+    .stat-card {
+      flex: 1;
+      background: #fff;
+      border-radius: 8px;
+      padding: 1rem;
+      text-align: center;
+      border: 2px solid #dee2e6;
+    }
+    .stat-card.verified { border-color: #28A745; }
+    .stat-card.pending { border-color: #FFC107; }
+    .stat-card.total { border-color: #17A2B8; }
+    .stat-card .label { font-size: 0.75rem; color: #6c757d; }
+    .stat-card .value { font-size: 1.5rem; font-weight: 700; color: #343a40; }
+    .actions-row { display: flex; gap: 0.75rem; }
+    .btn {
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      font-size: 0.875rem;
+      font-weight: 500;
+      border: none;
+      cursor: default;
+    }
+    .btn-upload { background: #17A2B8; color: #fff; }
+    .btn-clearance { background: #007BFF; color: #fff; }
+    .btn-primary { background: #28A745; color: #fff; }
+    .btn-secondary { background: #e9ecef; color: #495057; }
+    .btn-reject { background: #DC3545; color: #fff; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+    th, td { padding: 0.6rem 0.75rem; text-align: left; border-bottom: 1px solid #dee2e6; }
+    th { background: #f8f9fa; color: #495057; font-weight: 500; }
+    .badge { display: inline-block; padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.75rem; }
+    .badge-verified { background: transparent; color: #28A745; }
+    .badge-pending { background: #FFF3CD; color: #856404; }
+
+    /* Accountant Dashboard — green theme */
+    .acct-mockup .mockup-title { background: #1E613A; }
+    .acct-layout { display: flex; min-height: 280px; }
+    .acct-sidebar {
+      width: 180px;
+      background: #1E613A;
+      padding: 1rem;
+    }
+    .acct-sidebar .sidebar-item { color: #fff; }
+    .acct-sidebar .sidebar-item.active { background: #28A745; }
+    .acct-main {
+      flex: 1;
+      padding: 1.25rem;
+      background: #F8F9FA;
+    }
+    .acct-stats { display: flex; gap: 1rem; margin-bottom: 1.25rem; }
+    .acct-stat {
+      flex: 1;
+      background: #fff;
+      border-radius: 8px;
+      padding: 1rem;
+      text-align: center;
+      border: 1px solid #e9ecef;
+    }
+    .acct-stat .value { font-size: 1.5rem; font-weight: 700; color: #212529; }
+    .acct-stat .label { font-size: 0.8rem; color: #6c757d; }
+    .acct-actions { display: flex; gap: 0.75rem; margin-bottom: 1rem; }
+    .acct-table { font-size: 0.8rem; }
+    .acct-table th, .acct-table td { padding: 0.5rem 0.6rem; }
+    .acct-table th { background: #e9ecef; }
+
+    /* Registrar Clearance — purple theme */
+    .reg-mockup .mockup-title { background: #4B0082; }
+    .reg-badges { display: flex; gap: 1rem; margin-bottom: 1rem; }
+    .reg-badge {
+      padding: 0.4rem 0.8rem;
+      border-radius: 6px;
+      font-size: 0.875rem;
+      font-weight: 500;
+    }
+    .reg-badge.pending { background: #FFD700; color: #333; }
+    .reg-badge.approved { background: #90EE90; color: #1a472a; }
+    .reg-badge.rejected { background: #FF6347; color: #fff; }
+    .reg-table .actions { display: flex; gap: 0.5rem; }
+    .reg-table .btn-sm { padding: 0.25rem 0.5rem; font-size: 0.75rem; }
+    .reg-table .btn-approve { background: #28A745; color: #fff; }
+    .reg-table .btn-reject { background: #DC3545; color: #fff; }
+
+    /* Payment Flow — blue accents */
+    .flow-mockup .mockup-title { background: #007BFF; }
+    .flow {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      justify-content: center;
+      padding: 1.5rem;
+      background: #f8f9fa;
+    }
+    .flow-step {
+      flex: 0 0 auto;
+      width: 160px;
+      min-height: 90px;
+      background: #fff;
+      border: 2px solid #007BFF;
+      border-radius: 10px;
+      padding: 1rem;
+      text-align: center;
+      position: relative;
+    }
+    .flow-step::after {
+      content: '→';
+      position: absolute;
+      right: -1.2rem;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 1.25rem;
+      color: #007BFF;
+      font-weight: bold;
+    }
+    .flow-step:last-child::after { display: none; }
+    .flow-step .num {
+      display: inline-block;
+      width: 28px;
+      height: 28px;
+      background: #007BFF;
+      color: #fff;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      line-height: 28px;
+      margin-bottom: 0.5rem;
+    }
+    .flow-step .title { font-size: 0.8rem; font-weight: 600; color: #212529; }
+    .flow-step .desc { font-size: 0.7rem; color: #6c757d; margin-top: 0.25rem; }
+
+    @media (max-width: 900px) {
+      .flow-step::after { display: none; }
+      .flow { flex-direction: column; align-items: center; }
+    }
+  </style>
+</head>
+<body>
+  <h1>ICU Blockchain Payment System</h1>
+  <p class="subtitle">UI Mockups — Student Portal, Accountant Dashboard, Registrar Clearance, Payment Flow</p>
+
+  <!-- 1. Student Dashboard -->
+  <div class="mockup student-mockup">
+    <div class="student-header">
+      <span>ICU Payment Portal</span>
+      <span>Brian B.Zulu</span>
+    </div>
+    <div class="mockup-body">
+      <div class="student-layout">
+        <nav class="sidebar">
+          <div class="sidebar-item active">Dashboard</div>
+          <div class="sidebar-item">My Payments</div>
+          <div class="sidebar-item">Upload Slip</div>
+          <div class="sidebar-item">Request Clearance</div>
+          <div class="sidebar-item">Statements</div>
+        </nav>
+        <main class="main">
+          <div class="header-row">
+            <span class="welcome">Welcome back, Brian B. Zulu!</span>
+            <span class="user-badge">ID: STU-2024-001</span>
+          </div>
+          <div class="stats-row">
+            <div class="stat-card verified"><div class="label">Verified</div><div class="value">ZMW 15,000</div></div>
+            <div class="stat-card pending"><div class="label">Pending</div><div class="value">ZMW 2,500</div></div>
+            <div class="stat-card total"><div class="label">Total Paid</div><div class="value">ZMW 17,500</div></div>
+          </div>
+          <div class="actions-row">
+            <button class="btn btn-upload">Upload Deposit Slip</button>
+            <button class="btn btn-clearance">Request Clearance</button>
+          </div>
+          <table>
+            <thead><tr><th>Date</th><th>Amount</th><th>Batch #</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr><td>2025-02-15</td><td>ZMW 5,000</td><td>TXN-2025-001</td><td><span class="badge badge-verified">Verified</span></td></tr>
+              <tr><td>2025-01-10</td><td>ZMW 5,000</td><td>TXN-2024-089</td><td><span class="badge badge-verified">Verified</span></td></tr>
+              <tr><td>2025-02-20</td><td>ZMW 5,000</td><td>TXN-2025-012</td><td><span class="badge badge-pending">Pending</span></td></tr>
+            </tbody>
+          </table>
+        </main>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. Accountant Dashboard -->
+  <div class="mockup acct-mockup">
+    <div class="mockup-title">ICU Payment System — Accountant</div>
+    <div class="mockup-body">
+      <div class="acct-layout">
+        <nav class="acct-sidebar sidebar">
+          <div class="sidebar-item active">Dashboard</div>
+          <div class="sidebar-item">Upload Statement</div>
+          <div class="sidebar-item">Verification</div>
+          <div class="sidebar-item">Mass Clearance</div>
+          <div class="sidebar-item">Bulk Status</div>
+        </nav>
+        <main class="acct-main">
+          <div class="acct-stats">
+            <div class="acct-stat"><div class="value">42</div><div class="label">Pending</div></div>
+            <div class="acct-stat"><div class="value">38</div><div class="label">Auto-Matched</div></div>
+            <div class="acct-stat"><div class="value">120</div><div class="label">Verified Today</div></div>
+          </div>
+          <div class="acct-actions">
+            <button class="btn btn-primary">Upload Bank Statement</button>
+            <button class="btn btn-secondary">Verify Selected</button>
+            <button class="btn btn-secondary">Export</button>
+          </div>
+          <table class="acct-table">
+            <thead><tr><th>Student</th><th>Batch</th><th>Amount</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody>
+              <tr><td>J. Doe</td><td>2023A</td><td>$500</td><td><span class="badge badge-pending">Pending</span></td><td><button class="btn btn-primary">Verify</button> <button class="btn btn-reject">Reject</button></td></tr>
+              <tr><td>C. Charles</td><td>2023B</td><td>$500</td><td><span class="badge badge-pending">Pending</span></td><td><button class="btn btn-primary">Verify</button> <button class="btn btn-reject">Reject</button></td></tr>
+            </tbody>
+          </table>
+        </main>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. Registrar Clearance -->
+  <div class="mockup reg-mockup">
+    <div class="mockup-title">ICU Payment System — Registrar</div>
+    <div class="mockup-body">
+      <div class="reg-badges">
+        <span class="reg-badge approved">Approved 25</span>
+        <span class="reg-badge pending">Pending 8</span>
+        <span class="reg-badge rejected">Rejected 2</span>
+      </div>
+      <table class="reg-table">
+        <thead><tr><th>Student Name</th><th>Student Number</th><th>Request Date</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody>
+          <tr><td>John Mwansa</td><td>STU-2024-001</td><td>2025-02-15</td><td><span class="reg-badge approved">Approved</span></td><td><div class="actions"><button class="btn btn-approve btn-sm">Approve</button><button class="btn btn-reject btn-sm">Reject</button></div></td></tr>
+          <tr><td>Mary Banda</td><td>STU-2024-015</td><td>2025-02-16</td><td><span class="reg-badge pending">Pending</span></td><td><div class="actions"><button class="btn btn-approve btn-sm">Approve</button><button class="btn btn-reject btn-sm">Reject</button></div></td></tr>
+          <tr><td>Peter Phiri</td><td>STU-2024-022</td><td>2025-02-14</td><td><span class="reg-badge rejected">Rejected</span></td><td><div class="actions"><button class="btn btn-approve btn-sm">Approve</button><button class="btn btn-reject btn-sm">Reject</button></div></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 4. Payment Flow -->
+  <div class="mockup flow-mockup">
+    <div class="mockup-title">ICU Payment System Process Flow</div>
+    <div class="mockup-body">
+      <div class="flow">
+        <div class="flow-step">
+          <span class="num">1</span>
+          <div class="title">Student uploads deposit slip</div>
+        </div>
+        <div class="flow-step">
+          <span class="num">2</span>
+          <div class="title">Python service extracts batch numbers from bank PDF</div>
+        </div>
+        <div class="flow-step">
+          <span class="num">3</span>
+          <div class="title">Auto-matching marks payments</div>
+        </div>
+        <div class="flow-step">
+          <span class="num">4</span>
+          <div class="title">Accountant verifies</div>
+        </div>
+        <div class="flow-step">
+          <span class="num">5</span>
+          <div class="title">Record on blockchain</div>
+        </div>
+        <div class="flow-step">
+          <span class="num">6</span>
+          <div class="title">Student receives SMS/email</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

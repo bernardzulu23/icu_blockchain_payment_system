@@ -4,12 +4,14 @@
   "description": "Blockchain-Based Automated Payment Reconciliation System for ICU Zambia",
   "private": true,
   "scripts": {
-    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev": "concurrently -k \"npm run dev:backend\" \"wait-on http://localhost:5000/health && npm run dev:frontend\"",
     "dev:frontend": "cd frontend && npm run dev",
     "dev:backend": "cd backend && npm run dev",
     "dev:python": "cd backend/python-services && python api_server.py",
-    "build": "npm run build:frontend",
-    "build:frontend": "cd frontend && npm run build",
+    "build": "cd frontend && npm run build",
+    "vercel-build": "cd frontend && npm install && npm run build",
+    "env:pull": "vercel env pull .env.local --yes",
+    "db:migrate": "cd backend && npm run db:migrate",
     "start": "cd backend && npm start",
     "docker:up": "docker-compose up -d",
     "docker:down": "docker-compose down",
@@ -17,9 +19,15 @@
   },
   "devDependencies": {
     "concurrently": "^8.2.2",
-    "prettier": "^3.2.5"
+    "prettier": "^3.2.5",
+    "wait-on": "^7.2.0"
   },
   "engines": {
     "node": ">=20.0.0"
+  },
+  "dependencies": {
+    "@sendgrid/mail": "^8.1.6",
+    "dotenv": "^17.3.1",
+    "serverless-http": "^3.2.0"
   }
 }

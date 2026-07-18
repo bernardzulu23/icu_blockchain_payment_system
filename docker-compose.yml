@@ -3,8 +3,6 @@
 # With blockchain: docker-compose --profile blockchain up
 # Requires: .env with DB_PASSWORD, JWT_SECRET, FRONTEND_URL
 
-version: '3.8'
-
 services:
   # PostgreSQL Database
   postgres:
@@ -16,7 +14,7 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
     ports:
-      - "5432:5432"
+      - "5430:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
       - ./database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql

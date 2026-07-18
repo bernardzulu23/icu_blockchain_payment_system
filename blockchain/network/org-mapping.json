@@ -1,0 +1,31 @@
+{
+  "channel": "icupaymentchannel",
+  "chaincode": "reconciliation-chaincode",
+  "organizations": [
+    {
+      "fabricOrg": "Org1",
+      "mspid": "Org1MSP",
+      "icuRole": "ICU Accounts",
+      "description": "Accountant org — payment verification and bank reconciliation",
+      "peer": "peer0.org1.example.com",
+      "peerPort": 7051,
+      "caPort": 7054,
+      "caContainer": "ca_org1"
+    },
+    {
+      "fabricOrg": "Org2",
+      "mspid": "Org2MSP",
+      "icuRole": "ICU Registrar",
+      "description": "Registrar org — clearance and academic records",
+      "peer": "peer0.org2.example.com",
+      "peerPort": 9051,
+      "caPort": 8054,
+      "caContainer": "ca_org2"
+    }
+  ],
+  "orderer": {
+    "container": "orderer.example.com",
+    "port": 7050,
+    "consensus": "Raft (single-node)"
+  }
+}

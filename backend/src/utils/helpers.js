@@ -7,8 +7,4 @@ function getCurrentSemester() {
   return { semester, academicYear };
 }
 
-function generateTxHash(id) {
-  return '0x' + Buffer.from(`${id}-${Date.now()}`).toString('hex').slice(0, 64);
-}
-
-module.exports = { getCurrentSemester, generateTxHash };
+module.exports = { getCurrentSemester };

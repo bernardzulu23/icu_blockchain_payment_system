@@ -10,6 +10,7 @@ import {
   Eye,
 } from 'lucide-react';
 import { apiClient } from '../../api/client';
+import { accountantService } from '../../api/services';
 
 const getAssetUrl = (path: string | undefined) => {
   if (!path) return '';
@@ -79,11 +80,7 @@ export default function AccountantVerification() {
       paymentId: string;
       action: string;
       rejection_reason?: string;
-    }) =>
-      apiClient.post(`/accountant/verify/${paymentId}`, {
-        action,
-        rejection_reason,
-      }),
+    }) => accountantService.verifyPayment(paymentId, action as 'approve' | 'reject', rejection_reason),
     {
       onSuccess: (_data, variables) => {
         if (variables.action === 'approve') {
@@ -103,11 +100,11 @@ export default function AccountantVerification() {
   );
 
   const bulkVerifyMutation = useMutation(
-    (paymentIds: string[]) =>
-      apiClient.post('/accountant/bulk-verify', { payment_ids: paymentIds }),
+    (paymentIds: string[]) => accountantService.bulkVerify(paymentIds),
     {
-      onSuccess: (data: { results: { verified: unknown[] } }) => {
-        toast.success(`✅ Bulk verification complete: ${data.results.verified.length} verified`);
+      onSuccess: (response) => {
+        const verified = response.data.results?.verified?.length ?? 0;
+        toast.success(`Bulk verification complete: ${verified} verified`);
         queryClient.invalidateQueries(['pending-payments']);
         setSelectedPayments(new Set());
       },

@@ -41,8 +41,11 @@ export default function UploadStatement() {
   return (
     <div>
       <h1 className="font-display text-2xl font-bold text-slate-800 dark:text-slate-100 mb-8">
-        Upload Bank Statement
+        Upload Bank Batch / Statement PDF
       </h1>
+      <p className="text-slate-600 dark:text-slate-400 mb-6 max-w-xl">
+        Upload the PDF from the bank containing batch numbers (transactions received). Student deposit slip batch numbers are cross-referenced against this list for clearance. Upload from time to time when the bank provides a new batch list.
+      </p>
       <div className="card max-w-xl">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div>
@@ -50,11 +53,11 @@ export default function UploadStatement() {
             <input {...register('bank_name', { required: true })} className="input-field w-full" placeholder="e.g. Zanaco" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Statement Date</label>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Statement / Batch List Date</label>
             <input {...register('upload_date')} type="date" className="input-field w-full" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Statement PDF</label>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Bank Batch PDF</label>
             <input
               type="file"
               accept=".pdf"
@@ -67,7 +70,7 @@ export default function UploadStatement() {
           </button>
         </form>
         <p className="mt-4 text-sm text-slate-600 dark:text-slate-400">
-          The system will extract transactions and run automated matching in the background.
+          The system will extract batch numbers from the PDF and match them to student deposit slips. Clearance eligibility is based on this cross-reference.
         </p>
       </div>
     </div>

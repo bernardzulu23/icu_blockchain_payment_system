@@ -9,7 +9,6 @@ const router = express.Router();
 
 const requireStudent = requireRole('student');
 
-router.get('/check', authenticateToken, requireStudent, paymentController.checkPaymentExists);
 router.get('/check-duplicate', authenticateToken, requireStudent, paymentController.checkPaymentExists);
 router.get('/my', authenticateToken, requireStudent, paymentController.getPaymentHistory);
 router.post(
@@ -35,7 +34,8 @@ router.use(requireAccountant);
 router.get('/', paymentController.list);
 router.get('/:id', paymentValidators.uuidParam, handleValidation, paymentController.getById);
 router.post('/', paymentValidators.create, handleValidation, paymentController.create);
-router.post('/:id/verify', paymentValidators.uuidParam, handleValidation, paymentController.verify);
+router.put('/:id', paymentValidators.uuidParam, handleValidation, paymentController.update);
+router.delete('/:id', paymentValidators.uuidParam, handleValidation, paymentController.remove);
 router.get('/:id/receipt', paymentValidators.uuidParam, handleValidation, paymentController.receipt);
 
 module.exports = router;

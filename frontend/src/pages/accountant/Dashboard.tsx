@@ -59,6 +59,24 @@ export default function AccountantDashboard() {
                 Upload bank statement for matching
               </p>
             </Link>
+            <Link to="/accountant/mass-clearance" className="card hover:border-icu-accent/50 transition-colors group">
+              <span className="text-3xl mb-2 block">📋</span>
+              <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100 group-hover:text-icu-accent">
+                Mass Clearance
+              </h2>
+              <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+                Verify and approve student clearance requests in bulk
+              </p>
+            </Link>
+            <Link to="/accountant/bulk-payment-status" className="card hover:border-icu-accent/50 transition-colors group">
+              <span className="text-3xl mb-2 block">🔍</span>
+              <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100 group-hover:text-icu-accent">
+                Bulk Payment Status
+              </h2>
+              <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+                Enter student numbers (1 or more) for verification and cross-reference of payment status
+              </p>
+            </Link>
           </div>
         </>
       )}

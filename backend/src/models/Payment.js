@@ -88,4 +88,40 @@ async function findByStudentAndBatch(studentId, batchNumber, status = 'verified'
   return rows[0] ? mapPayment(rows[0]) : null;
 }
 
-module.exports = { list, findById, create, verify, findByStudentAndBatch, mapPayment };
+async function update(paymentId, fields) {
+  const allowed = {
+    semester: 'semester',
+    academic_year: 'academicYear',
+    amount: 'amount',
+    batch_number: 'batchNumber',
+    bank_name: 'bankName',
+    payment_date: 'paymentDate',
+    status: 'status',
+  };
+  const sets = [];
+  const params = [];
+  for (const [col, key] of Object.entries(allowed)) {
+    if (fields[key] !== undefined) {
+      params.push(fields[key]);
+      sets.push(`${col} = $${params.length}`);
+    }
+  }
+  if (!sets.length) return findById(paymentId);
+  params.push(paymentId);
+  sets.push('updated_at = NOW()');
+  await pool.query(
+    `UPDATE student_payments SET ${sets.join(', ')} WHERE payment_id = $${params.length}`,
+    params
+  );
+  return findById(paymentId);
+}
+
+async function remove(paymentId) {
+  const { rows } = await pool.query(
+    `DELETE FROM student_payments WHERE payment_id = $1 AND status IN ('pending', 'rejected') RETURNING payment_id`,
+    [paymentId]
+  );
+  return rows[0];
+}
+
+module.exports = { list, findById, create, verify, findByStudentAndBatch, mapPayment, update, remove };
