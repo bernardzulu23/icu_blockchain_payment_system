@@ -1,13 +1,14 @@
 const express = require('express');
 const studentController = require('../controllers/studentController');
 const { authenticateToken } = require('../middleware/auth');
-const { requireAccountant, requireStudent } = require('../middleware/rbac');
-const { upload } = require('../middleware/upload');
+const { requireAdmin, requireStudent } = require('../middleware/rbac');
+const { upload, uploadImage } = require('../middleware/upload');
 const { studentValidators, handleValidation } = require('../utils/validators');
+const { publicCheckLimiter } = require('../middleware/rateLimit');
 
 const router = express.Router();
 
-router.get('/check-payment', studentController.checkPayment);
+router.get('/check-payment', publicCheckLimiter, studentController.checkPayment);
 
 router.get('/profile', authenticateToken, requireStudent, studentController.getProfile);
 router.put('/profile', authenticateToken, requireStudent, studentController.updateProfile);
@@ -15,12 +16,13 @@ router.post(
   '/profile/picture',
   authenticateToken,
   requireStudent,
-  upload.single('profile_picture'),
+  uploadImage.single('profile_picture'),
   studentController.uploadProfilePicture
 );
 
+// Student CRUD — admin only (not registrar / not generic accountant list for writes)
 router.use(authenticateToken);
-router.use(requireAccountant);
+router.use(requireAdmin);
 
 router.get('/', studentController.list);
 router.get('/:id', studentController.getById);

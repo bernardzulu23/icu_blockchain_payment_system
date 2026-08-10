@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './components/Layout';
 import PrivateRoute from './components/PrivateRoute';
+import RoleRoute from './components/RoleRoute';
 import RoleRedirect from './components/RoleRedirect';
 import Login from './pages/Login';
 import ForgotPassword from './pages/ForgotPassword';
@@ -23,6 +24,7 @@ import BulkPaymentStatus from './pages/accountant/BulkPaymentStatus';
 import RegistrarDashboard from './pages/registrar/Dashboard';
 import AdminDashboard from './pages/admin/Dashboard';
 import RegisterStudent from './pages/admin/RegisterStudent';
+import RegisterAccountant from './pages/admin/RegisterAccountant';
 import Feedback from './pages/Feedback';
 import FeedbackList from './pages/admin/FeedbackList';
 import StudentsManagement from './pages/admin/Students';
@@ -42,6 +44,22 @@ function StaffHome() {
   return <Dashboard />;
 }
 
+function AdminOnly({ children }: { children: React.ReactNode }) {
+  return <RoleRoute roles={['admin']}>{children}</RoleRoute>;
+}
+
+function AccountantStaff({ children }: { children: React.ReactNode }) {
+  return <RoleRoute roles={['admin', 'accountant']}>{children}</RoleRoute>;
+}
+
+function ClearanceStaff({ children }: { children: React.ReactNode }) {
+  return <RoleRoute roles={['admin', 'accountant', 'registrar']}>{children}</RoleRoute>;
+}
+
+function StudentOnly({ children }: { children: React.ReactNode }) {
+  return <RoleRoute roles={['student']}>{children}</RoleRoute>;
+}
+
 export default function App() {
   return (
     <Routes>
@@ -58,22 +76,32 @@ export default function App() {
         }
       >
         <Route index element={<StaffHome />} />
-        <Route path="history" element={<PaymentHistory />} />
+        <Route
+          path="history"
+          element={
+            <RoleRoute roles={['admin', 'accountant']}>
+              <PaymentHistory />
+            </RoleRoute>
+          }
+        />
         <Route path="batch-verification" element={<Navigate to="/accountant/batch-reconciliation" replace />} />
-        <Route path="admin" element={<Admin />} />
-        <Route path="admin/dashboard" element={<AdminDashboard />} />
-        <Route path="admin/students" element={<StudentsManagement />} />
-        <Route path="admin/staff" element={<StaffManagement />} />
-        <Route path="admin/audit-logs" element={<AuditLogs />} />
-        <Route path="admin/register-student" element={<RegisterStudent />} />
-        <Route path="admin/feedback" element={<FeedbackList />} />
+        <Route path="admin" element={<AdminOnly><Admin /></AdminOnly>} />
+        <Route path="admin/dashboard" element={<AdminOnly><AdminDashboard /></AdminOnly>} />
+        <Route path="admin/students" element={<AdminOnly><StudentsManagement /></AdminOnly>} />
+        <Route path="admin/staff" element={<AdminOnly><StaffManagement /></AdminOnly>} />
+        <Route path="admin/register-accountant" element={<AdminOnly><RegisterAccountant /></AdminOnly>} />
+        <Route path="admin/audit-logs" element={<AdminOnly><AuditLogs /></AdminOnly>} />
+        <Route path="admin/register-student" element={<AdminOnly><RegisterStudent /></AdminOnly>} />
+        <Route path="admin/feedback" element={<AdminOnly><FeedbackList /></AdminOnly>} />
         <Route path="feedback" element={<Feedback />} />
       </Route>
       <Route
         path="/student-portal"
         element={
           <PrivateRoute>
-            <Layout />
+            <StudentOnly>
+              <Layout />
+            </StudentOnly>
           </PrivateRoute>
         }
       >
@@ -93,19 +121,21 @@ export default function App() {
           </PrivateRoute>
         }
       >
-        <Route index element={<AccountantDashboard />} />
-        <Route path="verification" element={<AccountantVerification />} />
-        <Route path="upload-statement" element={<UploadStatement />} />
-        <Route path="mass-clearance" element={<MassClearance />} />
-        <Route path="bulk-payment-status" element={<BulkPaymentStatus />} />
-        <Route path="batch-reconciliation" element={<BatchReconciliation />} />
-        <Route path="bank-statements" element={<BankStatements />} />
+        <Route index element={<AccountantStaff><AccountantDashboard /></AccountantStaff>} />
+        <Route path="verification" element={<AccountantStaff><AccountantVerification /></AccountantStaff>} />
+        <Route path="upload-statement" element={<AccountantStaff><UploadStatement /></AccountantStaff>} />
+        <Route path="mass-clearance" element={<ClearanceStaff><MassClearance /></ClearanceStaff>} />
+        <Route path="bulk-payment-status" element={<AccountantStaff><BulkPaymentStatus /></AccountantStaff>} />
+        <Route path="batch-reconciliation" element={<AccountantStaff><BatchReconciliation /></AccountantStaff>} />
+        <Route path="bank-statements" element={<AccountantStaff><BankStatements /></AccountantStaff>} />
       </Route>
       <Route
         path="/registrar"
         element={
           <PrivateRoute>
-            <Layout />
+            <RoleRoute roles={['admin', 'registrar']}>
+              <Layout />
+            </RoleRoute>
           </PrivateRoute>
         }
       >

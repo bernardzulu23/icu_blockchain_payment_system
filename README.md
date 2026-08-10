@@ -37,11 +37,11 @@ A comprehensive blockchain-based payment reconciliation system for **Information
 └──────────┬──────────────────────────────────┬───────────────┘
            │                                   │
            ▼                                   ▼
-┌──────────────────────┐          ┌──────────────────────────┐
-│  PostgreSQL Database │          │ Python Matching Service  │
-│  Student Records     │          │ PDF Parsing (Flask)       │
-│  Payment History     │          │ Fuzzy Matching           │
-└──────────────────────┘          └──────────────────────────┘
+┌──────────────────────────┐          ┌──────────────────────────┐
+│  Postgres + Storage      │          │ Python Matching Service  │
+│  (Supabase)              │          │ PDF Parsing (Flask)       │
+│  Student / Payment data  │          │ Fuzzy Matching           │
+└──────────────────────────┘          └──────────────────────────┘
            │
            ▼
 ┌─────────────────────────────────────────────────────────────┐
@@ -336,13 +336,15 @@ docker compose --profile blockchain up -d
 
 ## 🚀 Production Deployment
 
+See **[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)** — Supabase Postgres + Storage, Express API on VPS, frontend on nginx / Cloudflare Pages.
+
 ### Production Checklist
-- [ ] Change all default passwords
-- [ ] Configure SSL/TLS certificates
-- [ ] Set up database backups
-- [ ] Configure monitoring
-- [ ] Enable firewall rules
-- [ ] Set up log aggregation
+- [ ] Create Supabase project; set `DATABASE_URL`, `DATABASE_DIRECT_URL`, `SUPABASE_*`
+- [ ] Run `npm run db:migrate` and seed admin
+- [ ] Change JWT secrets and default passwords
+- [ ] Configure SSL/TLS and `FRONTEND_URL` / CORS
+- [ ] Set up database backups (Supabase dashboard)
+- [ ] Configure monitoring and firewall
 - [ ] Test disaster recovery
 
 ## 📐 Mockups & Simulation

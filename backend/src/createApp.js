@@ -2,7 +2,6 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
-const path = require('path');
 
 const authRoutes = require('./routes/auth.routes');
 const studentRoutes = require('./routes/student.routes');
@@ -13,10 +12,14 @@ const feedbackRoutes = require('./routes/feedback.routes');
 const adminRoutes = require('./routes/admin.routes');
 const userRoutes = require('./routes/user.routes');
 const notificationRoutes = require('./routes/notification.routes');
+const filesRoutes = require('./routes/files.routes');
 
 const errorHandler = require('./middleware/errorHandler');
 const { checkFabricHealth } = require('./services/blockchainService');
-const { apiLimiter, authLimiter } = require('./middleware/rateLimit');
+const {
+  apiLimiter,
+  authLimiter,
+} = require('./middleware/rateLimit');
 const logger = require('./utils/logger');
 const env = require('./config/environment');
 
@@ -28,18 +31,22 @@ function getAllowedOrigins() {
 function isAllowedOrigin(origin) {
   if (!origin) return true;
   const allowed = getAllowedOrigins();
-  if (allowed.includes(origin)) return true;
-  // Vercel preview deployments: https://<project>-<hash>.vercel.app
-  if (/^https:\/\/[a-z0-9-]+\.vercel\.app$/i.test(origin)) return true;
-  return false;
+  return allowed.includes(origin);
 }
 
 function createApp() {
   const app = express();
 
+  if (env.TRUST_PROXY) {
+    app.set('trust proxy', 1);
+  }
+
   app.use(
     helmet({
-      crossOriginResourcePolicy: { policy: 'cross-origin' },
+      crossOriginResourcePolicy: { policy: 'same-site' },
+      contentSecurityPolicy: false, // SPA sets its own CSP via host headers
+      hsts: env.NODE_ENV === 'production' ? { maxAge: 15552000, includeSubDomains: true } : false,
+      referrerPolicy: { policy: 'no-referrer' },
     })
   );
 
@@ -49,7 +56,8 @@ function createApp() {
         if (isAllowedOrigin(origin)) {
           callback(null, true);
         } else {
-          callback(null, getAllowedOrigins()[0] || env.FRONTEND_URL);
+          logger.warn(`CORS blocked origin: ${origin}`);
+          callback(new Error('Not allowed by CORS'));
         }
       },
       credentials: true,
@@ -60,8 +68,8 @@ function createApp() {
 
   app.use('/api/', apiLimiter);
 
-  app.use(express.json({ limit: '10mb' }));
-  app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+  app.use(express.json({ limit: '1mb' }));
+  app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 
   if (env.NODE_ENV === 'development') {
     app.use(morgan('dev'));
@@ -73,32 +81,28 @@ function createApp() {
     );
   }
 
-  if (!process.env.VERCEL) {
-    app.use('/uploads', express.static(path.join(process.cwd(), env.UPLOAD_PATH || 'uploads')));
-  }
+  // Uploads are NOT publicly static — use authenticated /api/files/*
+  app.use('/api/files', filesRoutes);
 
-  app.get('/health', async (req, res) => {
-    const fabric = await checkFabricHealth();
-    res.json({
-      status: 'OK',
-      timestamp: new Date().toISOString(),
-      environment: env.NODE_ENV,
-      version: '1.0.0',
-      platform: process.env.VERCEL ? 'vercel' : 'node',
-      fabric,
-    });
+  app.get('/health', (_req, res) => {
+    res.json({ status: 'OK', timestamp: new Date().toISOString() });
   });
 
   app.get('/api/health', async (req, res) => {
-    const fabric = await checkFabricHealth();
-    res.json({
-      status: 'OK',
-      timestamp: new Date().toISOString(),
-      environment: env.NODE_ENV,
-      version: '1.0.0',
-      platform: process.env.VERCEL ? 'vercel' : 'node',
-      fabric,
-    });
+    const detailed = req.query.detailed === '1' && req.headers.authorization;
+    if (!detailed) {
+      return res.json({ status: 'OK', timestamp: new Date().toISOString() });
+    }
+    try {
+      const fabric = await checkFabricHealth();
+      res.json({
+        status: 'OK',
+        timestamp: new Date().toISOString(),
+        fabric: { connected: Boolean(fabric?.ok || fabric?.connected) },
+      });
+    } catch {
+      res.json({ status: 'OK', timestamp: new Date().toISOString(), fabric: { connected: false } });
+    }
   });
 
   app.use('/api/auth', authLimiter, authRoutes);
@@ -114,7 +118,7 @@ function createApp() {
   app.use((req, res) => {
     res.status(404).json({
       error: 'Not Found',
-      message: `Route ${req.method} ${req.url} not found`,
+      message: 'Route not found',
     });
   });
 

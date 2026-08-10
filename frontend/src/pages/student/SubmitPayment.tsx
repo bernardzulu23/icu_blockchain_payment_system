@@ -4,13 +4,11 @@ import { useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
 import { Upload, AlertTriangle, CheckCircle, Info } from 'lucide-react';
 import { apiClient } from '../../api/client';
+import { BANKS, SEMESTERS, ACADEMIC_YEAR_START, ACADEMIC_YEAR_END, dateToAcademicYear } from '../../constants/options';
 
-const getStatementUrl = (path: string | undefined) => {
-  if (!path) return '';
-  if (path.startsWith('http')) return path;
-  const base = (import.meta.env.VITE_API_URL || '/api').replace(/\/api\/?$/, '');
-  return `${base || window.location.origin}${path.startsWith('/') ? '' : '/'}${path}`;
-};
+import { getAuthenticatedFileUrl } from '../../utils/fileUrl';
+
+const getStatementUrl = (path: string | undefined) => getAuthenticatedFileUrl(path);
 
 type FormData = {
   semester: string;
@@ -34,13 +32,14 @@ type DuplicateCheck = {
 
 export default function SubmitPayment() {
   const navigate = useNavigate();
-  const { register, handleSubmit, formState: { errors }, watch } = useForm<FormData>();
+  const { register, handleSubmit, formState: { errors }, watch, setValue } = useForm<FormData>();
 
   const [depositSlip, setDepositSlip] = useState<File | null>(null);
   const [depositSlipPreview, setDepositSlipPreview] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [duplicateCheck, setDuplicateCheck] = useState<DuplicateCheck | null>(null);
   const [, setCheckingDuplicate] = useState(false);
+  const [academicYearDate, setAcademicYearDate] = useState('');
 
   const semester = watch('semester');
   const academicYear = watch('academic_year');
@@ -53,6 +52,12 @@ export default function SubmitPayment() {
     }
   }, [semester, academicYear]);
 
+  const handleAcademicYearDate = (iso: string) => {
+    setAcademicYearDate(iso);
+    const span = dateToAcademicYear(iso);
+    setValue('academic_year', span, { shouldValidate: true });
+  };
+
   const checkForDuplicatePayment = async (sem: string, year: string) => {
     setCheckingDuplicate(true);
     try {
@@ -61,7 +66,7 @@ export default function SubmitPayment() {
       });
       setDuplicateCheck(response.data);
       if (response.data.exists && response.data.payment?.status === 'verified') {
-        toast.warning('⚠️ You have already paid for this semester!', { autoClose: 8000 });
+        toast.warning('You have already paid for this semester!', { autoClose: 8000 });
       }
     } catch (error) {
       console.error('Duplicate check error:', error);
@@ -118,7 +123,7 @@ export default function SubmitPayment() {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
 
-      toast.success('✅ Payment submitted successfully! You will be notified once verified.');
+      toast.success('Payment submitted successfully! You will be notified once verified.');
       setTimeout(() => navigate('/student-portal/payments'), 2000);
     } catch (error: unknown) {
       const err = error as { response?: { data?: { error?: string; message?: string; warning?: string; action?: string } } };
@@ -167,7 +172,7 @@ export default function SubmitPayment() {
                 <h3 className="font-bold text-lg mb-2">
                   {duplicateCheck.payment?.status === 'verified'
                     ? '🚨 PAYMENT ALREADY VERIFIED!'
-                    : '⚠️ Payment Already Submitted'}
+                    : 'Payment Already Submitted'}
                 </h3>
                 <p className="text-sm mb-2">{duplicateCheck.warning}</p>
                 {duplicateCheck.payment?.status === 'verified' && duplicateCheck.payment && (
@@ -225,9 +230,11 @@ export default function SubmitPayment() {
               className="input-field w-full"
             >
               <option value="">Select Semester</option>
-              <option value="1">Semester 1</option>
-              <option value="2">Semester 2</option>
-              <option value="3">Semester 3</option>
+              {SEMESTERS.map((s) => (
+                <option key={s} value={String(s)}>
+                  Semester {s}
+                </option>
+              ))}
             </select>
             {errors.semester && <p className="text-red-500 text-sm mt-1">{errors.semester.message}</p>}
           </div>
@@ -236,15 +243,23 @@ export default function SubmitPayment() {
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
               Academic Year <span className="text-red-500">*</span>
             </label>
-            <select
-              {...register('academic_year', { required: 'Academic year is required' })}
+            <input
+              type="date"
               className="input-field w-full"
-            >
-              <option value="">Select Academic Year</option>
-              <option value="2024-2025">2024-2025</option>
-              <option value="2025-2026">2025-2026</option>
-              <option value="2026-2027">2026-2027</option>
-            </select>
+              min={`${ACADEMIC_YEAR_START}-01-01`}
+              max={`${ACADEMIC_YEAR_END}-12-31`}
+              value={academicYearDate}
+              onChange={(e) => handleAcademicYearDate(e.target.value)}
+            />
+            <input
+              type="hidden"
+              {...register('academic_year', { required: 'Academic year is required' })}
+            />
+            {academicYear && (
+              <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
+                Academic year: <span className="font-semibold text-ink">{academicYear}</span>
+              </p>
+            )}
             {errors.academic_year && <p className="text-red-500 text-sm mt-1">{errors.academic_year.message}</p>}
           </div>
 
@@ -291,11 +306,11 @@ export default function SubmitPayment() {
               className="input-field w-full"
             >
               <option value="">Select Bank</option>
-              <option value="ZANACO">ZANACO</option>
-              <option value="Stanbic Bank">Stanbic Bank</option>
-              <option value="FNB Zambia">FNB Zambia</option>
-              <option value="Indo Zambia Bank">Indo Zambia Bank</option>
-              <option value="Atlas Mara">Atlas Mara</option>
+              {BANKS.map((b) => (
+                <option key={b.value} value={b.value}>
+                  {b.label}
+                </option>
+              ))}
             </select>
             {errors.bank_name && <p className="text-red-500 text-sm mt-1">{errors.bank_name.message}</p>}
           </div>

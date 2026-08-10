@@ -2,13 +2,10 @@ import { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import { Upload, User, Lock, Pencil } from 'lucide-react';
 import { studentService, type StudentProfile } from '../../api/services';
+import LoadingSpinner from '../../components/LoadingSpinner';
+import { getAuthenticatedFileUrl } from '../../utils/fileUrl';
 
-const getProfilePictureUrl = (path: string | undefined) => {
-  if (!path) return '';
-  if (path.startsWith('http')) return path;
-  const base = (import.meta.env.VITE_API_URL || '/api').replace(/\/api\/?$/, '');
-  return `${base || window.location.origin}${path.startsWith('/') ? '' : '/'}${path}`;
-};
+const getProfilePictureUrl = (path: string | undefined) => getAuthenticatedFileUrl(path);
 
 const formatDate = (dateStr: string | undefined) => {
   if (!dateStr) return '—';
@@ -92,7 +89,7 @@ export default function Profile() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-16">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-icu-accent" />
+        <LoadingSpinner size="lg" />
       </div>
     );
   }

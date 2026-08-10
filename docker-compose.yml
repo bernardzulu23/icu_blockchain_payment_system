@@ -1,51 +1,87 @@
+version: '3.9'
+
 # ICU Blockchain Payment System - Docker Compose
-# Core stack: docker-compose up
-# With blockchain: docker-compose --profile blockchain up
+# Core stack: docker-compose up --pull always
+# With blockchain: docker-compose --profile blockchain up --pull always
 # Requires: .env with DB_PASSWORD, JWT_SECRET, FRONTEND_URL
+#
+# Best practices applied:
+# - Multi-stage builds for smaller images
+# - Health checks on all services
+# - Non-root users for security
+# - Resource limits recommended
+# - Layer caching optimization
 
 services:
   # PostgreSQL Database
   postgres:
     image: postgres:16-alpine
     container_name: icu-postgres
-    restart: always
+    restart: unless-stopped
     environment:
-      POSTGRES_DB: icu_payments
-      POSTGRES_USER: postgres
+      POSTGRES_DB: ${DB_NAME:-icu_payments}
+      POSTGRES_USER: ${DB_USER:-postgres}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+      POSTGRES_INITDB_ARGS: "-c shared_preload_libraries=pg_stat_statements"
     ports:
       - "5430:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
       - ./database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+    networks:
+      - icu-payment-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres}"]
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 10s
 
   # Redis Cache
   redis:
     image: redis:7.2-alpine
     container_name: icu-redis
-    restart: always
+    restart: unless-stopped
     ports:
       - "6379:6379"
+    command: redis-server --appendonly yes --maxmemory ${REDIS_MAX_MEMORY:-256mb} --maxmemory-policy allkeys-lru
     volumes:
       - redis-data:/data
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+    networks:
+      - icu-payment-network
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
       timeout: 3s
       retries: 5
+      start_period: 5s
 
   # Backend API (Node.js)
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
+      cache_from:
+        - type=registry,ref=backend:latest
+    image: icu-backend:latest
     container_name: icu-backend
-    restart: always
+    restart: unless-stopped
     ports:
       - "5000:5000"
     environment:
@@ -53,14 +89,15 @@ services:
       PORT: 5000
       DB_HOST: postgres
       DB_PORT: 5432
-      DB_NAME: icu_payments
-      DB_USER: postgres
+      DB_NAME: ${DB_NAME:-icu_payments}
+      DB_USER: ${DB_USER:-postgres}
       DB_PASSWORD: ${DB_PASSWORD:-postgres}
       REDIS_HOST: redis
       REDIS_PORT: 6379
       JWT_SECRET: ${JWT_SECRET:-dev-jwt-secret-change-in-production}
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
       PYTHON_SERVICE_URL: http://python-service:8000
+      LOG_LEVEL: ${LOG_LEVEL:-info}
     depends_on:
       postgres:
         condition: service_healthy
@@ -68,38 +105,64 @@ services:
         condition: service_healthy
     volumes:
       - ./uploads:/app/uploads
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+    networks:
+      - icu-payment-network
     healthcheck:
       test: ["CMD", "node", "-e", "require('http').get('http://localhost:5000/health',r=>process.exit(r.statusCode===200?0:1))"]
       interval: 30s
       timeout: 10s
       retries: 3
+      start_period: 10s
 
-  # Python Matching Service (Flask)
+  # Python Matching Service (Flask/Uvicorn)
   python-service:
     build:
       context: ./backend/python-services
       dockerfile: Dockerfile
+      cache_from:
+        - type=registry,ref=python-service:latest
+    image: icu-python-service:latest
     container_name: icu-python-service
-    restart: always
+    restart: unless-stopped
     ports:
       - "8000:8000"
     environment:
       DB_HOST: postgres
       DB_PORT: 5432
-      DB_NAME: icu_payments
-      DB_USER: postgres
+      DB_NAME: ${DB_NAME:-icu_payments}
+      DB_USER: ${DB_USER:-postgres}
       DB_PASSWORD: ${DB_PASSWORD:-postgres}
       PYTHON_SERVICE_PORT: 8000
+      PYTHONUNBUFFERED: 1
     depends_on:
       postgres:
         condition: service_healthy
     volumes:
       - ./uploads:/app/uploads
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+    networks:
+      - icu-payment-network
     healthcheck:
       test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/health')\" || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
+      start_period: 10s
 
   # Frontend (React/Vite) - Production build with nginx
   frontend:
@@ -107,18 +170,33 @@ services:
       context: ./frontend
       dockerfile: Dockerfile.prod
       args:
-        VITE_API_URL: ${VITE_API_URL:-}
+        VITE_API_URL: ${VITE_API_URL:-/api}
+      cache_from:
+        - type=registry,ref=frontend:latest
+    image: icu-frontend:latest
     container_name: icu-frontend
-    restart: always
+    restart: unless-stopped
     ports:
       - "3000:80"
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+    networks:
+      - icu-payment-network
     healthcheck:
-      test: ["CMD", "wget", "-q", "--spider", "http://localhost:80"]
+      test: ["CMD", "curl", "-f", "http://localhost:80/"]
       interval: 30s
-      timeout: 10s
+      timeout: 5s
       retries: 3
+      start_period: 5s
 
   # ========== Blockchain (optional - use --profile blockchain) ==========
   # Requires: ./blockchain/crypto-config and ./blockchain/channel-artifacts
@@ -129,6 +207,7 @@ services:
       - blockchain
     image: hyperledger/fabric-ca:2.5
     container_name: ca.icu.edu.zm
+    restart: unless-stopped
     environment:
       - FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server
       - FABRIC_CA_SERVER_CA_NAME=ca.icu.edu.zm
@@ -139,12 +218,20 @@ services:
     command: sh -c 'fabric-ca-server start -b admin:adminpw -d'
     volumes:
       - ./blockchain/crypto-config/peerOrganizations/icu.edu.zm/ca/:/etc/hyperledger/fabric-ca-server-config
+    networks:
+      - icu-payment-network
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
 
   couchdb:
     profiles:
       - blockchain
     image: couchdb:3.3
     container_name: couchdb
+    restart: unless-stopped
     environment:
       - COUCHDB_USER=admin
       - COUCHDB_PASSWORD=adminpw
@@ -152,12 +239,25 @@ services:
       - "5984:5984"
     volumes:
       - couchdb-data:/opt/couchdb/data
+    networks:
+      - icu-payment-network
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5984/_up"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
 
   peer0.icu.edu.zm:
     profiles:
       - blockchain
     image: hyperledger/fabric-peer:2.5
     container_name: peer0.icu.edu.zm
+    restart: unless-stopped
     environment:
       - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
       - CORE_PEER_ID=peer0.icu.edu.zm
@@ -186,12 +286,20 @@ services:
       - peer0.icu.edu.zm:/var/hyperledger/production
     depends_on:
       - couchdb
+    networks:
+      - icu-payment-network
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
 
   orderer.icu.edu.zm:
     profiles:
       - blockchain
     image: hyperledger/fabric-orderer:2.5
     container_name: orderer.icu.edu.zm
+    restart: unless-stopped
     environment:
       - FABRIC_LOGGING_SPEC=INFO
       - ORDERER_GENERAL_LISTENADDRESS=0.0.0.0
@@ -210,14 +318,27 @@ services:
       - ./blockchain/crypto-config/ordererOrganizations/icu.edu.zm/orderers/orderer.icu.edu.zm/msp:/var/hyperledger/orderer/msp
       - ./blockchain/crypto-config/ordererOrganizations/icu.edu.zm/orderers/orderer.icu.edu.zm/tls:/var/hyperledger/orderer/tls
       - orderer.icu.edu.zm:/var/hyperledger/production/orderer
+    networks:
+      - icu-payment-network
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
 
 volumes:
   postgres-data:
+    driver: local
   redis-data:
+    driver: local
   couchdb-data:
+    driver: local
   peer0.icu.edu.zm:
+    driver: local
   orderer.icu.edu.zm:
+    driver: local
 
 networks:
-  default:
+  icu-payment-network:
+    driver: bridge
     name: icu-payment-network

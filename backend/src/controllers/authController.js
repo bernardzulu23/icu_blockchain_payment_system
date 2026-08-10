@@ -13,12 +13,15 @@ const { sendPasswordResetLinkSms, sendPasswordResetConfirmation } = require('../
 
 async function studentLogin(req, res) {
   try {
-    const { student_number, password } = req.body;
-    const identifier = typeof student_number === 'string' ? student_number.trim() : '';
+    const { student_number, email, password, identifier: rawIdentifier } = req.body;
+    const identifier = String(rawIdentifier || student_number || email || '')
+      .trim()
+      .toLowerCase();
 
     if (!identifier || !password) {
       return res.status(400).json({
-        error: 'Student number and password are required',
+        error: 'Email or student number and password are required',
+        message: 'Use the email and password created by the administrator',
       });
     }
 
@@ -26,14 +29,19 @@ async function studentLogin(req, res) {
       `SELECT student_id, student_number, first_name, last_name, email,
               phone, password_hash, status
        FROM students
-       WHERE (student_number = $1 OR email = $1) AND status = 'active'`,
+       WHERE status = 'active'
+         AND (
+           LOWER(TRIM(student_number)) = $1
+           OR LOWER(TRIM(COALESCE(email, ''))) = $1
+           OR LOWER(TRIM(student_id)) = $1
+         )`,
       [identifier]
     );
 
     if (result.rows.length === 0) {
       return res.status(401).json({
         error: 'Invalid credentials',
-        message: 'Student number or password is incorrect',
+        message: 'Email/student number or password is incorrect',
       });
     }
 
@@ -43,6 +51,13 @@ async function studentLogin(req, res) {
       return res.status(403).json({
         error: 'Account inactive',
         message: 'Your account has been deactivated. Contact administration.',
+      });
+    }
+
+    if (!student.password_hash) {
+      return res.status(401).json({
+        error: 'Invalid credentials',
+        message: 'Email/student number or password is incorrect',
       });
     }
 
@@ -59,7 +74,7 @@ async function studentLogin(req, res) {
 
       return res.status(401).json({
         error: 'Invalid credentials',
-        message: 'Student number or password is incorrect',
+        message: 'Email/student number or password is incorrect',
       });
     }
 
@@ -109,6 +124,39 @@ async function studentLogin(req, res) {
   }
 }
 
+async function unifiedLogin(req, res) {
+  try {
+    const identifier = String(
+      req.body.identifier || req.body.username || req.body.email || req.body.student_number || ''
+    ).trim();
+    const { password } = req.body;
+
+    if (!identifier || !password) {
+      return res.status(400).json({
+        error: 'Credentials required',
+        message: 'Email / student number / employee ID and password are required',
+      });
+    }
+
+    // Prefer staff match first (admin, accountant, registrar), then student
+    req.body.username = identifier;
+    const staffUser =
+      (await User.findByUsername(identifier)) ||
+      (identifier.includes('@') ? await User.findByEmail(identifier) : null) ||
+      (await User.findByEmployeeId(identifier));
+
+    if (staffUser) {
+      return staffLogin(req, res);
+    }
+
+    req.body.student_number = identifier;
+    return studentLogin(req, res);
+  } catch (error) {
+    logger.error('Unified login error:', error);
+    res.status(500).json({ error: 'Login failed. Please try again.' });
+  }
+}
+
 async function staffLogin(req, res) {
   try {
     const { username, password } = req.body;
@@ -122,6 +170,9 @@ async function staffLogin(req, res) {
     let user = await User.findByUsername(username);
     if (!user && username.includes('@')) {
       user = await User.findByEmail(username);
+    }
+    if (!user) {
+      user = await User.findByEmployeeId(username);
     }
 
     if (!user) {
@@ -192,6 +243,7 @@ async function staffLogin(req, res) {
         email: user.email,
         role: user.role,
         full_name: user.full_name,
+        employee_id: user.employee_id,
         type: 'staff',
         name: user.full_name,
       },
@@ -312,12 +364,19 @@ async function refreshAccessToken(req, res) {
       return res.status(400).json({ error: 'Refresh token required' });
     }
 
-    const decoded = jwt.verify(refreshToken, env.JWT_SECRET);
+    const { verifyRefreshToken, loadUserFromToken, generateAccessToken } = require('../middleware/auth');
+    const decoded = verifyRefreshToken(refreshToken);
+    const user = await loadUserFromToken(decoded);
 
+    if (!user || user.status !== 'active') {
+      return res.status(403).json({ error: 'Invalid refresh token' });
+    }
+
+    const role = user.role || (decoded.type === 'student' ? 'student' : undefined);
     const newAccessToken = generateAccessToken({
       userId: decoded.userId,
-      type: decoded.type,
-      role: decoded.role,
+      type: decoded.type || user.type,
+      role,
     });
 
     res.json({
@@ -574,6 +633,7 @@ async function me(req, res) {
 module.exports = {
   studentLogin,
   staffLogin,
+  unifiedLogin,
   studentRegister,
   forgotPassword,
   resetPassword,

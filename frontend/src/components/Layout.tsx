@@ -1,47 +1,73 @@
 import { Outlet } from 'react-router-dom';
 import { Link, useLocation } from 'react-router-dom';
+import type { LucideIcon } from 'lucide-react';
+import {
+  LayoutDashboard,
+  BadgeCheck,
+  FileUp,
+  Microscope,
+  Landmark,
+  ClipboardList,
+  Search,
+  ScrollText,
+  RefreshCw,
+  MessageSquare,
+  Users,
+  Shield,
+  UserPlus,
+  Wallet,
+  Mail,
+  User,
+  Bell,
+  Send,
+  Sun,
+  Moon,
+} from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { useTheme } from '../contexts/ThemeContext';
 
-const accountantNavItems = [
-  { path: '/accountant', label: 'Dashboard', icon: '📊' },
-  { path: '/accountant/verification', label: 'Verification', icon: '✅' },
-  { path: '/accountant/upload-statement', label: 'Upload Statement', icon: '📄' },
-  { path: '/accountant/batch-reconciliation', label: 'Batch OCR', icon: '🔬' },
-  { path: '/accountant/bank-statements', label: 'Bank Statements', icon: '🏦' },
-  { path: '/accountant/mass-clearance', label: 'Mass Clearance', icon: '📋' },
-  { path: '/accountant/bulk-payment-status', label: 'Bulk Status', icon: '🔍' },
-  { path: '/history', label: 'Payment History', icon: '📜' },
-  { path: '/batch-verification', label: 'Batch Preview', icon: '🔄' },
-  { path: '/feedback', label: 'Feedback', icon: '💬' },
+type NavItem = { path: string; label: string; icon: LucideIcon };
+
+const accountantNavItems: NavItem[] = [
+  { path: '/accountant', label: 'Dashboard', icon: LayoutDashboard },
+  { path: '/accountant/verification', label: 'Verification', icon: BadgeCheck },
+  { path: '/accountant/upload-statement', label: 'Upload Statement', icon: FileUp },
+  { path: '/accountant/batch-reconciliation', label: 'Batch OCR', icon: Microscope },
+  { path: '/accountant/bank-statements', label: 'Bank Statements', icon: Landmark },
+  { path: '/accountant/mass-clearance', label: 'Mass Clearance', icon: ClipboardList },
+  { path: '/accountant/bulk-payment-status', label: 'Bulk Status', icon: Search },
+  { path: '/history', label: 'Payment History', icon: ScrollText },
+  { path: '/batch-verification', label: 'Batch Preview', icon: RefreshCw },
+  { path: '/feedback', label: 'Feedback', icon: MessageSquare },
 ];
 
-const registrarNavItems = [
-  { path: '/registrar', label: 'Dashboard', icon: '📊' },
-  { path: '/accountant/mass-clearance', label: 'Clearance', icon: '📋' },
-  { path: '/feedback', label: 'Feedback', icon: '💬' },
+const registrarNavItems: NavItem[] = [
+  { path: '/registrar', label: 'Dashboard', icon: LayoutDashboard },
+  { path: '/accountant/mass-clearance', label: 'Clearance', icon: ClipboardList },
+  { path: '/feedback', label: 'Feedback', icon: MessageSquare },
 ];
 
-const adminNavItems = [
-  { path: '/admin/dashboard', label: 'Dashboard', icon: '📊' },
-  { path: '/admin/students', label: 'Students', icon: '👥' },
-  { path: '/admin/staff', label: 'Staff', icon: '🛡️' },
-  { path: '/admin/audit-logs', label: 'Audit Logs', icon: '📋' },
-  { path: '/admin/register-student', label: 'Register Student', icon: '👤' },
-  { path: '/admin/feedback', label: 'Feedback', icon: '💬' },
-  { path: '/accountant', label: 'Accountant', icon: '💰' },
-  { path: '/history', label: 'Payment History', icon: '📜' },
-  { path: '/feedback', label: 'Submit Feedback', icon: '✉️' },
+const adminNavItems: NavItem[] = [
+  { path: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { path: '/admin/students', label: 'Students', icon: Users },
+  { path: '/admin/register-accountant', label: 'Register Accountant', icon: BadgeCheck },
+  { path: '/admin/staff', label: 'Staff List', icon: Shield },
+  { path: '/admin/audit-logs', label: 'Audit Logs', icon: ClipboardList },
+  { path: '/admin/register-student', label: 'Register Student', icon: UserPlus },
+  { path: '/admin/feedback', label: 'Feedback', icon: MessageSquare },
+  { path: '/accountant', label: 'Accountant Panel', icon: Wallet },
+  { path: '/history', label: 'Payment History', icon: ScrollText },
+  { path: '/feedback', label: 'Submit Feedback', icon: Mail },
 ];
 
-const studentNavItems = [
-  { path: '/student-portal', label: 'Dashboard', icon: '📊' },
-  { path: '/student-portal/profile', label: 'Profile', icon: '👤' },
-  { path: '/student-portal/payments', label: 'Payments', icon: '💰' },
-  { path: '/student-portal/submit-payment', label: 'Submit Payment', icon: '📤' },
-  { path: '/student-portal/clearance', label: 'Clearance', icon: '📋' },
-  { path: '/student-portal/notifications', label: 'Notifications', icon: '🔔' },
-  { path: '/student-portal/feedback', label: 'Feedback', icon: '💬' },
+const studentNavItems: NavItem[] = [
+  { path: '/student-portal', label: 'Dashboard', icon: LayoutDashboard },
+  { path: '/student-portal/profile', label: 'Profile', icon: User },
+  { path: '/student-portal/payments', label: 'Payments', icon: Wallet },
+  { path: '/student-portal/submit-payment', label: 'Submit Payment', icon: Send },
+  { path: '/student-portal/clearance', label: 'Clearance', icon: ClipboardList },
+  { path: '/student-portal/notifications', label: 'Notifications', icon: Bell },
+  { path: '/student-portal/feedback', label: 'Feedback', icon: MessageSquare },
 ];
 
 export default function Layout() {
@@ -70,132 +96,105 @@ export default function Layout() {
   };
 
   return (
-    <div className="min-h-screen flex bg-[#020617] text-slate-100 font-sans selection:bg-cyan-500/30">
-      <aside className="w-72 bg-[#0a0f1e]/80 backdrop-blur-2xl border-r border-white/5 flex flex-col z-50">
-        <div className="p-8">
-          <div className="flex items-center gap-4 mb-10">
-            <div className="w-12 h-12 bg-gradient-to-br from-cyan-500/20 to-blue-600/20 rounded-xl p-2.5 border border-white/10 shadow-lg shadow-cyan-500/10">
-              <img 
-                src="/logo.jpg" 
-                alt="BluePeack Logo" 
-                className="w-full h-full object-contain"
-              />
+    <div className="min-h-screen flex bg-paper text-ink font-sans selection:bg-accent selection:text-white">
+      <aside className="w-72 bg-paper border-r-2 border-ink flex flex-col z-50 shrink-0">
+        <div className="p-6 border-b-2 border-ink">
+          <div className="flex items-center gap-3 mb-8">
+            <div className="w-12 h-12 border-2 border-ink bg-white p-1.5 brutal-shadow">
+              <img src="/logo.jpg" alt="ICU Logo" className="w-full h-full object-contain" />
             </div>
             <div>
-              <h1 className="font-display font-bold text-lg text-white leading-tight">
-                BluePeack
-              </h1>
-              <p className="text-[10px] text-slate-500 uppercase tracking-[0.2em] font-medium">
-                Technologies
+              <h1 className="font-display text-2xl text-ink leading-none">ICU Pay</h1>
+              <p className="font-mono text-[10px] text-ink/50 uppercase tracking-[0.15em] mt-1">
+                Zambia · Blockchain
               </p>
             </div>
           </div>
-          
-          <nav className="space-y-2">
-            {navItems.map((item) => (
-              <Link
-                key={item.path}
-                to={item.path}
-                className={`flex items-center gap-4 px-5 py-3.5 rounded-2xl transition-all duration-300 group ${
-                  isActive(item.path)
-                    ? 'bg-gradient-to-r from-cyan-500/20 to-blue-600/10 text-cyan-400 border border-cyan-500/20 shadow-lg shadow-cyan-500/5'
-                    : 'text-slate-400 hover:text-slate-100 hover:bg-white/5 border border-transparent'
-                }`}
-              >
-                <span className={`text-xl transition-transform duration-300 group-hover:scale-110 ${isActive(item.path) ? 'scale-110' : ''}`}>
-                  {item.icon}
-                </span>
-                <span className="font-medium tracking-wide text-sm">{item.label}</span>
-                {isActive(item.path) && (
-                  <div className="ml-auto w-1.5 h-1.5 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.8)]" />
-                )}
-              </Link>
-            ))}
+
+          <nav className="space-y-1">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  className={`flex items-center gap-3 px-3 py-2.5 border-2 text-sm font-semibold uppercase tracking-wide transition-colors ${
+                    isActive(item.path)
+                      ? 'bg-ink text-paper border-ink'
+                      : 'border-transparent text-ink hover:bg-ink hover:text-paper hover:border-ink'
+                  }`}
+                >
+                  <Icon className="h-4 w-4 shrink-0" aria-hidden />
+                  <span>{item.label}</span>
+                </Link>
+              );
+            })}
           </nav>
         </div>
 
-        <div className="mt-auto p-8 space-y-6">
-          <div className="bg-gradient-to-br from-white/5 to-transparent rounded-3xl p-6 border border-white/10 relative overflow-hidden group">
-            <div className="absolute -right-4 -top-4 w-24 h-24 bg-cyan-500/10 blur-3xl rounded-full" />
-            <div className="relative">
-              <div className="w-10 h-10 rounded-full bg-slate-800 border border-white/10 flex items-center justify-center mb-4 overflow-hidden">
-                <span className="text-sm font-bold text-cyan-400 uppercase">
-                  {user?.role?.[0] || 'A'}
-                </span>
-              </div>
-              <p className="text-xs text-slate-500 font-medium mb-1 uppercase tracking-wider">
-                {user?.role ? `${user.role} panel` : 'Panel'}
-              </p>
-              <p className="text-sm font-bold text-white truncate mb-4">
-                {user?.name || user?.email || 'Administrator'}
-              </p>
-              <button
-                onClick={() => {
-                  localStorage.removeItem('token');
-                  window.location.href = '/login';
-                }}
-                className="w-full py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-slate-900 font-bold text-xs hover:shadow-[0_0_20px_rgba(34,211,238,0.4)] transition-all active:scale-95"
-              >
-                Log Out
-              </button>
-            </div>
+        <div className="mt-auto p-6 space-y-4 border-t-2 border-ink">
+          <div className="border-2 border-ink bg-white p-4 brutal-shadow">
+            <p className="font-mono text-[10px] uppercase tracking-wider text-accent mb-1">
+              {user?.role ? `${user.role} panel` : 'Account'}
+            </p>
+            <p className="text-sm font-bold text-ink truncate mb-3">
+              {user?.name || user?.email || 'User'}
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                localStorage.removeItem('token');
+                window.location.href = '/login';
+              }}
+              className="btn-primary w-full text-xs"
+            >
+              Log Out
+            </button>
           </div>
 
           <button
+            type="button"
             onClick={toggleTheme}
-            className="w-full flex items-center justify-center gap-3 py-3 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/5 text-slate-400 text-xs transition-all"
+            className="btn-secondary w-full text-xs inline-flex items-center justify-center gap-2"
           >
-            {theme === 'dark' ? '☀️ Switch to Light' : '🌙 Switch to Dark'}
+            {theme === 'dark' ? (
+              <>
+                <Sun className="h-3.5 w-3.5" aria-hidden /> Light paper
+              </>
+            ) : (
+              <>
+                <Moon className="h-3.5 w-3.5" aria-hidden /> Dark ink
+              </>
+            )}
           </button>
         </div>
       </aside>
 
-      <main className="flex-1 flex flex-col relative overflow-hidden">
-        {/* Background glow effects */}
-        <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-blue-600/10 blur-[150px] rounded-full" />
-        <div className="absolute bottom-[-5%] left-[-5%] w-[40%] h-[40%] bg-cyan-500/5 blur-[120px] rounded-full" />
-        
-        <header className="h-20 border-b border-white/5 px-12 flex items-center justify-between bg-[#020617]/50 backdrop-blur-md sticky top-0 z-40">
-          <div className="flex items-center gap-8">
-            <h2 className="text-xl font-bold text-white tracking-tight">Statistics</h2>
-            <nav className="hidden lg:flex items-center gap-8 text-sm text-slate-500 font-medium">
-              <a href="#" className="text-cyan-400 relative after:absolute after:-bottom-7 after:left-0 after:w-full after:h-0.5 after:bg-cyan-400 after:shadow-[0_0_8px_rgba(34,211,238,0.8)]">Statistics</a>
-            </nav>
-          </div>
-          
-          <div className="flex items-center gap-6">
-            <button className="p-2.5 rounded-xl hover:bg-white/5 text-slate-400 transition-all">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-            </button>
-            <Link to={notificationsPath} className="p-2.5 rounded-xl hover:bg-white/5 text-slate-400 transition-all relative">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
-              <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-red-500 border-2 border-[#020617]" />
+      <main className="flex-1 flex flex-col min-h-0 min-w-0">
+        <header className="h-16 border-b-2 border-ink px-8 flex items-center justify-between bg-paper sticky top-0 z-40">
+          <h2 className="font-display text-2xl text-ink">Dashboard</h2>
+          <div className="flex items-center gap-4">
+            <Link
+              to={notificationsPath}
+              className="w-10 h-10 border-2 border-ink bg-white flex items-center justify-center brutal-shadow hover:bg-accent transition-colors"
+              aria-label="Notifications"
+            >
+              <Bell className="h-4 w-4" aria-hidden />
             </Link>
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 p-0.5 shadow-lg shadow-cyan-500/20 cursor-pointer hover:scale-105 transition-transform">
-              <div className="w-full h-full rounded-[9px] bg-slate-900 flex items-center justify-center">
-                <span className="text-sm font-bold text-cyan-400 uppercase">{user?.role?.[0] || 'A'}</span>
-              </div>
+            <div className="w-10 h-10 border-2 border-ink bg-ink text-paper flex items-center justify-center font-bold uppercase brutal-shadow">
+              {user?.role?.[0] || 'U'}
             </div>
           </div>
         </header>
 
-        <div className="flex-1 overflow-auto custom-scrollbar">
-          <div className="p-12">
+        <div className="flex-1 overflow-auto">
+          <div className="p-8 md:p-10">
             <Outlet />
           </div>
-          
-          <footer className="border-t border-white/5 px-12 py-8 text-[11px] text-slate-600 font-medium tracking-widest uppercase">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
-              <div className="flex items-center gap-4">
-                <span className="text-slate-500">Built for ICU Zambia</span>
-                <div className="w-1 h-1 rounded-full bg-slate-800" />
-                <span>Blockchain-Based Payment Reconciliation</span>
-              </div>
-              <div className="flex items-center gap-6">
-                <a href="#" className="hover:text-cyan-400 transition-colors">Privacy</a>
-                <a href="#" className="hover:text-cyan-400 transition-colors">Terms</a>
-                <span>© 2024. All rights reserved.</span>
-              </div>
+
+          <footer className="border-t-2 border-ink px-8 py-6 font-mono text-[10px] uppercase tracking-widest text-ink/50">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <span>Built for ICU Zambia · Blockchain Payment Reconciliation</span>
             </div>
           </footer>
         </div>

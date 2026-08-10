@@ -9,8 +9,6 @@
     "dev:backend": "cd backend && npm run dev",
     "dev:python": "cd backend/python-services && python api_server.py",
     "build": "cd frontend && npm run build",
-    "vercel-build": "cd frontend && npm install && npm run build",
-    "env:pull": "vercel env pull .env.local --yes",
     "db:migrate": "cd backend && npm run db:migrate",
     "start": "cd backend && npm start",
     "docker:up": "docker-compose up -d",
@@ -27,6 +25,8 @@
   },
   "dependencies": {
     "@sendgrid/mail": "^8.1.6",
+    "@supabase/ssr": "^0.12.4",
+    "@supabase/supabase-js": "^2.112.2",
     "dotenv": "^17.3.1",
     "serverless-http": "^3.2.0"
   }

@@ -1,9 +1,10 @@
 function getCurrentSemester() {
   const now = new Date();
   const year = now.getFullYear();
-  const month = now.getMonth();
-  const semester = month >= 1 && month <= 6 ? 'Semester 1' : 'Semester 2';
-  const academicYear = month >= 7 ? `${year}/${year + 1}` : `${year - 1}/${year}`;
+  const month = now.getMonth(); // 0–11
+  const semester = month >= 0 && month <= 5 ? '1' : '2';
+  const startYear = month >= 7 ? year : year - 1;
+  const academicYear = `${startYear}-${startYear + 1}`;
   return { semester, academicYear };
 }
 

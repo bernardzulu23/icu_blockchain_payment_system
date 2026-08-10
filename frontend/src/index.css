@@ -2,49 +2,269 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── ZSMS / EduZambia brutalist palette ── */
+:root {
+  /* Muted paper — less glare than pure cream */
+  --color-paper: #c9c3b7;
+  --color-ink: #111111;
+  --color-accent: #ff3b00;
+  --color-white: #e8e4dc;
+  --text-secondary: rgba(17, 17, 17, 0.55);
+}
+
 @layer base {
-  body {
-    @apply bg-slate-50 text-slate-900 font-sans antialiased transition-colors duration-300;
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
+
+  body {
+    background-color: var(--color-paper);
+    color: var(--color-ink);
+    font-family: 'Montserrat', system-ui, sans-serif;
+    line-height: 1.6;
+    background-image: radial-gradient(rgba(17, 17, 17, 0.35) 1px, transparent 1px);
+    background-size: 24px 24px;
+    background-position: -12px -12px;
+    min-height: 100vh;
+  }
+
   .dark body {
-    @apply bg-slate-950 text-slate-100;
+    background-color: var(--color-ink);
+    color: var(--color-paper);
+    background-image: radial-gradient(rgba(201, 195, 183, 0.15) 1px, transparent 1px);
+  }
+
+  h1,
+  h2,
+  .font-display {
+    font-family: 'Instrument Serif', Georgia, serif;
+    font-weight: 400;
+  }
+
+  code,
+  .font-mono {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+  }
+
+  ::selection {
+    background-color: var(--color-accent);
+    color: var(--color-white);
+  }
+
+  ::-webkit-scrollbar {
+    width: 12px;
+    background: var(--color-paper);
+    border-left: 2px solid var(--color-ink);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-ink);
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-accent);
+  }
+  .dark ::-webkit-scrollbar {
+    background: var(--color-ink);
+    border-left-color: var(--color-paper);
+  }
+  .dark ::-webkit-scrollbar-thumb {
+    background: var(--color-paper);
   }
 }
 
 @layer components {
-  .glass {
-    @apply bg-white/70 dark:bg-slate-800/40 backdrop-blur-xl border border-white/20 dark:border-slate-700/50 shadow-glass;
+  .brutal-shadow {
+    box-shadow: 4px 4px 0 var(--color-ink);
   }
-  .glass-card {
-    @apply glass rounded-2xl p-6;
+  .brutal-shadow-lg {
+    box-shadow: 8px 8px 0 var(--color-ink);
   }
-  .glass-subtle {
-    @apply bg-white/50 dark:bg-slate-800/30 backdrop-blur-lg border border-slate-200/50 dark:border-slate-700/40 rounded-xl;
+  .brutal-shadow-hover:hover {
+    box-shadow: 6px 6px 0 var(--color-ink);
   }
-  .btn-primary {
-    @apply px-4 py-2 bg-icu-accent text-slate-900 dark:text-slate-900 rounded-xl font-medium
-           hover:bg-icu-accent/90 transition-all duration-200 focus:ring-2 focus:ring-icu-accent focus:ring-offset-2
-           dark:focus:ring-offset-slate-900 shadow-lg shadow-icu-accent/20;
+  .brutal-shadow-active:active {
+    box-shadow: none;
+    transform: translate(2px, 2px);
   }
-  .btn-secondary {
-    @apply px-4 py-2 glass rounded-xl font-medium
-           hover:bg-white/30 dark:hover:bg-slate-700/50 transition-all duration-200
-           border border-slate-300/50 dark:border-slate-600/50;
+
+  .noise-bg {
+    pointer-events: none;
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    opacity: 0.04;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   }
+
+  /* Legacy glass → brutalist panels (plain CSS — avoid @apply with custom colors) */
+  .glass,
+  .glass-card,
+  .glass-subtle,
   .card {
-    @apply glass-card;
+    background-color: #e8e4dc;
+    border: 2px solid var(--color-ink);
+    color: var(--color-ink);
+    box-shadow: 4px 4px 0 var(--color-ink);
+    border-radius: 0;
+    padding: 1.25rem;
   }
+  .dark .glass,
+  .dark .glass-card,
+  .dark .glass-subtle,
+  .dark .card {
+    background-color: #1a1a1a;
+    color: var(--color-paper);
+    border-color: var(--color-paper);
+    box-shadow: 4px 4px 0 var(--color-paper);
+  }
+
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.625rem 1rem;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 600;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    background-color: var(--color-accent);
+    color: var(--color-ink);
+    border: 2px solid var(--color-ink);
+    border-radius: 0;
+    box-shadow: 4px 4px 0 var(--color-ink);
+    transition: background-color 150ms, color 150ms, box-shadow 150ms, transform 150ms;
+  }
+  .btn-primary:hover {
+    background-color: var(--color-ink);
+    color: var(--color-paper);
+  }
+  .btn-primary:focus {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+  .btn-primary:active {
+    box-shadow: none;
+    transform: translate(2px, 2px);
+  }
+  .btn-primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.625rem 1rem;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 600;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    background-color: var(--color-paper);
+    color: var(--color-ink);
+    border: 2px solid var(--color-ink);
+    border-radius: 0;
+    box-shadow: 4px 4px 0 var(--color-ink);
+    transition: background-color 150ms, color 150ms;
+  }
+  .btn-secondary:hover {
+    background-color: var(--color-ink);
+    color: var(--color-paper);
+  }
+
   .input-field {
-    @apply w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-600
-           bg-white/80 dark:bg-slate-800/50 backdrop-blur-sm
-           focus:ring-2 focus:ring-icu-accent focus:border-transparent
-           placeholder-slate-500 dark:placeholder-slate-400
-           transition-colors duration-200;
+    width: 100%;
+    padding: 0.625rem 1rem;
+    background-color: #e8e4dc;
+    color: var(--color-ink);
+    border: 2px solid var(--color-ink);
+    border-radius: 0;
+    font-family: 'Montserrat', sans-serif;
   }
+  .input-field::placeholder {
+    color: rgba(17, 17, 17, 0.3);
+  }
+  .input-field:focus {
+    outline: none;
+    border-color: var(--color-accent);
+  }
+  .dark .input-field {
+    background-color: #1a1a1a;
+    color: var(--color-paper);
+    border-color: var(--color-paper);
+  }
+  .dark .input-field::placeholder {
+    color: rgba(239, 236, 229, 0.4);
+  }
+
   .page-bg {
-    @apply min-h-screen bg-gradient-to-br from-slate-100 via-slate-50 to-slate-200 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950;
+    background-color: var(--color-paper);
+    background-image: radial-gradient(var(--color-ink) 1px, transparent 1px);
+    background-size: 24px 24px;
+    min-height: 100vh;
   }
   .page-bg-auth {
-    @apply min-h-screen bg-gradient-to-br from-icu-primary via-icu-secondary to-slate-900 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950;
+    background-color: var(--color-ink);
+    color: var(--color-paper);
+    min-height: 100vh;
   }
+
+  .app-shell {
+    min-height: 100vh;
+    display: flex;
+    background-color: var(--color-paper);
+    color: var(--color-ink);
+  }
+  .app-sidebar {
+    display: flex;
+    flex-direction: column;
+    border-right: 2px solid var(--color-ink);
+    background-color: var(--color-paper);
+  }
+  .app-nav-link {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    border: 2px solid transparent;
+    font-weight: 500;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-ink);
+    transition: background-color 150ms, color 150ms;
+  }
+  .app-nav-link:hover {
+    background-color: var(--color-ink);
+    color: var(--color-paper);
+  }
+  .app-nav-link-active {
+    background-color: var(--color-ink);
+    color: var(--color-paper);
+    border-color: var(--color-ink);
+  }
+}
+
+/* React Toastify — brutalist (no blue) */
+.Toastify__toast {
+  border: 2px solid var(--color-ink) !important;
+  border-radius: 0 !important;
+  box-shadow: 4px 4px 0 var(--color-ink) !important;
+  font-family: 'Montserrat', sans-serif !important;
+  background: var(--color-paper) !important;
+  color: var(--color-ink) !important;
+}
+.Toastify__toast--success {
+  border-color: var(--color-ink) !important;
+}
+.Toastify__toast--error {
+  border-color: var(--color-accent) !important;
+  background: #ffe8e0 !important;
+}
+.Toastify__progress-bar {
+  background: var(--color-accent) !important;
 }

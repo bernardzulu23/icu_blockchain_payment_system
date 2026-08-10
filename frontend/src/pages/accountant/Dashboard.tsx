@@ -1,7 +1,8 @@
 import { useQuery } from 'react-query';
+import { Link } from 'react-router-dom';
+import { BadgeCheck, FileUp, ClipboardList, Search } from 'lucide-react';
 import { apiClient } from '../../api/client';
 import LoadingSpinner from '../../components/LoadingSpinner';
-import { Link } from 'react-router-dom';
 
 export default function AccountantDashboard() {
   const { data: stats, isLoading } = useQuery(
@@ -42,7 +43,7 @@ export default function AccountantDashboard() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Link to="/accountant/verification" className="card hover:border-icu-accent/50 transition-colors group">
-              <span className="text-3xl mb-2 block">✅</span>
+              <BadgeCheck className="h-8 w-8 mb-2 text-ink" aria-hidden />
               <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100 group-hover:text-icu-accent">
                 Verification
               </h2>
@@ -51,7 +52,7 @@ export default function AccountantDashboard() {
               </p>
             </Link>
             <Link to="/accountant/upload-statement" className="card hover:border-icu-accent/50 transition-colors group">
-              <span className="text-3xl mb-2 block">📄</span>
+              <FileUp className="h-8 w-8 mb-2 text-ink" aria-hidden />
               <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100 group-hover:text-icu-accent">
                 Upload Statement
               </h2>
@@ -60,7 +61,7 @@ export default function AccountantDashboard() {
               </p>
             </Link>
             <Link to="/accountant/mass-clearance" className="card hover:border-icu-accent/50 transition-colors group">
-              <span className="text-3xl mb-2 block">📋</span>
+              <ClipboardList className="h-8 w-8 mb-2 text-ink" aria-hidden />
               <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100 group-hover:text-icu-accent">
                 Mass Clearance
               </h2>
@@ -69,7 +70,7 @@ export default function AccountantDashboard() {
               </p>
             </Link>
             <Link to="/accountant/bulk-payment-status" className="card hover:border-icu-accent/50 transition-colors group">
-              <span className="text-3xl mb-2 block">🔍</span>
+              <Search className="h-8 w-8 mb-2 text-ink" aria-hidden />
               <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100 group-hover:text-icu-accent">
                 Bulk Payment Status
               </h2>

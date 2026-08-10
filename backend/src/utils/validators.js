@@ -46,7 +46,7 @@ const studentValidators = {
     body('dateOfBirth').optional().isISO8601().withMessage('Invalid date format (YYYY-MM-DD)'),
     body('currentSemester').optional().isInt({ min: 1, max: 12 }),
     body('currentTerm').optional().isInt({ min: 1, max: 3 }),
-    body('password').trim().notEmpty().withMessage('Password is required for student login').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
+    body('password').trim().notEmpty().withMessage('Password is required for student login').isLength({ min: 8 }).withMessage('Password must be at least 8 characters'),
   ],
 };
 

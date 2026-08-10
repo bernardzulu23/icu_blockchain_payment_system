@@ -1,5 +1,6 @@
 import { useQuery } from 'react-query';
 import { Link } from 'react-router-dom';
+import { UserPlus, MessageSquare, Shield, Users } from 'lucide-react';
 import { adminService } from '../../api/services';
 import LoadingSpinner from '../../components/LoadingSpinner';
 
@@ -38,15 +39,33 @@ export default function AdminDashboard() {
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Link to="/admin/register-accountant" className="card hover:border-icu-accent/50 transition-colors group">
+              <Shield className="h-8 w-8 mb-2 text-ink" aria-hidden />
+              <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100 group-hover:text-icu-accent">
+                Register Accountant
+              </h2>
+              <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+                Create accountant officer accounts (Employee ID, email, password, address, D.O.B.)
+              </p>
+            </Link>
             <Link to="/admin/register-student" className="card hover:border-icu-accent/50 transition-colors group">
-              <span className="text-3xl mb-2 block">👤</span>
+              <UserPlus className="h-8 w-8 mb-2 text-ink" aria-hidden />
               <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100 group-hover:text-icu-accent">
                 Register Student
               </h2>
               <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">Create student accounts</p>
             </Link>
+            <Link to="/admin/staff" className="card hover:border-icu-accent/50 transition-colors group">
+              <Users className="h-8 w-8 mb-2 text-ink" aria-hidden />
+              <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100 group-hover:text-icu-accent">
+                Staff List
+              </h2>
+              <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+                View and manage accountant, registrar, and admin accounts
+              </p>
+            </Link>
             <Link to="/admin/feedback" className="card hover:border-icu-accent/50 transition-colors group">
-              <span className="text-3xl mb-2 block">💬</span>
+              <MessageSquare className="h-8 w-8 mb-2 text-ink" aria-hidden />
               <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100 group-hover:text-icu-accent">
                 View Feedback
               </h2>

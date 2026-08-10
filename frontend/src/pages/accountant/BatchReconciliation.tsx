@@ -6,6 +6,7 @@ import {
   type OcrReconciliationResult,
   type OcrMatchPair,
 } from '../../api/services';
+import LoadingSpinner from '../../components/LoadingSpinner';
 
 function confidenceClass(conf: number) {
   if (conf >= 0.8) return 'text-green-600 dark:text-green-400';
@@ -88,7 +89,7 @@ export default function BatchReconciliation() {
       </h1>
       <p className="text-slate-600 dark:text-slate-400 mb-8">
         Upload a bank statement PDF and student deposit slip images. Tesseract OCR extracts fields using
-        Zanaco/FNB templates, matches against bank transactions, then anchors a Merkle root on approval.
+        Zanaco/ABSA templates, matches against bank transactions, then anchors a Merkle root on approval.
       </p>
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
@@ -112,8 +113,8 @@ export default function BatchReconciliation() {
                 onChange={(e) => setBankHint(e.target.value)}
                 className="input-field"
               >
-                <option value="zanaco">Zanaco</option>
-                <option value="fnb">FNB</option>
+                <option value="zanaco">Zanaco Bank</option>
+                <option value="absa">ABSA Bank</option>
               </select>
             </div>
             <div>
@@ -136,7 +137,13 @@ export default function BatchReconciliation() {
               />
             </div>
             <button type="submit" disabled={previewMutation.isLoading} className="btn-primary w-full">
-              {previewMutation.isLoading ? 'Running OCR...' : 'Run OCR & Match'}
+              {previewMutation.isLoading ? (
+                <span className="inline-flex justify-center w-full py-1">
+                  <LoadingSpinner size="sm" label="OCR" />
+                </span>
+              ) : (
+                'Run OCR & Match'
+              )}
             </button>
           </form>
         </div>
@@ -218,7 +225,7 @@ export default function BatchReconciliation() {
                     <td className="py-2">{m.slip?.amount ?? '—'}</td>
                     <td className={`py-2 font-medium ${confidenceClass(m.slip?.confidence ?? 0)}`}>
                       {((m.slip?.confidence ?? 0) * 100).toFixed(0)}%
-                      {m.slip?.needs_manual_entry ? ' ⚠' : ''}
+                      {m.slip?.needs_manual_entry ? ' (manual)' : ''}
                     </td>
                     <td className="py-2">{m.transaction?.batch_number || '—'}</td>
                     <td className="py-2">{m.transaction?.amount ?? '—'}</td>

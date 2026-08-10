@@ -8,13 +8,16 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Outfit:wght@100..900&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=JetBrains+Mono:wght@400;700&family=Montserrat:wght@400;600;700&display=swap"
       rel="stylesheet"
     />
   </head>
   <body>
     <script>
-      (function(){var t=localStorage.getItem('theme')||'dark';document.documentElement.classList.toggle('dark',t==='dark');})();
+      (function () {
+        var t = localStorage.getItem('theme') || 'light';
+        document.documentElement.classList.toggle('dark', t === 'dark');
+      })();
     </script>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>

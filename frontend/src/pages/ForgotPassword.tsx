@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import { Sun, Moon } from 'lucide-react';
 import { authService } from '../api/services';
 import { useTheme } from '../contexts/ThemeContext';
 
@@ -29,39 +30,25 @@ export default function ForgotPassword() {
   };
 
   return (
-    <div
-      className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden bg-cover bg-center bg-no-repeat"
-      style={{ backgroundImage: 'url("https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=2070&auto=format&fit=crop")' }}
-    >
-      <div className="absolute inset-0 bg-black/40" />
-
-      <button
-        onClick={toggleTheme}
-        className="absolute top-4 right-4 bg-white/10 backdrop-blur-md border border-white/20 px-3 py-2 rounded-xl text-sm text-white hover:bg-white/20 transition-all z-20"
-      >
-        {theme === 'dark' ? '☀️' : '🌙'}
+    <div className="min-h-screen flex items-center justify-center p-4 page-bg text-ink selection:bg-accent selection:text-white">
+      <button type="button" onClick={toggleTheme} className="absolute top-4 right-4 btn-secondary text-xs z-20 inline-flex items-center gap-1.5">
+        {theme === 'dark' ? <><Sun className="h-3.5 w-3.5" aria-hidden /> Light</> : <><Moon className="h-3.5 w-3.5" aria-hidden /> Dark</>}
       </button>
 
-      <div className="w-full max-w-md relative z-10 bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-8 shadow-2xl">
-        <div className="text-center mb-8">
-          <div className="flex justify-center mb-6">
-            <div className="w-20 h-20 bg-white/10 backdrop-blur-md rounded-2xl p-3 border border-white/20 shadow-xl">
-              <img
-                src="/logo.jpg"
-                alt="BluePeack Logo"
-                className="w-full h-full object-contain filter drop-shadow-lg"
-              />
+      <div className="w-full max-w-md relative z-10 border-2 border-ink bg-paper p-8 brutal-shadow-lg">
+        <div className="text-center mb-8 border-b-2 border-ink pb-6">
+          <div className="flex justify-center mb-4">
+            <div className="w-16 h-16 border-2 border-ink bg-white p-2 brutal-shadow">
+              <img src="/logo.jpg" alt="ICU Logo" className="w-full h-full object-contain" />
             </div>
           </div>
-          <h1 className="font-display text-2xl font-bold text-white tracking-tight">
-            Forgot Password
-          </h1>
-          <p className="text-white/60 text-sm mt-2">
-            Enter your email to receive a reset link.
+          <h1 className="font-display text-3xl text-ink">Forgot Password</h1>
+          <p className="font-mono text-xs text-ink/50 uppercase tracking-widest mt-2">
+            Enter your email to receive a reset link
           </p>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
           <div>
             <input
               {...register('email', {
@@ -69,25 +56,21 @@ export default function ForgotPassword() {
                 pattern: { value: /^\S+@\S+$/i, message: 'Invalid email' },
               })}
               type="email"
-              className="w-full bg-transparent border-b border-white/30 text-white py-3 placeholder:text-white/50 focus:outline-none focus:border-white transition-colors"
+              className="input-field"
               placeholder="Enter your email"
             />
             {errors.email && (
-              <p className="text-red-400 text-xs mt-1">{errors.email.message}</p>
+              <p className="text-accent text-xs mt-1 font-semibold">{errors.email.message}</p>
             )}
           </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-white text-slate-900 font-bold py-4 rounded-lg hover:bg-white/90 active:scale-[0.98] transition-all disabled:opacity-50 disabled:scale-100 shadow-xl"
-          >
-            {loading ? 'SENDING...' : 'Send Reset Link'}
+          <button type="submit" disabled={loading} className="btn-primary w-full py-3">
+            {loading ? 'Sending…' : 'Send Reset Link'}
           </button>
         </form>
 
-        <p className="mt-8 text-center text-sm text-white/60">
-          <Link to="/login" className="text-white font-bold hover:underline">
+        <p className="mt-6 text-center text-sm">
+          <Link to="/login" className="font-bold text-ink hover:text-accent underline">
             Back to login
           </Link>
         </p>

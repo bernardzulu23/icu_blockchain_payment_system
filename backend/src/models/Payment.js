@@ -89,6 +89,7 @@ async function findByStudentAndBatch(studentId, batchNumber, status = 'verified'
 }
 
 async function update(paymentId, fields) {
+  // status is intentionally excluded — use verify/reject endpoints only
   const allowed = {
     semester: 'semester',
     academic_year: 'academicYear',
@@ -96,7 +97,6 @@ async function update(paymentId, fields) {
     batch_number: 'batchNumber',
     bank_name: 'bankName',
     payment_date: 'paymentDate',
-    status: 'status',
   };
   const sets = [];
   const params = [];

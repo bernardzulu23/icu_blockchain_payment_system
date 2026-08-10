@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { toast } from 'react-toastify';
 import CrudTable from '../../components/CrudTable';
+import Modal from '../../components/Modal';
 import { PaginationBar, SearchBar } from '../../components/CrudPagination';
 import { studentService, type StudentProfile } from '../../api/services';
 
@@ -16,6 +17,12 @@ export default function StudentsManagement() {
   const { data, isLoading } = useQuery(['students', page, search], () =>
     studentService.list({ page, limit: 10, search: search || undefined }).then((r) => r.data)
   );
+
+  const closeModal = () => {
+    setShowModal(false);
+    setEditing(null);
+    setForm({});
+  };
 
   const saveMutation = useMutation(
     () =>
@@ -32,12 +39,15 @@ export default function StudentsManagement() {
             password: form.password,
           }),
     {
-      onSuccess: () => {
-        toast.success(editing ? 'Student updated' : 'Student created');
+      onSuccess: (res) => {
+        const hint = (res as { data?: { login_hint?: string } })?.data?.login_hint;
+        toast.success(
+          editing
+            ? 'Student updated'
+            : hint || 'Student created — they can log in with the email and password you set'
+        );
         queryClient.invalidateQueries('students');
-        setShowModal(false);
-        setEditing(null);
-        setForm({});
+        closeModal();
       },
       onError: (err: unknown) => {
         const msg = (err as { response?: { data?: { message?: string; error?: string } } })?.response?.data;
@@ -55,12 +65,20 @@ export default function StudentsManagement() {
 
   const openCreate = () => {
     setEditing(null);
-    setForm({ studentId: '', studentNumber: '', firstName: '', lastName: '', email: '', password: '' });
+    setForm({
+      studentId: '',
+      studentNumber: '',
+      firstName: '',
+      lastName: '',
+      email: '',
+      phone: '',
+      program: '',
+      password: '',
+    });
     setShowModal(true);
   };
 
   const openEdit = (row: StudentProfile) => {
-    setShowModal(true);
     setEditing(row);
     setForm({
       firstName: row.first_name,
@@ -69,14 +87,20 @@ export default function StudentsManagement() {
       phone: row.phone || '',
       program: row.program || '',
       status: row.status || 'active',
+      password: '',
     });
+    setShowModal(true);
   };
 
   return (
     <div>
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-        <h1 className="font-display text-2xl font-bold text-slate-800 dark:text-slate-100">Students</h1>
-        <button type="button" onClick={openCreate} className="btn-primary">
+        <h1 className="font-display text-2xl font-bold text-ink">Students</h1>
+        <button
+          type="button"
+          onClick={openCreate}
+          className="btn-primary"
+        >
           Add Student
         </button>
       </div>
@@ -114,42 +138,88 @@ export default function StudentsManagement() {
         )}
       </div>
 
-      {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-          <div className="card max-w-lg w-full max-h-[90vh] overflow-y-auto">
-            <h2 className="text-lg font-semibold mb-4">{editing ? 'Edit Student' : 'New Student'}</h2>
-            <div className="space-y-3">
-              {!editing && (
-                <>
-                  <input className="input-field" placeholder="Student ID" value={form.studentId || ''} onChange={(e) => setForm({ ...form, studentId: e.target.value })} />
-                  <input className="input-field" placeholder="Student Number" value={form.studentNumber || ''} onChange={(e) => setForm({ ...form, studentNumber: e.target.value })} />
-                  <input className="input-field" placeholder="Password" type="password" value={form.password || ''} onChange={(e) => setForm({ ...form, password: e.target.value })} />
-                </>
-              )}
-              <input className="input-field" placeholder="First Name" value={form.firstName || ''} onChange={(e) => setForm({ ...form, firstName: e.target.value })} />
-              <input className="input-field" placeholder="Last Name" value={form.lastName || ''} onChange={(e) => setForm({ ...form, lastName: e.target.value })} />
-              <input className="input-field" placeholder="Email" value={form.email || ''} onChange={(e) => setForm({ ...form, email: e.target.value })} />
-              <input className="input-field" placeholder="Phone" value={form.phone || ''} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
-              <input className="input-field" placeholder="Program" value={form.program || ''} onChange={(e) => setForm({ ...form, program: e.target.value })} />
-              {editing && (
-                <select className="input-field" value={form.status || 'active'} onChange={(e) => setForm({ ...form, status: e.target.value })}>
-                  <option value="active">Active</option>
-                  <option value="suspended">Suspended</option>
-                  <option value="graduated">Graduated</option>
-                </select>
-              )}
-            </div>
-            <div className="flex gap-3 mt-6">
-              <button type="button" className="btn-primary flex-1" disabled={saveMutation.isLoading} onClick={() => saveMutation.mutate()}>
-                Save
-              </button>
-              <button type="button" className="btn-secondary flex-1" onClick={() => { setShowModal(false); setEditing(null); setForm({}); }}>
-                Cancel
-              </button>
-            </div>
-          </div>
+      <Modal
+        open={showModal}
+        title={editing ? 'Edit Student' : 'New Student'}
+        onClose={closeModal}
+        footer={
+          <>
+            <button
+              type="button"
+              className="btn-primary flex-1"
+              disabled={saveMutation.isLoading}
+              onClick={() => {
+                if (!editing) {
+                  if (
+                    !form.studentId?.trim() ||
+                    !form.studentNumber?.trim() ||
+                    !form.firstName?.trim() ||
+                    !form.lastName?.trim() ||
+                    !form.email?.trim() ||
+                    !form.password?.trim()
+                  ) {
+                    toast.error('Student ID, number, name, email, and password are required for login');
+                    return;
+                  }
+                  if (form.password.length < 6) {
+                    toast.error('Password must be at least 6 characters');
+                    return;
+                  }
+                } else if (form.password && form.password.length < 6) {
+                  toast.error('Password must be at least 6 characters');
+                  return;
+                } else if (editing && !form.email?.trim()) {
+                  toast.error('Email is required — students log in with email and password');
+                  return;
+                }
+                saveMutation.mutate();
+              }}
+            >
+              {saveMutation.isLoading ? 'Saving...' : 'Save'}
+            </button>
+            <button type="button" className="btn-secondary flex-1" onClick={closeModal}>
+              Cancel
+            </button>
+          </>
+        }
+      >
+        <div className="space-y-3">
+          {!editing && (
+            <>
+              <input className="input-field" placeholder="Student ID *" value={form.studentId || ''} onChange={(e) => setForm({ ...form, studentId: e.target.value })} />
+              <input className="input-field" placeholder="Student Number *" value={form.studentNumber || ''} onChange={(e) => setForm({ ...form, studentNumber: e.target.value })} />
+            </>
+          )}
+          <input className="input-field" placeholder="First Name *" value={form.firstName || ''} onChange={(e) => setForm({ ...form, firstName: e.target.value })} />
+          <input className="input-field" placeholder="Last Name *" value={form.lastName || ''} onChange={(e) => setForm({ ...form, lastName: e.target.value })} />
+          <input
+            className="input-field"
+            placeholder="Email * (login username)"
+            type="email"
+            value={form.email || ''}
+            onChange={(e) => setForm({ ...form, email: e.target.value })}
+          />
+          <input
+            className="input-field"
+            placeholder={editing ? 'New password (leave blank to keep)' : 'Password * (student login)'}
+            type="password"
+            value={form.password || ''}
+            onChange={(e) => setForm({ ...form, password: e.target.value })}
+          />
+          <p className="font-mono text-[10px] uppercase tracking-widest text-ink/50">
+            Students sign in with this email (or student number) and password
+          </p>
+          <input className="input-field" placeholder="Phone" value={form.phone || ''} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+          <input className="input-field" placeholder="Program" value={form.program || ''} onChange={(e) => setForm({ ...form, program: e.target.value })} />
+          {editing && (
+            <select className="input-field" value={form.status || 'active'} onChange={(e) => setForm({ ...form, status: e.target.value })}>
+              <option value="active">Active</option>
+              <option value="suspended">Suspended</option>
+              <option value="graduated">Graduated</option>
+            </select>
+          )}
         </div>
-      )}
+      </Modal>
     </div>
   );
 }

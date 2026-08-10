@@ -61,11 +61,26 @@ async function generateCertificateForClearance(clearanceId) {
 async function requestClearance(req, res, next) {
   try {
     const { studentId, clearanceType, clearance_type } = req.body;
-    const sid = studentId || req.params.studentId || req.user?.student_id || req.user?.userId;
-    const type = clearanceType || clearance_type || 'graduation';
+    let sid = studentId || req.params.studentId || req.user?.student_id || req.user?.userId;
+
+    // Students may only request clearance for themselves (ignore spoofed studentId)
+    if (req.user?.type === 'student' || req.user?.role === 'student') {
+      sid = req.user.student_id || req.user.userId;
+    }
 
     if (!sid) {
       return res.status(400).json({ error: 'Student ID required' });
+    }
+
+    const { isValidClearanceType, CLEARANCE_TYPES } = require('../utils/constants');
+    let type = String(clearanceType || clearance_type || '').trim();
+    if (type.toLowerCase() === 'graduation') type = 'Graduation';
+    if (!isValidClearanceType(type)) {
+      return res.status(400).json({
+        error: 'Invalid clearance type',
+        message: 'Clearance type must be Graduation, Term 1–3, or Semester 1–12',
+        allowed: CLEARANCE_TYPES,
+      });
     }
 
     // 1) Ledger is source of truth for paid semesters (Postgres is cache)

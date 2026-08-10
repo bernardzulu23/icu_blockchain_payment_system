@@ -104,6 +104,35 @@ async function submitPayment(req, res) {
       });
     }
 
+    const {
+      isAllowedBank,
+      normalizeBankName,
+      isValidAcademicYearSpan,
+    } = require('../utils/constants');
+
+    if (!isValidAcademicYearSpan(academic_year)) {
+      return res.status(400).json({
+        error: 'Invalid academic year',
+        message: 'Academic year must be in YYYY-YYYY format between 2000-2001 and 2098-2099',
+      });
+    }
+
+    const semNum = parseInt(String(semester).replace(/\D/g, ''), 10);
+    if (!semNum || semNum < 1 || semNum > 12) {
+      return res.status(400).json({
+        error: 'Invalid semester',
+        message: 'Semester must be 1–12',
+      });
+    }
+
+    if (!bank_name || !isAllowedBank(bank_name)) {
+      return res.status(400).json({
+        error: 'Invalid bank',
+        message: 'Bank must be Zanaco Bank or ABSA Bank',
+      });
+    }
+    const normalizedBank = normalizeBankName(bank_name);
+
     if (!depositSlipFile) {
       return res.status(400).json({ error: 'Deposit slip image required' });
     }
@@ -157,7 +186,7 @@ async function submitPayment(req, res) {
         payment_date, deposit_slip_url, status)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'pending')
        RETURNING payment_id, created_at`,
-      [student_id, semester, academic_year, amount, batch_number, bank_name, payment_date, slipUrl]
+      [student_id, semester, academic_year, amount, batch_number, normalizedBank, payment_date, slipUrl]
     );
 
     const payment = insertResult.rows[0];

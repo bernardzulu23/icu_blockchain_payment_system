@@ -117,7 +117,10 @@ async function update(studentId, fields) {
   params.push(studentId);
   sets.push('updated_at = NOW()');
   const { rows } = await pool.query(
-    `UPDATE students SET ${sets.join(', ')} WHERE student_id = $${params.length} RETURNING *`,
+    `UPDATE students SET ${sets.join(', ')} WHERE student_id = $${params.length}
+     RETURNING student_id, student_number, first_name, last_name, email, phone, program, department,
+               admission_year, date_of_birth, current_semester, current_term, profile_picture_url,
+               status, created_at, updated_at`,
     params
   );
   return rows[0];

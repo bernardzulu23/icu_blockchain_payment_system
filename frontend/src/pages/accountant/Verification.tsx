@@ -11,13 +11,10 @@ import {
 } from 'lucide-react';
 import { apiClient } from '../../api/client';
 import { accountantService } from '../../api/services';
+import LoadingSpinner from '../../components/LoadingSpinner';
+import { getAuthenticatedFileUrl } from '../../utils/fileUrl';
 
-const getAssetUrl = (path: string | undefined) => {
-  if (!path) return '';
-  if (path.startsWith('http')) return path;
-  const base = (import.meta.env.VITE_API_URL || '/api').replace(/\/api\/?$/, '');
-  return `${base || window.location.origin}${path.startsWith('/') ? '' : '/'}${path}`;
-};
+const getAssetUrl = (path: string | undefined) => getAuthenticatedFileUrl(path);
 
 type Payment = {
   payment_id: string;
@@ -84,7 +81,7 @@ export default function AccountantVerification() {
     {
       onSuccess: (_data, variables) => {
         if (variables.action === 'approve') {
-          toast.success('✅ Payment verified successfully!');
+          toast.success('Payment verified successfully!');
         } else {
           toast.info('Payment rejected');
         }
@@ -206,7 +203,7 @@ export default function AccountantVerification() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-icu-accent" />
+        <LoadingSpinner size="lg" />
       </div>
     );
   }

@@ -41,7 +41,7 @@ async function submitFeedback(req, res) {
     res.status(201).json({ success: true, message: 'Thank you for your feedback!', feedback: result.rows[0] });
   } catch (error) {
     logger.error('Submit feedback error:', error);
-    res.status(500).json({ error: 'Failed to submit feedback', message: error.message });
+    res.status(500).json({ error: 'Failed to submit feedback', message: 'An unexpected error occurred' });
   }
 }
 
@@ -57,7 +57,7 @@ async function getAllFeedback(req, res) {
     res.json(paginatedResponse(result.rows, parseInt(countRows[0].count, 10), page, limit));
   } catch (error) {
     logger.error('Get feedback error:', error);
-    res.status(500).json({ error: 'Failed to fetch feedback', message: error.message });
+    res.status(500).json({ error: 'Failed to fetch feedback', message: 'An unexpected error occurred' });
   }
 }
 

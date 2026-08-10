@@ -1,7 +1,17 @@
 import { Link } from 'react-router-dom';
 import { useQuery } from 'react-query';
+import type { LucideIcon } from 'lucide-react';
+import { User, Wallet, Send, ClipboardList, MessageSquare } from 'lucide-react';
 import { studentService } from '../../api/services';
 import LoadingSpinner from '../../components/LoadingSpinner';
+
+const cards: { to: string; icon: LucideIcon; title: string; desc: string }[] = [
+  { to: '/student-portal/profile', icon: User, title: 'My Profile', desc: 'View profile and upload picture' },
+  { to: '/student-portal/payments', icon: Wallet, title: 'My Payments', desc: 'View your payment history and status' },
+  { to: '/student-portal/submit-payment', icon: Send, title: 'Submit Payment', desc: 'Upload deposit slip and submit payment' },
+  { to: '/student-portal/clearance', icon: ClipboardList, title: 'Clearance', desc: 'Request graduation, term, or semester clearance' },
+  { to: '/student-portal/feedback', icon: MessageSquare, title: 'Feedback', desc: 'Send feedback about the system' },
+];
 
 export default function StudentDashboard() {
   const { data, isLoading } = useQuery('student-dashboard-stats', () =>
@@ -51,56 +61,22 @@ export default function StudentDashboard() {
         Manage your profile, payments, clearance, and feedback.
       </p>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <Link
-          to="/student-portal/profile"
-          className="card hover:border-icu-accent/50 transition-colors group"
-        >
-          <span className="text-3xl mb-2 block">👤</span>
-          <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100 group-hover:text-icu-accent">
-            My Profile
-          </h2>
-          <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">View profile and upload picture</p>
-        </Link>
-        <Link
-          to="/student-portal/payments"
-          className="card hover:border-icu-accent/50 transition-colors group"
-        >
-          <span className="text-3xl mb-2 block">💰</span>
-          <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100 group-hover:text-icu-accent">
-            My Payments
-          </h2>
-          <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">View your payment history and status</p>
-        </Link>
-        <Link
-          to="/student-portal/submit-payment"
-          className="card hover:border-icu-accent/50 transition-colors group"
-        >
-          <span className="text-3xl mb-2 block">📤</span>
-          <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100 group-hover:text-icu-accent">
-            Submit Payment
-          </h2>
-          <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">Upload deposit slip and submit payment</p>
-        </Link>
-        <Link
-          to="/student-portal/clearance"
-          className="card hover:border-icu-accent/50 transition-colors group"
-        >
-          <span className="text-3xl mb-2 block">📋</span>
-          <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100 group-hover:text-icu-accent">
-            Clearance
-          </h2>
-          <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">Request graduation clearance</p>
-        </Link>
-        <Link
-          to="/student-portal/feedback"
-          className="card hover:border-icu-accent/50 transition-colors group"
-        >
-          <span className="text-3xl mb-2 block">💬</span>
-          <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100 group-hover:text-icu-accent">
-            Feedback
-          </h2>
-          <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">Send feedback about the system</p>
-        </Link>
+        {cards.map((item) => {
+          const Icon = item.icon;
+          return (
+            <Link
+              key={item.to}
+              to={item.to}
+              className="card hover:border-icu-accent/50 transition-colors group"
+            >
+              <Icon className="h-8 w-8 mb-2 text-ink" aria-hidden />
+              <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100 group-hover:text-icu-accent">
+                {item.title}
+              </h2>
+              <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">{item.desc}</p>
+            </Link>
+          );
+        })}
       </div>
     </div>
   );

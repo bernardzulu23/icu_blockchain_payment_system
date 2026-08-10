@@ -2,7 +2,7 @@ const express = require('express');
 const accountantController = require('../controllers/accountantController');
 const { authenticateToken } = require('../middleware/auth');
 const { requireRole, requireAccountant } = require('../middleware/rbac');
-const { upload } = require('../middleware/upload');
+const { upload, uploadDocument } = require('../middleware/upload');
 
 const router = express.Router();
 
@@ -11,7 +11,7 @@ router.use(requireAccountant);
 
 router.post(
   '/bank-statement',
-  upload.single('statement'),
+  uploadDocument.single('statement'),
   accountantController.uploadBankStatement
 );
 

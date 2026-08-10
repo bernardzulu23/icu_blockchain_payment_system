@@ -1,8 +1,14 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { toast } from 'react-toastify';
 import CrudTable from '../../components/CrudTable';
 import { clearanceService, type ClearanceRequest } from '../../api/services';
+import {
+  TERMS,
+  SEMESTERS,
+  formatClearanceType,
+  type ClearanceKind,
+} from '../../constants/options';
 
 const statusStyle = (status: string) => {
   const map: Record<string, string> = {
@@ -15,7 +21,16 @@ const statusStyle = (status: string) => {
 
 export default function Clearance() {
   const queryClient = useQueryClient();
-  const [clearanceType, setClearanceType] = useState('graduation');
+  const [kind, setKind] = useState<ClearanceKind>('graduation');
+  const [periodNumber, setPeriodNumber] = useState(1);
+
+  const clearanceType = useMemo(
+    () => formatClearanceType(kind, periodNumber),
+    [kind, periodNumber]
+  );
+
+  const numbers = kind === 'term' ? TERMS : SEMESTERS;
+  const needsPeriod = kind === 'term' || kind === 'semester';
 
   const { data, isLoading } = useQuery('my-clearances', () =>
     clearanceService.getMine().then((r) => r.data)
@@ -25,7 +40,7 @@ export default function Clearance() {
     () => clearanceService.request(clearanceType),
     {
       onSuccess: () => {
-        toast.success('Clearance request submitted');
+        toast.success(`Clearance request submitted (${clearanceType})`);
         queryClient.invalidateQueries('my-clearances');
       },
       onError: (err: unknown) => {
@@ -51,16 +66,48 @@ export default function Clearance() {
 
       <div className="card max-w-xl mb-8">
         <p className="text-slate-600 dark:text-slate-400 mb-6">
-          Request clearance. Your identity is taken from your login. You must have uploaded deposit slips in Submit Payment; those batch numbers are cross-referenced against the bank PDF admin uploads.
+          Request graduation, term, or semester clearance. Your identity is taken from your login. You must have uploaded deposit slips in Submit Payment; those batch numbers are cross-referenced against the bank PDF admin uploads.
         </p>
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Clearance Type</label>
-            <select value={clearanceType} onChange={(e) => setClearanceType(e.target.value)} className="input-field w-full">
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+              Clearance Type
+            </label>
+            <select
+              value={kind}
+              onChange={(e) => {
+                const next = e.target.value as ClearanceKind;
+                setKind(next);
+                setPeriodNumber(1);
+              }}
+              className="input-field w-full"
+            >
               <option value="graduation">Graduation</option>
-              <option value="transfer">Transfer</option>
+              <option value="term">Term</option>
+              <option value="semester">Semester</option>
             </select>
           </div>
+          {needsPeriod && (
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                {kind === 'term' ? 'Term number' : 'Semester number'}
+              </label>
+              <select
+                value={periodNumber}
+                onChange={(e) => setPeriodNumber(Number(e.target.value))}
+                className="input-field w-full"
+              >
+                {numbers.map((n) => (
+                  <option key={n} value={n}>
+                    {kind === 'term' ? `Term ${n}` : `Semester ${n}`}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+          <p className="font-mono text-[10px] uppercase tracking-widest text-ink/50">
+            Requesting: {clearanceType}
+          </p>
           <button
             type="button"
             onClick={() => requestMutation.mutate()}

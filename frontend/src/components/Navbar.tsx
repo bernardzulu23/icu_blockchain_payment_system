@@ -1,13 +1,14 @@
 import { Link, useLocation } from 'react-router-dom';
+import { LayoutDashboard, Wallet, BadgeCheck, ScrollText, Settings, Sun, Moon } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { useTheme } from '../contexts/ThemeContext';
 
 const navItems = [
-  { path: '/', label: 'Dashboard', icon: '📊' },
-  { path: '/payments', label: 'Payments', icon: '💰' },
-  { path: '/batch-verification', label: 'Batch Verify', icon: '✅' },
-  { path: '/history', label: 'History', icon: '📜' },
-  { path: '/admin', label: 'Admin', icon: '⚙️' },
+  { path: '/', label: 'Dashboard', icon: LayoutDashboard },
+  { path: '/payments', label: 'Payments', icon: Wallet },
+  { path: '/batch-verification', label: 'Batch Verify', icon: BadgeCheck },
+  { path: '/history', label: 'History', icon: ScrollText },
+  { path: '/admin', label: 'Admin', icon: Settings },
 ];
 
 export default function Navbar() {
@@ -22,34 +23,44 @@ export default function Navbar() {
           ICU Payments
         </Link>
         <div className="flex gap-2">
-          {navItems.map((item) => (
-            <Link
-              key={item.path}
-              to={item.path}
-              className={`px-4 py-2 rounded-lg text-sm transition-all ${
-                location.pathname === item.path
-                  ? 'bg-icu-accent/20 text-icu-accent'
-                  : 'text-slate-600 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-slate-700/50'
-              }`}
-            >
-              {item.label}
-            </Link>
-          ))}
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            return (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={`px-4 py-2 rounded-lg text-sm transition-all inline-flex items-center gap-2 ${
+                  location.pathname === item.path
+                    ? 'bg-icu-accent/20 text-icu-accent'
+                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-slate-700/50'
+                }`}
+              >
+                <Icon className="h-4 w-4" aria-hidden />
+                {item.label}
+              </Link>
+            );
+          })}
         </div>
       </div>
       <div className="flex items-center gap-4">
-        <button onClick={toggleTheme} className="text-sm text-slate-600 dark:text-slate-400 hover:text-icu-accent">
-          {theme === 'dark' ? '☀️' : '🌙'}
+        <button
+          type="button"
+          onClick={toggleTheme}
+          className="text-sm text-slate-600 dark:text-slate-400 hover:text-icu-accent"
+          aria-label="Toggle theme"
+        >
+          {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
         </button>
         <span className="text-sm text-slate-600 dark:text-slate-400 truncate max-w-[180px]">{user?.email}</span>
         <button
+          type="button"
           onClick={() => {
             localStorage.removeItem('token');
             window.location.href = '/login';
           }}
           className="text-sm text-icu-accent hover:underline"
         >
-          Sign out
+          Logout
         </button>
       </div>
     </nav>

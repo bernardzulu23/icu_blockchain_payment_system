@@ -6,7 +6,7 @@ export interface CreateStudentData {
   studentNumber: string;
   firstName: string;
   lastName: string;
-  email?: string;
+  email: string;
   phone?: string;
   program?: string;
   department?: string;
@@ -31,6 +31,9 @@ export interface StaffUser {
   full_name: string;
   role: 'admin' | 'accountant' | 'registrar';
   status: string;
+  employee_id?: string;
+  residential_address?: string;
+  date_of_birth?: string;
   created_at?: string;
   last_login?: string;
 }
@@ -185,6 +188,8 @@ export interface OcrReconciliationResult {
 }
 
 export const authService = {
+  login: (identifier: string, password: string) =>
+    apiClient.post('/auth/login', { identifier, password }),
   staffLogin: (username: string, password: string) =>
     apiClient.post('/auth/login/staff', { username, password }),
   studentLogin: (student_number: string, password: string) =>

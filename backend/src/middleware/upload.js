@@ -3,7 +3,7 @@ const path = require('path');
 const fs = require('fs');
 const env = require('../config/environment');
 
-const useMemoryStorage = Boolean(process.env.VERCEL || env.BLOB_READ_WRITE_TOKEN);
+const useMemoryStorage = Boolean(env.SUPABASE_URL && env.SUPABASE_SERVICE_ROLE_KEY);
 
 if (!useMemoryStorage) {
   const uploadDir = path.join(process.cwd(), env.UPLOAD_PATH || 'uploads');
@@ -31,23 +31,58 @@ const diskStorage = multer.diskStorage({
   },
   filename: (req, file, cb) => {
     const unique = Date.now() + '-' + Math.round(Math.random() * 1e9);
-    cb(null, unique + (path.extname(file.originalname) || '.bin'));
+    const ext = path.extname(file.originalname || '').toLowerCase() || '.bin';
+    cb(null, unique + ext);
   },
 });
 
-const fileFilter = (req, file, cb) => {
-  const allowed = /\.(pdf|csv|jpg|jpeg|png)$/i;
-  if (allowed.test(file.originalname)) {
-    cb(null, true);
-  } else {
-    cb(new Error('Invalid file type. Allowed: PDF, CSV, JPG, PNG'));
-  }
+const MIME = {
+  pdf: ['application/pdf'],
+  csv: ['text/csv', 'application/csv', 'application/vnd.ms-excel', 'text/plain'],
+  image: ['image/jpeg', 'image/jpg', 'image/png', 'image/pjpeg'],
 };
 
-const upload = multer({
-  storage: useMemoryStorage ? multer.memoryStorage() : diskStorage,
-  fileFilter,
-  limits: { fileSize: 10 * 1024 * 1024 },
-});
+function makeFilter(kinds) {
+  const exts = new Set();
+  const mimes = new Set();
+  for (const kind of kinds) {
+    if (kind === 'pdf') {
+      exts.add('.pdf');
+      MIME.pdf.forEach((m) => mimes.add(m));
+    }
+    if (kind === 'csv') {
+      exts.add('.csv');
+      MIME.csv.forEach((m) => mimes.add(m));
+    }
+    if (kind === 'image') {
+      ['.jpg', '.jpeg', '.png'].forEach((e) => exts.add(e));
+      MIME.image.forEach((m) => mimes.add(m));
+    }
+  }
 
-module.exports = { upload };
+  return (req, file, cb) => {
+    const ext = path.extname(file.originalname || '').toLowerCase();
+    const mime = (file.mimetype || '').toLowerCase();
+    if (exts.has(ext) && (mimes.has(mime) || mime === 'application/octet-stream')) {
+      return cb(null, true);
+    }
+    cb(new Error(`Invalid file type. Allowed: ${[...exts].join(', ')}`));
+  };
+}
+
+function createUploader(kinds, maxSize = 10 * 1024 * 1024) {
+  return multer({
+    storage: useMemoryStorage ? multer.memoryStorage() : diskStorage,
+    fileFilter: makeFilter(kinds),
+    limits: { fileSize: maxSize },
+  });
+}
+
+/** Default: documents + images (deposit slips, statements) */
+const upload = createUploader(['pdf', 'csv', 'image']);
+/** Profile pictures only */
+const uploadImage = createUploader(['image'], 5 * 1024 * 1024);
+/** Bank PDFs / CSV */
+const uploadDocument = createUploader(['pdf', 'csv']);
+
+module.exports = { upload, uploadImage, uploadDocument, createUploader };

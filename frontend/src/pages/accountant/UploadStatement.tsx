@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
 import { apiClient } from '../../api/client';
+import { BANKS } from '../../constants/options';
 
 type FormData = {
   bank_name: string;
@@ -11,8 +12,11 @@ type FormData = {
 export default function UploadStatement() {
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
+  const [uploadPercent, setUploadPercent] = useState(0);
 
-  const { register, handleSubmit } = useForm<FormData>();
+  const { register, handleSubmit } = useForm<FormData>({
+    defaultValues: { bank_name: BANKS[0].value },
+  });
 
   const onSubmit = async (data: FormData) => {
     if (!file) {
@@ -20,6 +24,7 @@ export default function UploadStatement() {
       return;
     }
     setLoading(true);
+    setUploadPercent(0);
     try {
       const formData = new FormData();
       formData.append('statement', file);
@@ -27,7 +32,12 @@ export default function UploadStatement() {
       formData.append('upload_date', data.upload_date || new Date().toISOString().split('T')[0]);
       await apiClient.post('/accountant/bank-statement', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
+        onUploadProgress: (evt) => {
+          if (!evt.total) return;
+          setUploadPercent(Math.round((evt.loaded / evt.total) * 100));
+        },
       });
+      setUploadPercent(100);
       toast.success('Bank statement uploaded. Processing in background.');
       setFile(null);
     } catch (err: unknown) {
@@ -50,7 +60,13 @@ export default function UploadStatement() {
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Bank Name</label>
-            <input {...register('bank_name', { required: true })} className="input-field w-full" placeholder="e.g. Zanaco" />
+            <select {...register('bank_name', { required: true })} className="input-field w-full">
+              {BANKS.map((b) => (
+                <option key={b.value} value={b.value}>
+                  {b.label}
+                </option>
+              ))}
+            </select>
           </div>
           <div>
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Statement / Batch List Date</label>
@@ -66,7 +82,7 @@ export default function UploadStatement() {
             />
           </div>
           <button type="submit" disabled={loading} className="btn-primary w-full">
-            {loading ? 'Uploading...' : 'Upload Statement'}
+            {loading ? `Uploading ${uploadPercent}%` : 'Upload Statement'}
           </button>
         </form>
         <p className="mt-4 text-sm text-slate-600 dark:text-slate-400">

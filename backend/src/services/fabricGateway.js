@@ -1,8 +1,8 @@
 /**
  * Hyperledger Fabric gateway — Org1 (ICU Accounts) connection.
  *
- * NOT compatible with Vercel serverless: gRPC peers need a persistent process.
- * Deploy this backend on the same VPS as the Fabric test network (see docs/DEPLOYMENT.md).
+ * Requires a persistent Node process (VPS). gRPC peers cannot run in short-lived serverless.
+ * Deploy this backend on the same VPS as the Fabric network (see docs/DEPLOYMENT.md).
  */
 const { Gateway, Wallets } = require('fabric-network');
 const path = require('path');
@@ -27,11 +27,10 @@ let gateway;
 let connectPromise;
 
 function assertNotServerless() {
-  if (process.env.VERCEL === '1') {
+  // Fabric needs long-lived gRPC — refuse known serverless markers
+  if (process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.FUNCTIONS_WORKER_RUNTIME) {
     const err = new Error(
-      'Fabric SDK cannot run on Vercel serverless functions. ' +
-        'Deploy the Express API on the Fabric VPS and keep only the React frontend on Vercel. ' +
-        'See docs/DEPLOYMENT.md.'
+      'Fabric SDK cannot run on serverless platforms. Deploy the Express API on a VPS with Fabric peers. See docs/DEPLOYMENT.md.'
     );
     err.code = 'FABRIC_SERVERLESS_UNSUPPORTED';
     throw err;
@@ -117,14 +116,6 @@ async function evaluateTransaction(fn, ...args) {
 }
 
 async function checkHealth() {
-  if (process.env.VERCEL === '1') {
-    return {
-      connected: false,
-      supported: false,
-      reason: 'Fabric SDK disabled on Vercel serverless — API must run on Fabric VPS',
-    };
-  }
-
   try {
     await connectGateway();
     await getContract();

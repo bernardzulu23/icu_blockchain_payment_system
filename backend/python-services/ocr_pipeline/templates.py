@@ -61,8 +61,26 @@ FNB_TEMPLATE = BankTemplate(
     batch_pattern=r"(?:TXN|REF|BATCH|TRANS|SERIAL)[\s#:]*([A-Z0-9]{5,24})",
 )
 
+ABSA_TEMPLATE = BankTemplate(
+    bank_id="absa",
+    display_name="ABSA Bank",
+    header_keywords=("ABSA", "ABSA BANK", "BARCLAYS"),
+    regions=(
+        FieldRegion("student_id", 0.05, 0.37, 0.42, 0.08),
+        FieldRegion("amount", 0.49, 0.37, 0.46, 0.08),
+        FieldRegion("date", 0.49, 0.21, 0.44, 0.07),
+        FieldRegion("batch_ref", 0.05, 0.74, 0.58, 0.09),
+    ),
+    student_id_pattern=r"(?:ICU|STU|STUDENT|REF)[\s\-#:]*(\d{6,10})|(\d{6,10})",
+    amount_pattern=r"(?:K\s*|ZMW\s*|AMOUNT[\s:]*)?([0-9]{1,3}(?:,[0-9]{3})*(?:\.[0-9]{2})?)",
+    date_pattern=r"(\d{1,2}[/-]\d{1,2}[/-]\d{2,4})",
+    batch_pattern=r"(?:TXN|REF|BATCH|TRANS|SERIAL)[\s#:]*([A-Z0-9]{5,24})",
+)
+
 TEMPLATES: Dict[str, BankTemplate] = {
     "zanaco": ZANACO_TEMPLATE,
+    "absa": ABSA_TEMPLATE,
+    # Legacy validation samples / hints
     "fnb": FNB_TEMPLATE,
 }
 
@@ -76,8 +94,11 @@ def detect_template(full_text: str, bank_hint: Optional[str] = None) -> BankTemp
             return TEMPLATES[key]
         if "zanaco" in key:
             return ZANACO_TEMPLATE
+        if "absa" in key or "barclays" in key:
+            return ABSA_TEMPLATE
+        # Legacy FNB hint maps to ABSA (banks limited to Zanaco + ABSA)
         if "fnb" in key or "first national" in key:
-            return FNB_TEMPLATE
+            return ABSA_TEMPLATE
 
     scores: List[Tuple[int, BankTemplate]] = []
     for tpl in TEMPLATES.values():

@@ -4,15 +4,71 @@ const logger = require('../utils/logger');
 const env = require('../config/environment');
 
 const JWT_SECRET = env.JWT_SECRET;
+const JWT_REFRESH_SECRET = env.JWT_REFRESH_SECRET;
 const JWT_EXPIRES_IN = env.JWT_EXPIRES_IN;
 const REFRESH_TOKEN_EXPIRES_IN = env.REFRESH_TOKEN_EXPIRES_IN;
 
 function generateAccessToken(payload) {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+  return jwt.sign(
+    { ...payload, typ: 'access' },
+    JWT_SECRET,
+    { expiresIn: JWT_EXPIRES_IN }
+  );
 }
 
 function generateRefreshToken(payload) {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: REFRESH_TOKEN_EXPIRES_IN });
+  return jwt.sign(
+    {
+      userId: payload.userId,
+      type: payload.type,
+      typ: 'refresh',
+    },
+    JWT_REFRESH_SECRET,
+    { expiresIn: REFRESH_TOKEN_EXPIRES_IN }
+  );
+}
+
+function verifyAccessToken(token) {
+  const decoded = jwt.verify(token, JWT_SECRET);
+  if (decoded.typ && decoded.typ !== 'access') {
+    const err = new Error('Invalid token type');
+    err.name = 'JsonWebTokenError';
+    throw err;
+  }
+  return decoded;
+}
+
+function verifyRefreshToken(token) {
+  const decoded = jwt.verify(token, JWT_REFRESH_SECRET);
+  if (decoded.typ !== 'refresh') {
+    const err = new Error('Invalid refresh token type');
+    err.name = 'JsonWebTokenError';
+    throw err;
+  }
+  return decoded;
+}
+
+async function loadUserFromToken(decoded) {
+  if (decoded.type === 'student') {
+    const result = await query(
+      `SELECT student_id, student_number, first_name, last_name, email, phone, status,
+              date_of_birth, department, program, current_semester, current_term, profile_picture_url
+       FROM students WHERE student_id = $1`,
+      [decoded.userId]
+    );
+    return result.rows[0]
+      ? { ...result.rows[0], role: 'student', type: 'student' }
+      : null;
+  }
+
+  const result = await query(
+    `SELECT user_id, username, email, role, full_name, status, employee_id
+     FROM users WHERE user_id = $1`,
+    [decoded.userId]
+  );
+  return result.rows[0]
+    ? { ...result.rows[0], type: 'staff' }
+    : null;
 }
 
 async function authenticateToken(req, res, next) {
@@ -27,25 +83,8 @@ async function authenticateToken(req, res, next) {
   }
 
   try {
-    const decoded = jwt.verify(token, JWT_SECRET);
-
-    let user;
-    if (decoded.type === 'student') {
-      const result = await query(
-        `SELECT student_id, student_number, first_name, last_name, email, phone, status,
-                date_of_birth, department, program, current_semester, current_term, profile_picture_url
-         FROM students WHERE student_id = $1`,
-        [decoded.userId]
-      );
-      user = result.rows[0];
-    } else {
-      const result = await query(
-        `SELECT user_id, username, email, role, full_name, status
-         FROM users WHERE user_id = $1`,
-        [decoded.userId]
-      );
-      user = result.rows[0];
-    }
+    const decoded = verifyAccessToken(token);
+    const user = await loadUserFromToken(decoded);
 
     if (!user) {
       return res.status(403).json({ error: 'User not found' });
@@ -58,14 +97,16 @@ async function authenticateToken(req, res, next) {
       });
     }
 
+    // Always prefer role from DB (never trust JWT role claim alone)
     req.user = {
       userId: decoded.userId,
-      type: decoded.type,
-      role: decoded.role || (decoded.type === 'student' ? 'student' : user.role),
+      type: decoded.type || user.type,
+      role: user.role || (decoded.type === 'student' ? 'student' : undefined),
+      student_id: user.student_id,
       ...user,
     };
 
-    logger.info(`User authenticated: ${decoded.type} ${decoded.userId}`);
+    logger.debug(`User authenticated: ${req.user.type} ${decoded.userId}`);
     next();
   } catch (error) {
     if (error.name === 'TokenExpiredError') {
@@ -98,8 +139,6 @@ function authorize(...allowedRoles) {
       return res.status(403).json({
         error: 'Access denied',
         message: 'You do not have permission to perform this action',
-        required: allowedRoles,
-        current: userRole,
       });
     }
 
@@ -110,6 +149,9 @@ function authorize(...allowedRoles) {
 module.exports = {
   generateAccessToken,
   generateRefreshToken,
+  verifyAccessToken,
+  verifyRefreshToken,
+  loadUserFromToken,
   authenticateToken,
   authorize,
 };

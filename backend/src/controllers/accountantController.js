@@ -45,6 +45,15 @@ async function uploadBankStatement(req, res) {
       return res.status(400).json({ error: 'Bank name required' });
     }
 
+    const { isAllowedBank, normalizeBankName } = require('../utils/constants');
+    if (!isAllowedBank(bank_name)) {
+      return res.status(400).json({
+        error: 'Invalid bank',
+        message: 'Bank must be Zanaco Bank or ABSA Bank',
+      });
+    }
+    const normalizedBank = normalizeBankName(bank_name);
+
     await client.query('BEGIN');
 
     const statementUrl = await uploadToStorage(statementFile, 'bank-statements');
@@ -55,7 +64,7 @@ async function uploadBankStatement(req, res) {
        (bank_name, upload_date, statement_pdf_url, uploaded_by, processed)
        VALUES ($1, $2, $3, $4, false)
        RETURNING statement_id, created_at`,
-      [bank_name, uploadDate, statementUrl, user_id]
+      [normalizedBank, uploadDate, statementUrl, user_id]
     );
 
     const statement = statementResult.rows[0];
@@ -66,7 +75,7 @@ async function uploadBankStatement(req, res) {
       action: 'BANK_STATEMENT_UPLOADED',
       entity_type: 'bank_statement',
       entity_id: statement.statement_id,
-      details: { bank_name, file: statementFile.originalname },
+      details: { bank_name: normalizedBank, file: statementFile.originalname },
       ip_address: req.ip,
     });
 
@@ -74,20 +83,17 @@ async function uploadBankStatement(req, res) {
 
     logger.info(`Bank statement uploaded: ${statement.statement_id} by ${user_id}`);
 
-    if (process.env.VERCEL) {
-      await processBankStatement(statement.statement_id, statementUrl, user_id);
-    } else {
-      processBankStatement(statement.statement_id, statementUrl, user_id).catch((err) => {
-        logger.error('Background processing error:', err);
-      });
-    }
+    // Always process in background on long-lived hosts (VPS)
+    processBankStatement(statement.statement_id, statementUrl, user_id).catch((err) => {
+      logger.error('Background processing error:', err);
+    });
 
     res.status(201).json({
       success: true,
       message: 'Bank statement uploaded successfully',
       statement: {
         statement_id: statement.statement_id,
-        bank_name,
+        bank_name: normalizedBank,
         upload_date: uploadDate,
         created_at: statement.created_at,
       },
@@ -103,7 +109,7 @@ async function uploadBankStatement(req, res) {
     logger.error('Upload bank statement error:', error);
     res.status(500).json({
       error: 'Failed to upload bank statement',
-      message: error.message,
+      message: 'An unexpected error occurred',
     });
   } finally {
     client.release();
@@ -112,13 +118,26 @@ async function uploadBankStatement(req, res) {
 
 async function processBankStatement(statementId, statementUrl, uploadedBy) {
   const client = await getClient();
+  let tempPdfPath = null;
 
   try {
     logger.info(`Starting background processing for statement: ${statementId}`);
 
-    const fullPath = isRemoteUrl(statementUrl)
-      ? null
-      : path.join(process.cwd(), statementUrl.replace(/^\//, ''));
+    let fullPath = null;
+    if (isRemoteUrl(statementUrl)) {
+      fullPath = null;
+    } else if (typeof statementUrl === 'string' && statementUrl.startsWith('sb:')) {
+      // Materialize Supabase object to a temp file for Python OCR
+      const buf = await readStoredFile(statementUrl);
+      const tmpDir = path.join(process.cwd(), 'uploads', 'tmp');
+      fs.mkdirSync(tmpDir, { recursive: true });
+      tempPdfPath = path.join(tmpDir, `${statementId}.pdf`);
+      fs.writeFileSync(tempPdfPath, buf);
+      fullPath = tempPdfPath;
+    } else {
+      fullPath = path.join(process.cwd(), statementUrl.replace(/^\//, ''));
+    }
+
     const { rows: payments } = await client.query(
       `SELECT payment_id, batch_number, amount, payment_date FROM student_payments WHERE status IN ('pending', 'manual_review')`
     );
@@ -130,15 +149,15 @@ async function processBankStatement(statementId, statementUrl, uploadedBy) {
     // Try Python service first (extract-transactions) when configured
     if (pythonServiceUrl) {
       try {
-        const apiBase = process.env.VERCEL_URL
-          ? `https://${process.env.VERCEL_URL}`
-          : `http://localhost:${process.env.PORT || 5000}`;
+        const apiBase = process.env.API_PUBLIC_URL || `http://localhost:${process.env.PORT || 5000}`;
         const extractResponse = await axios.post(
           `${pythonServiceUrl}/extract-transactions`,
           {
-            pdf_url: isRemoteUrl(statementUrl) ? statementUrl : `${apiBase}${statementUrl}`,
+            pdf_url: isRemoteUrl(statementUrl) ? statementUrl : undefined,
             pdf_path: fullPath,
             statement_id: statementId,
+            storage_ref: statementUrl,
+            api_base: apiBase,
           },
           { timeout: 60000 }
         );
@@ -293,6 +312,13 @@ async function processBankStatement(statementId, statementUrl, uploadedBy) {
     logger.error('Background processing failed:', error);
     await client.query(`UPDATE bank_statements SET processed = false WHERE statement_id = $1`, [statementId]);
   } finally {
+    if (tempPdfPath) {
+      try {
+        fs.unlinkSync(tempPdfPath);
+      } catch {
+        /* ignore */
+      }
+    }
     client.release();
   }
 }
@@ -432,7 +458,7 @@ async function verifyAllAutoMatched(req, res) {
     logger.error('Verify all auto-matched error:', error);
     res.status(500).json({
       error: 'Failed to verify auto-matched payments',
-      message: error.message,
+      message: 'An unexpected error occurred',
     });
   } finally {
     client.release();
@@ -694,7 +720,7 @@ async function verifyPayment(req, res) {
     logger.error('Verify payment error:', error);
     res.status(500).json({
       error: 'Failed to verify payment',
-      message: error.message,
+      message: 'An unexpected error occurred',
     });
   } finally {
     client.release();

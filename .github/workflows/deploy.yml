@@ -1,0 +1,108 @@
+name: Deploy to Production
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Extract version
+        id: version
+        run: |
+          echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.PRODUCTION_HOST }}
+          username: ${{ secrets.PRODUCTION_USER }}
+          key: ${{ secrets.PRODUCTION_SSH_KEY }}
+          port: ${{ secrets.PRODUCTION_PORT || 22 }}
+          script: |
+            set -e
+            
+            echo "📦 Starting deployment..."
+            cd ${{ secrets.PRODUCTION_APP_PATH }}
+            
+            # Pull latest code
+            echo "📥 Pulling latest code..."
+            git pull origin main
+            
+            # Update environment
+            echo "⚙️  Updating environment..."
+            cp .env.example .env.prod
+            # Note: Use repository secrets to update sensitive values
+            
+            # Pull and deploy images
+            echo "🐳 Pulling Docker images..."
+            docker compose -f docker-compose.prod.yml pull
+            
+            echo "🚀 Deploying services..."
+            docker compose -f docker-compose.prod.yml down
+            docker compose -f docker-compose.prod.yml up -d
+            
+            # Wait for services to be healthy
+            echo "⏳ Waiting for services to be healthy..."
+            for i in {1..30}; do
+              if docker compose -f docker-compose.prod.yml ps | grep -q "healthy"; then
+                echo "✅ Services are healthy"
+                break
+              fi
+              echo "Waiting... ($i/30)"
+              sleep 10
+            done
+            
+            # Show status
+            echo ""
+            echo "📊 Deployment Status:"
+            docker compose -f docker-compose.prod.yml ps
+            
+            echo ""
+            echo "📋 Recent logs:"
+            docker compose -f docker-compose.prod.yml logs --tail=50
+
+      - name: Verify deployment
+        run: |
+          sleep 5
+          curl -f https://${{ secrets.PRODUCTION_DOMAIN }} || exit 1
+          echo "✅ Deployment verified"
+
+      - name: Create deployment summary
+        run: |
+          echo "### 🚀 Production Deployment Successful" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Version:** ${{ steps.version.outputs.VERSION }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Host:** ${{ secrets.PRODUCTION_HOST }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Domain:** https://${{ secrets.PRODUCTION_DOMAIN }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Deployed services:**" >> $GITHUB_STEP_SUMMARY
+          echo "- Frontend: https://${{ secrets.PRODUCTION_DOMAIN }}" >> $GITHUB_STEP_SUMMARY
+          echo "- API: https://api.${{ secrets.PRODUCTION_DOMAIN }}" >> $GITHUB_STEP_SUMMARY
+
+  rollback-on-failure:
+    needs: deploy
+    runs-on: ubuntu-latest
+    if: failure()
+    steps:
+      - name: Rollback deployment
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.PRODUCTION_HOST }}
+          username: ${{ secrets.PRODUCTION_USER }}
+          key: ${{ secrets.PRODUCTION_SSH_KEY }}
+          port: ${{ secrets.PRODUCTION_PORT || 22 }}
+          script: |
+            echo "⚠️  Deployment failed, rolling back..."
+            cd ${{ secrets.PRODUCTION_APP_PATH }}
+            docker compose -f docker-compose.prod.yml down
+            docker compose -f docker-compose.prod.yml pull
+            docker compose -f docker-compose.prod.yml up -d
+            echo "✅ Rollback complete"

@@ -1,36 +1,32 @@
 const { Pool } = require('pg');
-const { readFileSync } = require('fs');
+const { readFileSync, readdirSync } = require('fs');
 const path = require('path');
 const logger = require('../utils/logger');
 const env = require('./environment');
 
-function isNeonUrl(url) {
-  return typeof url === 'string' && (url.includes('neon.tech') || url.includes('neon.database'));
+function isSupabaseUrl(url) {
+  return (
+    typeof url === 'string' &&
+    (url.includes('supabase.co') || url.includes('supabase.com') || url.includes('pooler.supabase'))
+  );
 }
 
 function resolveConnectionUrl() {
-  return (
-    env.DATABASE_URL ||
-    env.POSTGRES_URL ||
-    env.POSTGRES_PRISMA_URL ||
-    env.DATABASE_PUBLIC_URL ||
-    null
-  );
+  return env.DATABASE_URL || null;
 }
 
 const connectionUrl = resolveConnectionUrl();
 const useSsl =
   env.DB_SSL ||
-  isNeonUrl(connectionUrl) ||
-  process.env.VERCEL === '1' ||
+  isSupabaseUrl(connectionUrl) ||
   process.env.NODE_ENV === 'production';
 
 const poolConfig = connectionUrl
   ? {
       connectionString: connectionUrl,
-      max: process.env.VERCEL ? 3 : 20,
+      max: 20,
       idleTimeoutMillis: 10000,
-      connectionTimeoutMillis: 10000,
+      connectionTimeoutMillis: 15000,
       ssl: useSsl ? { rejectUnauthorized: false } : false,
     }
   : {
@@ -51,7 +47,8 @@ async function connectDB() {
   try {
     const client = await pool.connect();
     const result = await client.query('SELECT NOW()');
-    logger.info(`PostgreSQL connected at: ${result.rows[0].now}`);
+    const hostHint = isSupabaseUrl(connectionUrl) ? 'Supabase Postgres' : 'PostgreSQL';
+    logger.info(`${hostHint} connected at: ${result.rows[0].now}`);
     client.release();
     return pool;
   } catch (error) {
@@ -89,34 +86,26 @@ async function initDb() {
   const client = await pool.connect();
   try {
     const migrationsDir = path.join(__dirname, '../../migrations');
-    const schema = readFileSync(path.join(migrationsDir, '001_schema.sql'), 'utf-8');
-    const seed = readFileSync(path.join(migrationsDir, '002_seed.sql'), 'utf-8');
-    const migration003 = readFileSync(path.join(migrationsDir, '003_student_profile_fields.sql'), 'utf-8');
-    const migration004 = readFileSync(path.join(migrationsDir, '004_matching_columns.sql'), 'utf-8');
-    const migration005 = readFileSync(path.join(migrationsDir, '005_feedback.sql'), 'utf-8');
-    const migration006 = readFileSync(path.join(migrationsDir, '006_password_reset.sql'), 'utf-8');
-    const migration007 = readFileSync(path.join(migrationsDir, '007_batch_reconciliation.sql'), 'utf-8');
-    await client.query(schema);
-    await client.query(seed);
-    await client.query(migration003);
-    await client.query(migration004);
-    await client.query(migration005);
-    await client.query(migration006);
-    await client.query(migration007);
-    logger.info('Database schema initialized');
+    const files = readdirSync(migrationsDir)
+      .filter((f) => f.endsWith('.sql'))
+      .sort();
+    for (const file of files) {
+      const sql = readFileSync(path.join(migrationsDir, file), 'utf-8');
+      await client.query(sql);
+      logger.info(`Applied migration: ${file}`);
+    }
+    logger.info('Database schema initialized (Supabase / Postgres)');
     return true;
   } finally {
     client.release();
   }
 }
 
-if (!process.env.VERCEL) {
-  process.on('SIGINT', async () => {
-    logger.info('Closing PostgreSQL pool...');
-    await pool.end();
-    process.exit(0);
-  });
-}
+process.on('SIGINT', async () => {
+  logger.info('Closing PostgreSQL pool...');
+  await pool.end();
+  process.exit(0);
+});
 
 module.exports = {
   pool,
@@ -124,4 +113,5 @@ module.exports = {
   getClient,
   connectDB,
   initDb,
+  isSupabaseUrl,
 };

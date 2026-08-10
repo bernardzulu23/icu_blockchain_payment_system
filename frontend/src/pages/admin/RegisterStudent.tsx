@@ -2,12 +2,15 @@ import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { studentService, type CreateStudentData } from '../../api/services';
+import {
+  SEMESTERS,
+  TERMS,
+  CALENDAR_YEARS,
+  ACADEMIC_YEAR_START,
+  ACADEMIC_YEAR_END,
+} from '../../constants/options';
 
-const SEMESTERS = Array.from({ length: 12 }, (_, i) => i + 1);
-const TERMS = [1, 2, 3];
-const START_YEAR = 1950;
-const END_YEAR = 2050;
-const YEARS = Array.from({ length: END_YEAR - START_YEAR + 1 }, (_, i) => START_YEAR + i);
+const YEARS = CALENDAR_YEARS;
 const BACHELOR_PROGRAMS = [
   'Bachelor of Arts in Development Studies',
   'Bachelor of Economics and Finance',
@@ -72,9 +75,9 @@ export default function RegisterStudent() {
       const { password, confirmPassword, ...rest } = data;
       await studentService.create({
         ...rest,
-        password: password || undefined,
+        password: password!,
       });
-      toast.success('Student registered successfully');
+      toast.success('Student registered — they can log in with the email and password you set');
       navigate('/admin');
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
@@ -88,7 +91,8 @@ export default function RegisterStudent() {
         Register Student
       </h1>
       <p className="text-slate-600 dark:text-slate-400 mb-6">
-        Students are registered by admin. They will use their student number and password to login.
+        Set the student&apos;s email and password here. They will use that email (or student number)
+        and password to sign in on the login page.
       </p>
 
       <form onSubmit={handleSubmit(onSubmit)} className="card p-8 space-y-6">
@@ -152,8 +156,8 @@ export default function RegisterStudent() {
           <input
             type="date"
             {...register('dateOfBirth')}
-            min={`${START_YEAR}-01-01`}
-            max={`${END_YEAR}-12-31`}
+            min={`${ACADEMIC_YEAR_START}-01-01`}
+            max={`${ACADEMIC_YEAR_END}-12-31`}
             className="input-field w-full"
           />
         </div>
@@ -222,12 +226,16 @@ export default function RegisterStudent() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           <div>
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-              Email
+              Email <span className="text-red-500">*</span>
             </label>
             <input
               type="email"
-              {...register('email', { pattern: { value: /^\S+@\S+$/i, message: 'Invalid email' } })}
+              {...register('email', {
+                required: 'Email is required for student login',
+                pattern: { value: /^\S+@\S+$/i, message: 'Invalid email' },
+              })}
               className="input-field w-full"
+              placeholder="Student login email"
             />
             {errors.email && (
               <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>

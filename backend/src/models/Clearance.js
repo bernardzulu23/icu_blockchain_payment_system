@@ -1,6 +1,6 @@
 const { pool } = require('../config/database');
 
-async function create({ studentId, clearanceType = 'graduation' }) {
+async function create({ studentId, clearanceType = 'Graduation' }) {
   const { rows } = await pool.query(
     `INSERT INTO clearance_requests (student_id, clearance_type, status)
      VALUES ($1, $2, 'pending')
