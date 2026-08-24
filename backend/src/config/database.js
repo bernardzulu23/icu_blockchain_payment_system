@@ -24,8 +24,8 @@ const useSsl =
 const poolConfig = connectionUrl
   ? {
       connectionString: connectionUrl,
-      max: 20,
-      idleTimeoutMillis: 10000,
+      max: process.env.VERCEL ? 2 : 20,
+      idleTimeoutMillis: process.env.VERCEL ? 5000 : 10000,
       connectionTimeoutMillis: 15000,
       ssl: useSsl ? { rejectUnauthorized: false } : false,
     }
@@ -35,7 +35,7 @@ const poolConfig = connectionUrl
       database: env.DB_NAME,
       user: env.DB_USER,
       password: env.DB_PASSWORD,
-      max: 20,
+      max: process.env.VERCEL ? 2 : 20,
       idleTimeoutMillis: 30000,
       connectionTimeoutMillis: 2000,
       ssl: env.DB_SSL ? { rejectUnauthorized: false } : false,

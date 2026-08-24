@@ -26,6 +26,24 @@ function resolveFrontendOrigins() {
   origins.add('http://localhost:5173');
   origins.add('http://localhost:3000');
 
+  // Allow Vercel production + preview deployments when FRONTEND_URL is a vercel.app host
+  for (const origin of [...origins]) {
+    try {
+      const host = new URL(origin).hostname;
+      if (host.endsWith('.vercel.app')) {
+        origins.add(`https://${host}`);
+      }
+    } catch {
+      /* ignore */
+    }
+  }
+  if (process.env.VERCEL_URL) {
+    origins.add(`https://${process.env.VERCEL_URL}`);
+  }
+  if (process.env.VERCEL_PROJECT_PRODUCTION_URL) {
+    origins.add(`https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`);
+  }
+
   return [...origins].filter(Boolean);
 }
 

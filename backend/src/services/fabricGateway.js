@@ -3,8 +3,9 @@
  *
  * Requires a persistent Node process (VPS). gRPC peers cannot run in short-lived serverless.
  * Deploy this backend on the same VPS as the Fabric network (see docs/DEPLOYMENT.md).
+ *
+ * fabric-network is lazy-loaded so Vercel serverless can boot without it.
  */
-const { Gateway, Wallets } = require('fabric-network');
 const path = require('path');
 const fs = require('fs');
 const env = require('../config/environment');
@@ -25,10 +26,25 @@ const CONFIG = {
 
 let gateway;
 let connectPromise;
+let Gateway;
+let Wallets;
+
+function loadFabricSdk() {
+  if (!Gateway || !Wallets) {
+    ({ Gateway, Wallets } = require('fabric-network'));
+  }
+}
+
+function isServerlessRuntime() {
+  return Boolean(
+    process.env.VERCEL ||
+      process.env.AWS_LAMBDA_FUNCTION_NAME ||
+      process.env.FUNCTIONS_WORKER_RUNTIME
+  );
+}
 
 function assertNotServerless() {
-  // Fabric needs long-lived gRPC — refuse known serverless markers
-  if (process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.FUNCTIONS_WORKER_RUNTIME) {
+  if (isServerlessRuntime()) {
     const err = new Error(
       'Fabric SDK cannot run on serverless platforms. Deploy the Express API on a VPS with Fabric peers. See docs/DEPLOYMENT.md.'
     );
@@ -50,6 +66,7 @@ function loadConnectionProfile() {
 
 async function connectGateway() {
   assertNotServerless();
+  loadFabricSdk();
 
   if (gateway) {
     return gateway;

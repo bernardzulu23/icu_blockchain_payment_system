@@ -31,7 +31,15 @@ function getAllowedOrigins() {
 function isAllowedOrigin(origin) {
   if (!origin) return true;
   const allowed = getAllowedOrigins();
-  return allowed.includes(origin);
+  if (allowed.includes(origin)) return true;
+  // Same-site Vercel preview / alias hosts (*.vercel.app)
+  try {
+    const host = new URL(origin).hostname;
+    if (host.endsWith('.vercel.app') && process.env.VERCEL) return true;
+  } catch {
+    /* ignore */
+  }
+  return false;
 }
 
 function createApp() {
