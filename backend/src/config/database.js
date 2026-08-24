@@ -24,10 +24,11 @@ const useSsl =
 const poolConfig = connectionUrl
   ? {
       connectionString: connectionUrl,
-      max: process.env.VERCEL ? 2 : 20,
-      idleTimeoutMillis: process.env.VERCEL ? 5000 : 10000,
-      connectionTimeoutMillis: 15000,
+      max: process.env.VERCEL ? 1 : 20,
+      idleTimeoutMillis: process.env.VERCEL ? 1000 : 10000,
+      connectionTimeoutMillis: process.env.VERCEL ? 5000 : 15000,
       ssl: useSsl ? { rejectUnauthorized: false } : false,
+      allowExitOnIdle: Boolean(process.env.VERCEL),
     }
   : {
       host: env.DB_HOST,
@@ -35,10 +36,11 @@ const poolConfig = connectionUrl
       database: env.DB_NAME,
       user: env.DB_USER,
       password: env.DB_PASSWORD,
-      max: process.env.VERCEL ? 2 : 20,
+      max: process.env.VERCEL ? 1 : 20,
       idleTimeoutMillis: 30000,
-      connectionTimeoutMillis: 2000,
+      connectionTimeoutMillis: process.env.VERCEL ? 5000 : 2000,
       ssl: env.DB_SSL ? { rejectUnauthorized: false } : false,
+      allowExitOnIdle: Boolean(process.env.VERCEL),
     };
 
 const pool = new Pool(poolConfig);

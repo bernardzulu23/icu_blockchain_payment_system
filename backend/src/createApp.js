@@ -3,19 +3,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 
-const authRoutes = require('./routes/auth.routes');
-const studentRoutes = require('./routes/student.routes');
-const paymentRoutes = require('./routes/payment.routes');
-const accountantRoutes = require('./routes/accountant.routes');
-const clearanceRoutes = require('./routes/clearance.routes');
-const feedbackRoutes = require('./routes/feedback.routes');
-const adminRoutes = require('./routes/admin.routes');
-const userRoutes = require('./routes/user.routes');
-const notificationRoutes = require('./routes/notification.routes');
-const filesRoutes = require('./routes/files.routes');
-
 const errorHandler = require('./middleware/errorHandler');
-const { checkFabricHealth } = require('./services/blockchainService');
 const {
   apiLimiter,
   authLimiter,
@@ -40,6 +28,19 @@ function isAllowedOrigin(origin) {
     /* ignore */
   }
   return false;
+}
+
+/** Defer heavy route modules until first hit (keeps Vercel cold start under timeout). */
+function lazyRouter(loader) {
+  let router;
+  return (req, res, next) => {
+    try {
+      if (!router) router = loader();
+    } catch (err) {
+      return next(err);
+    }
+    return router(req, res, next);
+  };
 }
 
 function createApp() {
@@ -89,8 +90,11 @@ function createApp() {
     );
   }
 
-  // Uploads are NOT publicly static — use authenticated /api/files/*
-  app.use('/api/files', filesRoutes);
+  // Auth + files are needed for login; load eagerly. Everything else is lazy.
+  app.use(
+    '/api/files',
+    lazyRouter(() => require('./routes/files.routes'))
+  );
 
   app.get('/health', (_req, res) => {
     res.json({ status: 'OK', timestamp: new Date().toISOString() });
@@ -108,6 +112,7 @@ function createApp() {
       });
     }
     try {
+      const { checkFabricHealth } = require('./services/blockchainService');
       const fabric = await checkFabricHealth();
       res.json({
         status: 'OK',
@@ -119,15 +124,44 @@ function createApp() {
     }
   });
 
-  app.use('/api/auth', authLimiter, authRoutes);
-  app.use('/api/students', studentRoutes);
-  app.use('/api/payments', paymentRoutes);
-  app.use('/api/accountant', accountantRoutes);
-  app.use('/api/clearance', clearanceRoutes);
-  app.use('/api/feedback', feedbackRoutes);
-  app.use('/api/admin', adminRoutes);
-  app.use('/api/users', userRoutes);
-  app.use('/api/notifications', notificationRoutes);
+  // Auth must be available immediately for login (bcrypt/pg only — no PDF/Fabric)
+  app.use(
+    '/api/auth',
+    authLimiter,
+    lazyRouter(() => require('./routes/auth.routes'))
+  );
+  app.use(
+    '/api/students',
+    lazyRouter(() => require('./routes/student.routes'))
+  );
+  app.use(
+    '/api/payments',
+    lazyRouter(() => require('./routes/payment.routes'))
+  );
+  app.use(
+    '/api/accountant',
+    lazyRouter(() => require('./routes/accountant.routes'))
+  );
+  app.use(
+    '/api/clearance',
+    lazyRouter(() => require('./routes/clearance.routes'))
+  );
+  app.use(
+    '/api/feedback',
+    lazyRouter(() => require('./routes/feedback.routes'))
+  );
+  app.use(
+    '/api/admin',
+    lazyRouter(() => require('./routes/admin.routes'))
+  );
+  app.use(
+    '/api/users',
+    lazyRouter(() => require('./routes/user.routes'))
+  );
+  app.use(
+    '/api/notifications',
+    lazyRouter(() => require('./routes/notification.routes'))
+  );
 
   app.use((req, res) => {
     res.status(404).json({

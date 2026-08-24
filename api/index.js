@@ -3,6 +3,7 @@
  * OCR (Python) and Fabric need a VPS; set BLOCKCHAIN_OPTIONAL=true on Vercel.
  */
 const path = require('path');
+const { URL } = require('url');
 
 // Prefer backend/.env locally; on Vercel, env comes from the dashboard
 require('dotenv').config({ path: path.join(__dirname, '../backend/.env') });
@@ -14,10 +15,24 @@ process.env.TRUST_PROXY = process.env.TRUST_PROXY || 'true';
 // Vercel FS is read-only except /tmp — never mkdir under /var/task
 process.env.UPLOAD_PATH = process.env.UPLOAD_PATH || '/tmp/uploads';
 
+const DB_CONNECT_MS = Number(process.env.DB_CONNECT_TIMEOUT_MS || 8000);
+
 function sendJson(res, status, body) {
   res.statusCode = status;
   res.setHeader('Content-Type', 'application/json');
   res.end(JSON.stringify(body));
+}
+
+function requestPath(req) {
+  try {
+    return new URL(req.url || '/', 'http://localhost').pathname;
+  } catch {
+    return String(req.url || '').split('?')[0];
+  }
+}
+
+function isHealthPath(pathname) {
+  return pathname === '/api/health' || pathname === '/health';
 }
 
 let handler;
@@ -27,13 +42,25 @@ try {
   const serverless = require('serverless-http');
   const { createApp } = require('../backend/src/createApp');
   const { connectDB } = require('../backend/src/config/database');
+  const env = require('../backend/src/config/environment');
 
   const app = createApp();
 
   let ready;
   async function ensureReady() {
     if (!ready) {
-      ready = connectDB().catch((err) => {
+      ready = Promise.race([
+        connectDB(),
+        new Promise((_, reject) => {
+          setTimeout(() => {
+            reject(
+              new Error(
+                `Database connection timed out after ${DB_CONNECT_MS}ms. Use Supabase Transaction pooler (port 6543) in DATABASE_URL.`
+              )
+            );
+          }, DB_CONNECT_MS);
+        }),
+      ]).catch((err) => {
         ready = null;
         throw err;
       });
@@ -46,6 +73,19 @@ try {
   });
 
   handler = async (req, res) => {
+    const pathname = requestPath(req);
+
+    // Never block health on Postgres — diagnose JWT/DB env without waiting for TCP
+    if (isHealthPath(pathname)) {
+      return sendJson(res, 200, {
+        status: 'OK',
+        timestamp: new Date().toISOString(),
+        vercel: Boolean(process.env.VERCEL),
+        jwtConfigured: Boolean(env.JWT_OK),
+        databaseConfigured: Boolean(env.DATABASE_URL),
+      });
+    }
+
     try {
       await ensureReady();
       return baseHandler(req, res);
@@ -55,7 +95,7 @@ try {
         error: 'API unavailable',
         message:
           err.message ||
-          'Database connection failed. Check Vercel env vars (DATABASE_URL, JWT_SECRET).',
+          'Database connection failed. Check Vercel env vars (DATABASE_URL pooler :6543, JWT_SECRET).',
       });
     }
   };
