@@ -99,7 +99,13 @@ function createApp() {
   app.get('/api/health', async (req, res) => {
     const detailed = req.query.detailed === '1' && req.headers.authorization;
     if (!detailed) {
-      return res.json({ status: 'OK', timestamp: new Date().toISOString() });
+      return res.json({
+        status: 'OK',
+        timestamp: new Date().toISOString(),
+        vercel: Boolean(process.env.VERCEL),
+        jwtConfigured: Boolean(env.JWT_OK),
+        databaseConfigured: Boolean(env.DATABASE_URL),
+      });
     }
     try {
       const fabric = await checkFabricHealth();

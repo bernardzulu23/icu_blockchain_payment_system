@@ -47,26 +47,27 @@ function resolveFrontendOrigins() {
   return [...origins].filter(Boolean);
 }
 
+function isWeakJwt(secret) {
+  return !secret || secret === WEAK_JWT || secret.length < 32;
+}
+
 function resolveJwtSecret() {
   const secret = process.env.JWT_SECRET;
-  if (isProd) {
-    if (!secret || secret === WEAK_JWT || secret.length < 32) {
-      throw new Error(
-        'JWT_SECRET must be set in production to a strong value (min 32 characters). Generate with: openssl rand -hex 32'
-      );
-    }
+  if (isProd && isWeakJwt(secret)) {
+    // Do not throw at import time (crashes Vercel FUNCTION_INVOCATION). Auth routes check JWT_OK.
+    console.error(
+      '[security] JWT_SECRET must be set in production (min 32 characters). Generate with: openssl rand -hex 32'
+    );
   }
   return secret || WEAK_JWT;
 }
 
 function resolveRefreshSecret() {
   const secret = process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET;
-  if (isProd) {
-    if (!secret || secret === WEAK_JWT || secret.length < 32) {
-      throw new Error(
-        'JWT_REFRESH_SECRET (or JWT_SECRET) must be set in production to a strong value (min 32 characters)'
-      );
-    }
+  if (isProd && isWeakJwt(secret)) {
+    console.error(
+      '[security] JWT_REFRESH_SECRET (or JWT_SECRET) must be set in production (min 32 characters)'
+    );
   }
   return secret || WEAK_JWT;
 }
@@ -125,6 +126,8 @@ module.exports = {
   REDIS_PASSWORD: process.env.REDIS_PASSWORD || undefined,
   JWT_SECRET: resolveJwtSecret(),
   JWT_REFRESH_SECRET: resolveRefreshSecret(),
+  /** False when production JWT secrets are missing/weak — block auth, keep /health up */
+  JWT_OK: !(isProd && (isWeakJwt(process.env.JWT_SECRET) || isWeakJwt(process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET))),
   JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || '15m',
   REFRESH_TOKEN_EXPIRES_IN: process.env.REFRESH_TOKEN_EXPIRES_IN || '7d',
   BCRYPT_ROUNDS: parseInt(process.env.BCRYPT_ROUNDS || '12', 10),

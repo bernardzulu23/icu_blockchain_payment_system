@@ -4,8 +4,20 @@ const { authenticateToken } = require('../middleware/auth');
 const { forgotPasswordLimiter } = require('../middleware/rateLimit');
 const { body } = require('express-validator');
 const { handleValidation } = require('../utils/validators');
+const env = require('../config/environment');
 
 const router = express.Router();
+
+router.use((req, res, next) => {
+  if (!env.JWT_OK) {
+    return res.status(503).json({
+      error: 'Auth misconfigured',
+      message:
+        'Set JWT_SECRET and JWT_REFRESH_SECRET in Vercel (each at least 32 characters), then redeploy.',
+    });
+  }
+  return next();
+});
 
 const loginValidation = [
   body('identifier').optional().trim(),
