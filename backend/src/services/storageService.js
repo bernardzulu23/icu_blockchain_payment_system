@@ -5,7 +5,10 @@ const { createClient } = require('@supabase/supabase-js');
 const env = require('../config/environment');
 const logger = require('../utils/logger');
 
-const baseDir = path.resolve(process.cwd(), env.UPLOAD_PATH || 'uploads');
+const configuredUpload = env.UPLOAD_PATH || 'uploads';
+const baseDir = path.isAbsolute(configuredUpload)
+  ? configuredUpload
+  : path.resolve(process.cwd(), configuredUpload);
 const BUCKET = env.SUPABASE_STORAGE_BUCKET || 'icu-uploads';
 
 let supabase = null;

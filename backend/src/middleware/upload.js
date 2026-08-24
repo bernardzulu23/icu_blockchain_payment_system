@@ -3,16 +3,24 @@ const path = require('path');
 const fs = require('fs');
 const env = require('../config/environment');
 
-const useMemoryStorage = Boolean(env.SUPABASE_URL && env.SUPABASE_SERVICE_ROLE_KEY);
+const isServerless = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME);
+const useMemoryStorage =
+  Boolean(env.SUPABASE_URL && env.SUPABASE_SERVICE_ROLE_KEY) || isServerless;
+
+const configuredUpload = env.UPLOAD_PATH || 'uploads';
+const uploadRoot = path.isAbsolute(configuredUpload)
+  ? configuredUpload
+  : isServerless
+    ? path.join('/tmp', configuredUpload)
+    : path.join(process.cwd(), configuredUpload);
 
 if (!useMemoryStorage) {
-  const uploadDir = path.join(process.cwd(), env.UPLOAD_PATH || 'uploads');
   const dirs = [
-    path.join(uploadDir, 'deposit-slips'),
-    path.join(uploadDir, 'bank-statements'),
-    path.join(uploadDir, 'statements'),
-    path.join(uploadDir, 'clearances'),
-    path.join(uploadDir, 'profile-pictures'),
+    path.join(uploadRoot, 'deposit-slips'),
+    path.join(uploadRoot, 'bank-statements'),
+    path.join(uploadRoot, 'statements'),
+    path.join(uploadRoot, 'clearances'),
+    path.join(uploadRoot, 'profile-pictures'),
   ];
   dirs.forEach((dir) => {
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
@@ -26,8 +34,13 @@ const diskStorage = multer.diskStorage({
     if (req.path.includes('statement')) subdir = 'statements';
     if (req.path.includes('clearance')) subdir = 'clearances';
     if (req.path.includes('profile')) subdir = 'profile-pictures';
-    const uploadDir = path.join(process.cwd(), env.UPLOAD_PATH || 'uploads');
-    cb(null, path.join(uploadDir, subdir));
+    const dir = path.join(uploadRoot, subdir);
+    try {
+      if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    } catch (err) {
+      return cb(err);
+    }
+    cb(null, dir);
   },
   filename: (req, file, cb) => {
     const unique = Date.now() + '-' + Math.round(Math.random() * 1e9);

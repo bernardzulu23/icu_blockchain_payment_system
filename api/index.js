@@ -11,6 +11,8 @@ require('dotenv').config({ path: path.join(__dirname, '../.env') });
 process.env.BLOCKCHAIN_OPTIONAL = process.env.BLOCKCHAIN_OPTIONAL || 'true';
 process.env.REDIS_ENABLED = process.env.REDIS_ENABLED || 'false';
 process.env.TRUST_PROXY = process.env.TRUST_PROXY || 'true';
+// Vercel FS is read-only except /tmp — never mkdir under /var/task
+process.env.UPLOAD_PATH = process.env.UPLOAD_PATH || '/tmp/uploads';
 
 function sendJson(res, status, body) {
   res.statusCode = status;
