@@ -5,13 +5,20 @@
   "buildCommand": "cd frontend && npx vite build",
   "outputDirectory": "frontend/dist",
   "rewrites": [
-    { "source": "/api/((?!health$).*)", "destination": "/api" },
+    { "source": "/api/auth/login", "destination": "/api/auth/login" },
+    { "source": "/api/health", "destination": "/api/health" },
+    { "source": "/api/(.*)", "destination": "/api" },
     { "source": "/((?!api/).*)", "destination": "/index.html" }
   ],
   "functions": {
     "api/health.js": {
       "memory": 256,
       "maxDuration": 10
+    },
+    "api/auth/login.js": {
+      "memory": 512,
+      "maxDuration": 30,
+      "includeFiles": "backend/src/{config,middleware,utils}/**"
     },
     "api/index.js": {
       "memory": 1024,
