@@ -5,7 +5,10 @@
 export function getAuthenticatedFileUrl(storedPath: string | undefined | null): string {
   if (!storedPath) return '';
 
-  const apiBase = (import.meta.env.VITE_API_URL || '/api').replace(/\/$/, '');
+  const raw = (import.meta.env.VITE_API_URL || '').trim();
+  const apiBase = (
+    !raw || /your-backend-host|YOUR-BACKEND|example\.com/i.test(raw) ? '/api' : raw
+  ).replace(/\/$/, '');
   const token = typeof localStorage !== 'undefined' ? localStorage.getItem('token') : null;
 
   const withToken = (url: string) => {
