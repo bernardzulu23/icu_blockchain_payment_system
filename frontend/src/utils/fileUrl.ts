@@ -2,13 +2,31 @@
  * Convert stored paths to authenticated /api/files/... URLs.
  * Supports local /uploads/..., Supabase sb:bucket/path, and remote https URLs.
  */
+function resolveApiBase(): string {
+  const raw = (import.meta.env.VITE_API_URL || '').trim();
+  const bad = /your-backend-host|YOUR-BACKEND|YOUR-API|example\.com|your-domain/i;
+
+  if (typeof window !== 'undefined') {
+    const { hostname, protocol } = window.location;
+    if (hostname.endsWith('.vercel.app')) return '/api';
+    if (protocol === 'https:' && (!raw || bad.test(raw))) return '/api';
+  }
+
+  if (!raw || bad.test(raw)) return '/api';
+  if (/^https?:\/\//i.test(raw)) {
+    try {
+      if (bad.test(new URL(raw).hostname)) return '/api';
+    } catch {
+      return '/api';
+    }
+  }
+  return raw.replace(/\/$/, '');
+}
+
 export function getAuthenticatedFileUrl(storedPath: string | undefined | null): string {
   if (!storedPath) return '';
 
-  const raw = (import.meta.env.VITE_API_URL || '').trim();
-  const apiBase = (
-    !raw || /your-backend-host|YOUR-BACKEND|example\.com/i.test(raw) ? '/api' : raw
-  ).replace(/\/$/, '');
+  const apiBase = resolveApiBase();
   const token = typeof localStorage !== 'undefined' ? localStorage.getItem('token') : null;
 
   const withToken = (url: string) => {
