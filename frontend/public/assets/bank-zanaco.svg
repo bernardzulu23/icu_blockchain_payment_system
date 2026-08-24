@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Zanaco">
+  <circle cx="32" cy="32" r="30" fill="#007A33"/>
+  <path
+    d="M18 20h28L18 44h28"
+    fill="none"
+    stroke="#ffffff"
+    stroke-width="6"
+    stroke-linecap="square"
+    stroke-linejoin="miter"
+  />
+</svg>

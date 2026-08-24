@@ -2,8 +2,9 @@ import { apiClient } from './client';
 import type { ListParams, PaginatedResponse } from '../types/api';
 
 export interface CreateStudentData {
+  /** Same value used for both student_id and student_number */
   studentId: string;
-  studentNumber: string;
+  studentNumber?: string;
   firstName: string;
   lastName: string;
   email: string;
@@ -153,6 +154,8 @@ export interface OcrSlipResult {
   needs_manual_entry?: boolean;
   template?: string;
   template_name?: string;
+  raw_text?: string;
+  fields_found?: number;
 }
 
 export interface OcrMatchPair {

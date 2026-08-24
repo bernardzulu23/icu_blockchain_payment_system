@@ -7,6 +7,7 @@ import Modal from '../../components/Modal';
 import { PaginationBar, SearchBar } from '../../components/CrudPagination';
 import { userService, type StaffUser } from '../../api/services';
 import { ACADEMIC_YEAR_START, ACADEMIC_YEAR_END } from '../../constants/options';
+import PasswordInput from '../../components/PasswordInput';
 
 export default function StaffManagement() {
   const queryClient = useQueryClient();
@@ -206,12 +207,12 @@ export default function StaffManagement() {
             value={form.email || ''}
             onChange={(e) => setForm({ ...form, email: e.target.value })}
           />
-          <input
+          <PasswordInput
             className="input-field"
-            type="password"
             placeholder={editing ? 'New password (leave blank to keep)' : 'Password *'}
             value={form.password || ''}
             onChange={(e) => setForm({ ...form, password: e.target.value })}
+            autoComplete="new-password"
           />
           <textarea
             className="input-field min-h-[80px]"

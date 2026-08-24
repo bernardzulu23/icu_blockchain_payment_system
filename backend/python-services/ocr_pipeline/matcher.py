@@ -38,7 +38,7 @@ def score_slip_to_transaction(slip: Dict[str, Any], txn: Dict[str, Any]) -> floa
     txn_batch = _norm_ref(txn.get("batch_number") or txn.get("batch_reference"))
     if slip_batch and txn_batch:
         if slip_batch == txn_batch:
-            score += 0.45
+            score += 0.60
         elif _similarity(slip_batch, txn_batch) >= 0.85:
             score += 0.40
 
@@ -60,7 +60,9 @@ def score_slip_to_transaction(slip: Dict[str, Any], txn: Dict[str, Any]) -> floa
         score += 0.20
 
     slip_conf = float(slip.get("confidence") or 0)
-    score *= 0.7 + 0.3 * slip_conf
+    score *= 0.85 + 0.15 * max(slip_conf, 0.4)
+    if slip_batch and txn_batch and slip_batch == txn_batch:
+        score = max(score, 0.8)
     return min(1.0, score)
 
 
@@ -79,7 +81,8 @@ def match_slips_to_bank_transactions(
     unmatched_txns = list(range(len(transactions)))
 
     for slip in slips:
-        if slip.get("needs_manual_entry"):
+        has_fields = bool(slip.get("amount") or slip.get("batch_reference") or slip.get("student_id"))
+        if slip.get("needs_manual_entry") and not has_fields:
             unmatched_slips.append(
                 {
                     "slip": slip,
@@ -116,7 +119,11 @@ def match_slips_to_bank_transactions(
                     "amount_match": amount_match,
                     "batch_match": batch_match,
                     "mismatch": not (amount_match and batch_match),
-                    "status": "matched" if amount_match and batch_match else "review_required",
+                    "status": (
+                        "review_required"
+                        if slip.get("needs_manual_entry") or not (amount_match and batch_match)
+                        else "matched"
+                    ),
                 }
             )
         else:

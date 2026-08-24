@@ -9,8 +9,11 @@ const baseDir = path.resolve(process.cwd(), env.UPLOAD_PATH || 'uploads');
 const BUCKET = env.SUPABASE_STORAGE_BUCKET || 'icu-uploads';
 
 let supabase = null;
+/** After a TLS/network failure, skip Supabase for this process lifetime */
+let supabaseStorageDisabled = false;
 
 function getSupabase() {
+  if (supabaseStorageDisabled) return null;
   if (supabase) return supabase;
   if (!env.SUPABASE_URL || !env.SUPABASE_SERVICE_ROLE_KEY) return null;
   supabase = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY, {
@@ -20,6 +23,8 @@ function getSupabase() {
 }
 
 function useSupabaseStorage() {
+  if (supabaseStorageDisabled) return false;
+  if (process.env.SUPABASE_STORAGE_ENABLED === 'false') return false;
   return Boolean(env.SUPABASE_URL && env.SUPABASE_SERVICE_ROLE_KEY);
 }
 
@@ -32,7 +37,6 @@ function isSupabaseRef(value) {
 }
 
 function parseSupabaseRef(ref) {
-  // sb:bucket/path/to/file.ext
   const rest = ref.slice(3);
   const slash = rest.indexOf('/');
   if (slash < 0) throw new Error('Invalid Supabase storage ref');
@@ -79,25 +83,70 @@ function saveFile(buffer, subdir, filename) {
   return getPublicUrl(subdir, filename);
 }
 
+function formatStorageError(error) {
+  if (!error) return 'unknown error';
+  if (typeof error === 'string') return error;
+  const parts = [error.message, error.error, error.statusCode, error.name].filter(Boolean);
+  const cause = error.originalError?.cause?.message || error.originalError?.message;
+  if (cause) parts.push(cause);
+  return parts.join(' — ') || JSON.stringify(error);
+}
+
+function isTlsOrNetworkError(error) {
+  const msg = formatStorageError(error).toLowerCase();
+  return (
+    msg.includes('fetch failed') ||
+    msg.includes('unable to verify') ||
+    msg.includes('certificate') ||
+    msg.includes('enotfound') ||
+    msg.includes('econnrefused') ||
+    msg.includes('econnreset') ||
+    msg.includes('etimedout') ||
+    msg.includes('network')
+  );
+}
+
 async function ensureBucket() {
   const client = getSupabase();
   if (!client) return;
-  const { data: buckets, error } = await client.storage.listBuckets();
-  if (error) {
-    logger.warn('Could not list Supabase buckets:', error.message);
-    return;
-  }
-  if (!buckets?.some((b) => b.name === BUCKET)) {
-    const { error: createErr } = await client.storage.createBucket(BUCKET, {
-      public: false,
-      fileSizeLimit: 10 * 1024 * 1024,
-    });
-    if (createErr && !/already exists/i.test(createErr.message)) {
-      logger.warn('Could not create Supabase bucket:', createErr.message);
-    } else {
-      logger.info(`Supabase storage bucket ready: ${BUCKET}`);
+  try {
+    const { data: buckets, error } = await client.storage.listBuckets();
+    if (error) {
+      logger.warn('Could not list Supabase buckets:', formatStorageError(error));
+      if (isTlsOrNetworkError(error)) {
+        supabaseStorageDisabled = true;
+        logger.warn('Supabase Storage disabled for this process — using local uploads/');
+      }
+      return;
+    }
+    if (!buckets?.some((b) => b.name === BUCKET)) {
+      const { error: createErr } = await client.storage.createBucket(BUCKET, {
+        public: false,
+        fileSizeLimit: 10 * 1024 * 1024,
+      });
+      if (createErr && !/already exists/i.test(createErr.message || '')) {
+        logger.warn('Could not create Supabase bucket:', formatStorageError(createErr));
+      } else {
+        logger.info(`Supabase storage bucket ready: ${BUCKET}`);
+      }
+    }
+  } catch (err) {
+    logger.warn('ensureBucket failed:', formatStorageError(err));
+    if (isTlsOrNetworkError(err)) {
+      supabaseStorageDisabled = true;
     }
   }
+}
+
+function saveLocally(file, subdir) {
+  const ext = path.extname(file.originalname || '') || '.bin';
+  const filename = `${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`;
+  const filepath = getUploadPath(subdir, filename);
+  fs.mkdirSync(path.dirname(filepath), { recursive: true });
+  const buffer = file.buffer || (file.path && fs.readFileSync(file.path));
+  if (!buffer) throw new Error('Could not read file');
+  fs.writeFileSync(filepath, buffer);
+  return getPublicUrl(subdir, filename);
 }
 
 async function uploadToSupabase(file, subdir) {
@@ -105,8 +154,11 @@ async function uploadToSupabase(file, subdir) {
   if (!client) throw new Error('Supabase storage is not configured');
 
   await ensureBucket();
+  if (supabaseStorageDisabled) {
+    throw new Error('Supabase Storage unavailable (TLS/network)');
+  }
 
-  const ext = path.extname(file.originalname) || '.bin';
+  const ext = path.extname(file.originalname || '') || '.bin';
   const filename = `${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`;
   const objectPath = `${subdir}/${filename}`;
   const buffer = file.buffer || (file.path && fs.readFileSync(file.path));
@@ -118,8 +170,14 @@ async function uploadToSupabase(file, subdir) {
   });
 
   if (error) {
-    logger.error('Supabase upload failed:', error.message);
-    throw new Error('File upload failed');
+    const detail = formatStorageError(error);
+    logger.error('Supabase upload failed:', detail);
+    if (isTlsOrNetworkError(error)) {
+      supabaseStorageDisabled = true;
+    }
+    const err = new Error(detail);
+    err.cause = error;
+    throw err;
   }
 
   return `sb:${BUCKET}/${objectPath}`;
@@ -129,17 +187,18 @@ async function uploadToStorage(file, subdir) {
   if (!file) throw new Error('No file provided');
 
   if (useSupabaseStorage()) {
-    return uploadToSupabase(file, subdir);
+    try {
+      return await uploadToSupabase(file, subdir);
+    } catch (err) {
+      logger.warn(
+        'Supabase upload failed; saving to local uploads/ instead:',
+        formatStorageError(err)
+      );
+      return saveLocally(file, subdir);
+    }
   }
 
-  const ext = path.extname(file.originalname) || '.bin';
-  const filename = `${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`;
-  const filepath = getUploadPath(subdir, filename);
-  fs.mkdirSync(path.dirname(filepath), { recursive: true });
-  const buffer = file.buffer || (file.path && fs.readFileSync(file.path));
-  if (!buffer) throw new Error('Could not read file');
-  fs.writeFileSync(filepath, buffer);
-  return getPublicUrl(subdir, filename);
+  return saveLocally(file, subdir);
 }
 
 async function readStoredFile(urlOrPath) {
@@ -158,14 +217,16 @@ async function readStoredFile(urlOrPath) {
   }
 
   if (isRemoteUrl(urlOrPath)) {
-    // Legacy public HTTP URLs
     const response = await axios.get(urlOrPath, { responseType: 'arraybuffer', timeout: 60000 });
     return Buffer.from(response.data);
   }
 
-  const fullPath = path.isAbsolute(urlOrPath)
-    ? assertPathInsideUploads(urlOrPath)
-    : resolveLocalUploadPath(urlOrPath);
+  // '/uploads/...' is an app URL, not a Windows absolute path (path.isAbsolute('/x') is true on win32)
+  const normalized = String(urlOrPath).replace(/\\/g, '/');
+  const isUploadUrl = /^\/?uploads\//i.test(normalized);
+  const fullPath = isUploadUrl || !path.isAbsolute(urlOrPath)
+    ? resolveLocalUploadPath(urlOrPath)
+    : assertPathInsideUploads(urlOrPath);
 
   if (!fs.existsSync(fullPath)) {
     throw new Error('File not found');

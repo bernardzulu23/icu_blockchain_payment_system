@@ -2,7 +2,7 @@ const crypto = require('crypto');
 const { query, getClient } = require('../config/database');
 const { computeBatchMerkleRoot } = require('../utils/merkle');
 const { matchPaymentOnChain, submitBatchRootOnChain } = require('./blockchainService');
-const { ocrReconcileBatch } = require('./ocrService');
+const { ocrReconcileBatch, multerFileBuffer } = require('./ocrService');
 const logger = require('../utils/logger');
 
 async function createReconciliationPreview({
@@ -16,7 +16,7 @@ async function createReconciliationPreview({
   const started = Date.now();
 
   const ocrResult = await ocrReconcileBatch({
-    bankBuffer: bankFile.buffer,
+    bankBuffer: multerFileBuffer(bankFile),
     bankFilename: bankFile.originalname,
     bankMime: bankFile.mimetype,
     slipFiles,

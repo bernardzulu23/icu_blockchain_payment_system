@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="ABSA">
+  <rect width="64" height="64" rx="6" fill="#AF231C"/>
+  <path
+    d="M32 14L50 50h-9.2l-3.4-8.2H26.6L23.2 50H14L32 14zm0 14.5L27.4 39h9.2L32 28.5z"
+    fill="#ffffff"
+  />
+</svg>

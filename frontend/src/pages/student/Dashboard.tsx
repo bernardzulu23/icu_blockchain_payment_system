@@ -14,8 +14,10 @@ const cards: { to: string; icon: LucideIcon; title: string; desc: string }[] = [
 ];
 
 export default function StudentDashboard() {
-  const { data, isLoading } = useQuery('student-dashboard-stats', () =>
-    studentService.myPayments().then((r) => r.data)
+  const { data, isLoading } = useQuery(
+    'my-payments',
+    () => studentService.myPayments().then((r) => r.data),
+    { refetchOnWindowFocus: true }
   );
 
   const stats = data?.stats;

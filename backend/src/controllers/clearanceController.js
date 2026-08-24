@@ -109,7 +109,9 @@ async function requestClearance(req, res, next) {
         eligible: false,
         missing_semesters: chainEligibility.missingSemesters.map(String),
         source: chainEligibility.source,
-        message: `Clearance denied. Missing verified payments on ledger for semester(s): ${chainEligibility.missingSemesters.join(', ')}.`,
+        message: `Clearance denied. Missing verified payments${
+          chainEligibility.source === 'ledger' ? ' on ledger' : ''
+        } for semester(s): ${chainEligibility.missingSemesters.join(', ')}.`,
       });
     }
 

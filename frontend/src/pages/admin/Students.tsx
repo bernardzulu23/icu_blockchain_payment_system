@@ -5,6 +5,8 @@ import CrudTable from '../../components/CrudTable';
 import Modal from '../../components/Modal';
 import { PaginationBar, SearchBar } from '../../components/CrudPagination';
 import { studentService, type StudentProfile } from '../../api/services';
+import PasswordInput from '../../components/PasswordInput';
+import ProgramPicker from '../../components/ProgramPicker';
 
 export default function StudentsManagement() {
   const queryClient = useQueryClient();
@@ -30,7 +32,7 @@ export default function StudentsManagement() {
         ? studentService.update(editing.student_id, form)
         : studentService.create({
             studentId: form.studentId,
-            studentNumber: form.studentNumber,
+            studentNumber: form.studentId,
             firstName: form.firstName,
             lastName: form.lastName,
             email: form.email,
@@ -67,7 +69,6 @@ export default function StudentsManagement() {
     setEditing(null);
     setForm({
       studentId: '',
-      studentNumber: '',
       firstName: '',
       lastName: '',
       email: '',
@@ -113,7 +114,7 @@ export default function StudentsManagement() {
           rows={data?.items ?? []}
           rowKey={(r) => r.student_id}
           columns={[
-            { key: 'student_number', label: 'Number' },
+            { key: 'student_number', label: 'Student ID', render: (r) => r.student_number || r.student_id },
             { key: 'first_name', label: 'First Name' },
             { key: 'last_name', label: 'Last Name' },
             { key: 'email', label: 'Email' },
@@ -152,13 +153,12 @@ export default function StudentsManagement() {
                 if (!editing) {
                   if (
                     !form.studentId?.trim() ||
-                    !form.studentNumber?.trim() ||
                     !form.firstName?.trim() ||
                     !form.lastName?.trim() ||
                     !form.email?.trim() ||
                     !form.password?.trim()
                   ) {
-                    toast.error('Student ID, number, name, email, and password are required for login');
+                    toast.error('Student ID, name, email, and password are required for login');
                     return;
                   }
                   if (form.password.length < 6) {
@@ -185,10 +185,17 @@ export default function StudentsManagement() {
       >
         <div className="space-y-3">
           {!editing && (
-            <>
-              <input className="input-field" placeholder="Student ID *" value={form.studentId || ''} onChange={(e) => setForm({ ...form, studentId: e.target.value })} />
-              <input className="input-field" placeholder="Student Number *" value={form.studentNumber || ''} onChange={(e) => setForm({ ...form, studentNumber: e.target.value })} />
-            </>
+            <div>
+              <input
+                className="input-field"
+                placeholder="Student ID *"
+                value={form.studentId || ''}
+                onChange={(e) => setForm({ ...form, studentId: e.target.value })}
+              />
+              <p className="font-mono text-[10px] uppercase tracking-widest text-ink/50 mt-1">
+                Same as student number — used for login with email or ID
+              </p>
+            </div>
           )}
           <input className="input-field" placeholder="First Name *" value={form.firstName || ''} onChange={(e) => setForm({ ...form, firstName: e.target.value })} />
           <input className="input-field" placeholder="Last Name *" value={form.lastName || ''} onChange={(e) => setForm({ ...form, lastName: e.target.value })} />
@@ -199,18 +206,26 @@ export default function StudentsManagement() {
             value={form.email || ''}
             onChange={(e) => setForm({ ...form, email: e.target.value })}
           />
-          <input
+          <PasswordInput
             className="input-field"
             placeholder={editing ? 'New password (leave blank to keep)' : 'Password * (student login)'}
-            type="password"
             value={form.password || ''}
             onChange={(e) => setForm({ ...form, password: e.target.value })}
+            autoComplete="new-password"
           />
           <p className="font-mono text-[10px] uppercase tracking-widest text-ink/50">
-            Students sign in with this email (or student number) and password
+            Students sign in with this email (or student ID) and password
           </p>
           <input className="input-field" placeholder="Phone" value={form.phone || ''} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
-          <input className="input-field" placeholder="Program" value={form.program || ''} onChange={(e) => setForm({ ...form, program: e.target.value })} />
+          <div>
+            <label className="block font-mono text-[10px] uppercase tracking-widest text-ink/50 mb-1">
+              Program
+            </label>
+            <ProgramPicker
+              value={form.program || ''}
+              onChange={(v) => setForm({ ...form, program: v })}
+            />
+          </div>
           {editing && (
             <select className="input-field" value={form.status || 'active'} onChange={(e) => setForm({ ...form, status: e.target.value })}>
               <option value="active">Active</option>

@@ -87,10 +87,59 @@ def parse_date(date_str):
 def parse_amount(amount_str):
     """Parse amount from string."""
     try:
-        clean_amount = re.sub(r"[K,\s]", "", str(amount_str))
+        clean_amount = re.sub(r"[K,\s]", "", str(amount_str), flags=re.I)
         return float(clean_amount)
     except (ValueError, TypeError):
         return 0.0
+
+
+BANK_REF_TOKEN = re.compile(r"(?:ABSA|ABS|ZANACO|ZNC|FNB)\d{6,24}", re.I)
+DATE_TOKEN = re.compile(r"\d{4}-\d{2}-\d{2}|\d{1,2}/\d{1,2}/\d{4}")
+STUDENT_TOKEN = re.compile(r"\b(?:ICU|STU)[\s\-]*\d{6,10}\b|\b\d{7,10}\b", re.I)
+MONEY_TOKEN = re.compile(
+    r"(?:K|ZMW)\s*([0-9]{1,3}(?:,[0-9]{3})+(?:\.[0-9]{2})?|[0-9]+\.[0-9]{2})"
+    r"|([0-9]{1,3}(?:,[0-9]{3})+\.[0-9]{2})"
+    r"|([0-9]+\.[0-9]{2})"
+    r"|([0-9]{1,3}(?:,[0-9]{3})+)"
+    r"|(\b[1-9][0-9]{2,5}\b)",
+    re.I,
+)
+
+
+def pick_money_amount(line: str) -> float:
+    """
+    Pick the tuition amount on a bank-statement line.
+    Ignores dates, bank refs (ABS2026…), and student numbers (2023051).
+    Prefers values with currency, decimals, or thousands separators.
+    """
+    if not line:
+        return 0.0
+    stripped = BANK_REF_TOKEN.sub(" ", line)
+    stripped = DATE_TOKEN.sub(" ", stripped)
+    stripped = STUDENT_TOKEN.sub(" ", stripped)
+
+    best_val = 0.0
+    best_score = -1
+    for match in MONEY_TOKEN.finditer(stripped):
+        raw = next((g for g in match.groups() if g), None)
+        if not raw:
+            continue
+        val = parse_amount(raw)
+        if val < 50 or val > 500_000:
+            continue
+        score = 0
+        if match.group(0).upper().startswith(("K", "ZMW")):
+            score += 4
+        if "." in raw:
+            score += 3
+        if "," in raw:
+            score += 2
+        if 200 <= val <= 80_000:
+            score += 2
+        if score > best_score:
+            best_score = score
+            best_val = val
+    return best_val
 
 
 def _ocr_page_text(page) -> str:
@@ -112,30 +161,70 @@ def _ocr_page_text(page) -> str:
         return ""
 
 
+def _normalize_statement_text(text: str) -> str:
+    """Split glued PDF columns (pdf-parse often emits DateRefNameIDAmount)."""
+    text = text or ""
+    text = re.sub(r"(\d{4}-\d{2}-\d{2})", r"\n\1 ", text)
+    text = re.sub(r"(ABSA|ABS|ZANACO|ZNC|FNB)(\d{6,24})", r" \1\2 ", text, flags=re.I)
+    text = re.sub(r"(ICU|STU)(\d{7})", r" \1\2 ", text, flags=re.I)
+    text = re.sub(r"(\d{3,6}\.\d{2})", r" \1", text)
+    return text
+
+
+def _depositor_from_line(raw: str) -> str:
+    s = BANK_REF_TOKEN.sub(" ", raw or "")
+    s = DATE_TOKEN.sub(" ", s)
+    s = STUDENT_TOKEN.sub(" ", s)
+    s = re.sub(r"(?:K|ZMW)?\s*[0-9]{1,3}(?:,[0-9]{3})*(?:\.[0-9]{2})?", " ", s, flags=re.I)
+    s = re.sub(r"[0-9]+\.[0-9]{2}", " ", s)
+    s = re.sub(r"\s+", " ", s).strip(" -/," )
+    return s[:200]
+
+
 def _parse_transaction_lines(text: str) -> list:
     transactions = []
-    pattern1 = r"(\d{1,2}/\d{1,2}/\d{4})\s+.*?(\d{5,})\s+([0-9,]+\.?\d{0,2})"
-    pattern2 = r"(\d{4}-\d{2}-\d{2}).*?REF[:\s]*(\d+).*?([0-9,]+\.?\d{0,2})"
-    pattern3 = r"DEPOSIT.*?(\d{5,}).*?([0-9,]+\.?\d{0,2})"
-    pattern4 = r"(?:TXN|REF|BATCH)[\s#:]*([A-Z0-9]{5,20}).*?([0-9,]+\.?\d{0,2})"
+    seen = set()
 
-    for line in text.split("\n"):
-        for pattern in [pattern1, pattern2, pattern3, pattern4]:
-            match = re.search(pattern, line, re.IGNORECASE)
-            if match:
-                groups = match.groups()
-                if len(groups) == 2:
-                    batch_num, amount_str = groups
-                    date_str = None
-                else:
-                    date_str, batch_num, amount_str = groups[0], groups[1], groups[2]
-                transactions.append({
-                    "date": parse_date(date_str) if date_str else None,
-                    "batch_number": clean_batch_number(batch_num),
-                    "amount": parse_amount(amount_str),
-                    "raw_line": line.strip(),
-                })
-                break
+    for line in _normalize_statement_text(text).split("\n"):
+        raw = line.strip()
+        if not raw:
+            continue
+        ref_match = BANK_REF_TOKEN.search(raw)
+        date_match = DATE_TOKEN.search(raw)
+        amount = pick_money_amount(raw)
+        if not ref_match and amount <= 0:
+            continue
+        if not ref_match:
+            # Legacy numeric batch lines (date + digits + amount)
+            legacy = re.search(
+                r"(\d{1,2}/\d{1,2}/\d{4}|\d{4}-\d{2}-\d{2})\s+.*?([A-Z0-9]{5,24})\s+([0-9,]+\.\d{2})",
+                raw,
+                re.I,
+            )
+            if not legacy:
+                continue
+            date_str, batch_num, amount_str = legacy.groups()
+            amount = parse_amount(amount_str)
+            batch_num = clean_batch_number(batch_num)
+            date_val = parse_date(date_str)
+        else:
+            batch_num = ref_match.group(0).upper()
+            date_val = parse_date(date_match.group(0)) if date_match else None
+            if amount <= 0:
+                continue
+
+        key = (batch_num, round(amount, 2), str(date_val))
+        if key in seen:
+            continue
+        seen.add(key)
+        transactions.append({
+            "date": date_val,
+            "batch_number": batch_num,
+            "amount": amount,
+            "depositor_name": _depositor_from_line(raw),
+            "raw_line": raw,
+        })
+
     return transactions
 
 

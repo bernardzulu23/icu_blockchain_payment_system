@@ -10,7 +10,8 @@
     "lint": "eslint src/",
     "db:migrate": "node scripts/migrate.js",
     "db:seed": "node scripts/seed.js",
-    "db:migrate:supabase": "node scripts/migrate.js"
+    "db:migrate:supabase": "node scripts/migrate.js",
+    "verify:chain": "node scripts/verify-chain.js"
   },
   "dependencies": {
     "@sendgrid/mail": "^8.1.5",

@@ -25,6 +25,8 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { useTheme } from '../contexts/ThemeContext';
+import BrandLogo from './BrandLogo';
+import FabricPoweredBadge from './FabricPoweredBadge';
 
 type NavItem = { path: string; label: string; icon: LucideIcon };
 
@@ -99,16 +101,17 @@ export default function Layout() {
     <div className="min-h-screen flex bg-paper text-ink font-sans selection:bg-accent selection:text-white">
       <aside className="w-72 bg-paper border-r-2 border-ink flex flex-col z-50 shrink-0">
         <div className="p-6 border-b-2 border-ink">
-          <div className="flex items-center gap-3 mb-8">
-            <div className="w-12 h-12 border-2 border-ink bg-white p-1.5 brutal-shadow">
-              <img src="/logo.jpg" alt="ICU Logo" className="w-full h-full object-contain" />
-            </div>
+          <div className="flex items-center gap-3 mb-4">
+            <BrandLogo size="sm" />
             <div>
               <h1 className="font-display text-2xl text-ink leading-none">ICU Pay</h1>
               <p className="font-mono text-[10px] text-ink/50 uppercase tracking-[0.15em] mt-1">
                 Zambia · Blockchain
               </p>
             </div>
+          </div>
+          <div className="mb-6">
+            <FabricPoweredBadge className="text-[10px] px-2.5 py-0.5" />
           </div>
 
           <nav className="space-y-1">

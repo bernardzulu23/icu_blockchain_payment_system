@@ -5,6 +5,9 @@ import { toast } from 'react-toastify';
 import { Sun, Moon } from 'lucide-react';
 import { authService } from '../api/services';
 import { useTheme } from '../contexts/ThemeContext';
+import BrandLogo from '../components/BrandLogo';
+import PasswordInput from '../components/PasswordInput';
+import FabricPoweredBadge from '../components/FabricPoweredBadge';
 
 type FormData = {
   newPassword: string;
@@ -50,26 +53,27 @@ export default function ResetPassword() {
       <div className="w-full max-w-md relative z-10 border-2 border-ink bg-paper p-8 brutal-shadow-lg">
         <div className="text-center mb-8 border-b-2 border-ink pb-6">
           <div className="flex justify-center mb-4">
-            <div className="w-16 h-16 border-2 border-ink bg-white p-2 brutal-shadow">
-              <img src="/logo.jpg" alt="ICU Logo" className="w-full h-full object-contain" />
-            </div>
+            <BrandLogo size="lg" />
           </div>
           <h1 className="font-display text-3xl text-ink">Reset Password</h1>
           <p className="font-mono text-xs text-ink/50 uppercase tracking-widest mt-2">
             Choose a new password for your account
           </p>
+          <div className="flex justify-center mt-3">
+            <FabricPoweredBadge />
+          </div>
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
           <div>
-            <input
+            <PasswordInput
               {...register('newPassword', {
                 required: 'New password is required',
                 minLength: { value: 6, message: 'Min 6 characters' },
               })}
-              type="password"
               className="input-field"
               placeholder="New password"
+              autoComplete="new-password"
             />
             {errors.newPassword && (
               <p className="text-accent text-xs mt-1 font-semibold">{errors.newPassword.message}</p>
@@ -77,14 +81,14 @@ export default function ResetPassword() {
           </div>
 
           <div>
-            <input
+            <PasswordInput
               {...register('confirmPassword', {
                 required: 'Confirm password is required',
                 minLength: { value: 6, message: 'Min 6 characters' },
               })}
-              type="password"
               className="input-field"
               placeholder="Confirm password"
+              autoComplete="new-password"
             />
             {errors.confirmPassword && (
               <p className="text-accent text-xs mt-1 font-semibold">{errors.confirmPassword.message}</p>

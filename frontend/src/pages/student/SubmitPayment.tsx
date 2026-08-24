@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
+import { useQueryClient } from 'react-query';
 import { toast } from 'react-toastify';
 import { Upload, AlertTriangle, CheckCircle, Info } from 'lucide-react';
 import { apiClient } from '../../api/client';
-import { BANKS, SEMESTERS, ACADEMIC_YEAR_START, ACADEMIC_YEAR_END, dateToAcademicYear } from '../../constants/options';
+import { SEMESTERS, ACADEMIC_YEAR_START, ACADEMIC_YEAR_END, dateToAcademicYear } from '../../constants/options';
+import BankPicker from '../../components/BankPicker';
 
 import { getAuthenticatedFileUrl } from '../../utils/fileUrl';
 
@@ -32,6 +34,7 @@ type DuplicateCheck = {
 
 export default function SubmitPayment() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { register, handleSubmit, formState: { errors }, watch, setValue } = useForm<FormData>();
 
   const [depositSlip, setDepositSlip] = useState<File | null>(null);
@@ -124,6 +127,7 @@ export default function SubmitPayment() {
       });
 
       toast.success('Payment submitted successfully! You will be notified once verified.');
+      queryClient.invalidateQueries('my-payments');
       setTimeout(() => navigate('/student-portal/payments'), 2000);
     } catch (error: unknown) {
       const err = error as { response?: { data?: { error?: string; message?: string; warning?: string; action?: string } } };
@@ -301,18 +305,13 @@ export default function SubmitPayment() {
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
               Bank Name <span className="text-red-500">*</span>
             </label>
-            <select
-              {...register('bank_name', { required: 'Bank name is required' })}
-              className="input-field w-full"
-            >
-              <option value="">Select Bank</option>
-              {BANKS.map((b) => (
-                <option key={b.value} value={b.value}>
-                  {b.label}
-                </option>
-              ))}
-            </select>
-            {errors.bank_name && <p className="text-red-500 text-sm mt-1">{errors.bank_name.message}</p>}
+            <input type="hidden" {...register('bank_name', { required: 'Bank name is required' })} />
+            <BankPicker
+              value={watch('bank_name') || ''}
+              onChange={(v) => setValue('bank_name', v, { shouldValidate: true })}
+              name="bank_name"
+              error={errors.bank_name?.message}
+            />
           </div>
 
           <div>

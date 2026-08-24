@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 import CrudTable from '../../components/CrudTable';
 import { PaginationBar } from '../../components/CrudPagination';
 import { accountantService, type BankStatement } from '../../api/services';
+import BankMark from '../../components/BankMark';
 
 export default function BankStatements() {
   const queryClient = useQueryClient();
@@ -33,7 +34,11 @@ export default function BankStatements() {
           rows={data?.items ?? []}
           rowKey={(r) => r.statement_id}
           columns={[
-            { key: 'bank_name', label: 'Bank' },
+            {
+              key: 'bank_name',
+              label: 'Bank',
+              render: (r) => <BankMark bank={r.bank_name} />,
+            },
             { key: 'upload_date', label: 'Upload Date' },
             {
               key: 'processed',

@@ -127,9 +127,13 @@ async function create(req, res, next) {
     } = req.body;
 
     const normalizedEmail = typeof email === 'string' ? email.trim().toLowerCase() : '';
-    if (!studentId || !studentNumber || !firstName || !lastName) {
+    // Student ID and student number are the same identifier in this system
+    const id =
+      String(studentId || studentNumber || '')
+        .trim() || '';
+    if (!id || !firstName || !lastName) {
       return res.status(400).json({
-        message: 'Student ID, student number, first name, and last name are required',
+        message: 'Student ID, first name, and last name are required',
       });
     }
     if (!normalizedEmail) {
@@ -153,8 +157,8 @@ async function create(req, res, next) {
 
     const hash = await hashPassword(String(password));
     const student = await Student.create({
-      studentId: String(studentId).trim(),
-      studentNumber: String(studentNumber).trim(),
+      studentId: id,
+      studentNumber: id,
       firstName: String(firstName).trim(),
       lastName: String(lastName).trim(),
       email: normalizedEmail,
@@ -169,11 +173,11 @@ async function create(req, res, next) {
     });
     res.status(201).json({
       ...student,
-      login_hint: `Student can sign in with email "${normalizedEmail}" (or student number) and the password you set`,
+      login_hint: `Student can sign in with email "${normalizedEmail}" (or student ID "${id}") and the password you set`,
     });
   } catch (err) {
     if (err.code === '23505') {
-      return res.status(400).json({ message: 'Student ID, student number, or email already exists' });
+      return res.status(400).json({ message: 'Student ID or email already exists' });
     }
     next(err);
   }

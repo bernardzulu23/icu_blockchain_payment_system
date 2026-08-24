@@ -7,6 +7,7 @@ const { createAuditLog } = require('../services/auditService');
 const pdfService = require('../services/pdfService');
 const { uploadToStorage } = require('../services/storageService');
 const { sendNotification, notifyAccountantsPendingVerification } = require('../services/notificationService');
+const { rematchPendingPayments } = require('../services/paymentMatchingService');
 const { handleValidation } = require('../utils/validators');
 const logger = require('../utils/logger');
 
@@ -228,27 +229,44 @@ async function submitPayment(req, res) {
       countPending: countPending + 1,
     });
 
+    const matchResult = await rematchPendingPayments(client);
+    if (matchResult.matchedCount) {
+      logger.info(`Auto-matched ${matchResult.matchedCount} pending payment(s) on submit`);
+    }
+    const { rows: statusRows } = await client.query(
+      `SELECT status FROM student_payments WHERE payment_id = $1`,
+      [payment.payment_id]
+    );
+    const finalStatus = statusRows[0]?.status || 'pending';
+
     await client.query('COMMIT');
 
-    logger.info(`Payment submitted: ${student_id} - ${semester}, ${academic_year}`);
+    logger.info(`Payment submitted: ${student_id} - ${semester}, ${academic_year} (${finalStatus})`);
 
     res.status(201).json({
       success: true,
-      message: 'Payment submitted successfully',
+      message:
+        finalStatus === 'auto_matched'
+          ? 'Payment submitted and automatically matched to a bank statement line'
+          : 'Payment submitted successfully',
       payment: {
         payment_id: payment.payment_id,
         semester,
         academic_year,
         amount,
         batch_number,
-        status: 'pending',
+        status: finalStatus,
         submitted_at: payment.created_at,
       },
-      next_steps: [
-        'Wait for accountant to upload bank statement',
-        'System will automatically match your payment',
-        'You will receive SMS/Email when verified',
-      ],
+      matched: finalStatus === 'auto_matched',
+      next_steps:
+        finalStatus === 'auto_matched'
+          ? ['Accountant will verify the match', 'You will receive SMS/Email when verified']
+          : [
+              'Wait for accountant to upload bank statement',
+              'System will automatically match your payment',
+              'You will receive SMS/Email when verified',
+            ],
     });
   } catch (error) {
     await client.query('ROLLBACK');
@@ -286,13 +304,15 @@ async function getPaymentHistory(req, res) {
       [student_id]
     );
 
+    const paidStatuses = new Set(['verified', 'auto_matched']);
+    const inFlightStatuses = new Set(['pending', 'manual_review']);
     const stats = {
       total_payments: result.rows.length,
       verified_payments: result.rows.filter((p) => p.status === 'verified').length,
-      pending_payments: result.rows.filter((p) => p.status === 'pending').length,
+      pending_payments: result.rows.filter((p) => inFlightStatuses.has(p.status)).length,
       total_amount_paid: result.rows
-        .filter((p) => p.status === 'verified')
-        .reduce((sum, p) => sum + parseFloat(p.amount), 0),
+        .filter((p) => paidStatuses.has(p.status))
+        .reduce((sum, p) => sum + (Number(p.amount) || 0), 0),
     };
 
     res.json({

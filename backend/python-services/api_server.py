@@ -106,7 +106,7 @@ def extract_transactions():
                 "batch_number": txn["batch_number"],
                 "amount": txn["amount"],
                 "date": txn["date"].isoformat() if txn.get("date") else None,
-                "depositor_name": None,
+                "depositor_name": txn.get("depositor_name") or None,
                 "raw_line": txn.get("raw_line", ""),
             })
 
@@ -335,24 +335,32 @@ def manual_match():
 @app.route("/ocr/deposit-slip", methods=["POST"])
 def ocr_deposit_slip():
     """OCR a single deposit slip image."""
-    slip_file = request.files.get("slip") or request.files.get("image")
-    if not slip_file:
-        return jsonify({"error": "slip image required"}), 400
-    bank_hint = request.form.get("bank") or request.form.get("bank_name")
-    result = extract_deposit_slip(slip_file.read(), slip_file.filename or "", bank_hint)
-    return jsonify({"success": True, "result": result})
+    try:
+        slip_file = request.files.get("slip") or request.files.get("image")
+        if not slip_file:
+            return jsonify({"error": "slip image required"}), 400
+        bank_hint = request.form.get("bank") or request.form.get("bank_name")
+        result = extract_deposit_slip(slip_file.read(), slip_file.filename or "", bank_hint)
+        return jsonify({"success": True, "result": result})
+    except Exception as e:
+        logger.exception("OCR deposit-slip failed")
+        return jsonify({"error": str(e)}), 500
 
 
 @app.route("/ocr/deposit-slips", methods=["POST"])
 def ocr_deposit_slips():
     """OCR a batch of deposit slip images."""
-    files = request.files.getlist("slips") or request.files.getlist("images")
-    if not files:
-        return jsonify({"error": "at least one slip image required"}), 400
-    bank_hint = request.form.get("bank") or request.form.get("bank_name")
-    payload = [(f.read(), f.filename or "") for f in files]
-    result = extract_deposit_slips_batch(payload, bank_hint)
-    return jsonify({"success": True, **result})
+    try:
+        files = request.files.getlist("slips") or request.files.getlist("images")
+        if not files:
+            return jsonify({"error": "at least one slip image required"}), 400
+        bank_hint = request.form.get("bank") or request.form.get("bank_name")
+        payload = [(f.read(), f.filename or "") for f in files]
+        result = extract_deposit_slips_batch(payload, bank_hint)
+        return jsonify({"success": True, **result})
+    except Exception as e:
+        logger.exception("OCR deposit-slips failed")
+        return jsonify({"error": str(e)}), 500
 
 
 @app.route("/ocr/reconcile", methods=["POST"])
@@ -364,93 +372,109 @@ def ocr_reconcile():
     import time
 
     started = time.perf_counter()
-    bank_file = request.files.get("bankStatement") or request.files.get("bank")
-    slip_files = request.files.getlist("slips") or request.files.getlist("depositSlips")
-    bank_hint = request.form.get("bank") or request.form.get("bank_name")
+    try:
+        bank_file = request.files.get("bankStatement") or request.files.get("bank")
+        slip_files = request.files.getlist("slips") or request.files.getlist("depositSlips")
+        bank_hint = request.form.get("bank") or request.form.get("bank_name")
 
-    if not bank_file:
-        return jsonify({"error": "bank statement PDF required"}), 400
-    if not slip_files:
-        return jsonify({"error": "at least one deposit slip image required"}), 400
+        if not bank_file:
+            return jsonify({"error": "bank statement PDF required"}), 400
+        if not slip_files:
+            return jsonify({"error": "at least one deposit slip image required"}), 400
 
-    bank_content = bank_file.read()
-    bank_mime = bank_file.content_type or ""
+        bank_content = bank_file.read()
+        bank_mime = bank_file.content_type or ""
 
-    transactions = []
-    if "pdf" in bank_mime.lower() or (bank_file.filename or "").lower().endswith(".pdf"):
-        import tempfile
+        transactions = []
+        if "pdf" in bank_mime.lower() or (bank_file.filename or "").lower().endswith(".pdf"):
+            import tempfile
 
-        with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp:
-            tmp.write(bank_content)
-            tmp_path = tmp.name
-        try:
-            transactions = extract_transactions_from_pdf(tmp_path, use_ocr_fallback=True)
-        finally:
-            os.unlink(tmp_path)
-        for txn in transactions:
-            if txn.get("date") and hasattr(txn["date"], "isoformat"):
-                txn["date"] = txn["date"].isoformat()
-    else:
-        bank_text = extract_from_csv(bank_content)
-        transactions = _parse_transaction_lines(bank_text)
+            with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp:
+                tmp.write(bank_content)
+                tmp_path = tmp.name
+            try:
+                transactions = extract_transactions_from_pdf(tmp_path, use_ocr_fallback=True)
+            finally:
+                os.unlink(tmp_path)
+            for txn in transactions:
+                if txn.get("date") and hasattr(txn["date"], "isoformat"):
+                    txn["date"] = txn["date"].isoformat()
+        else:
+            from batch_matching_service import _parse_transaction_lines as parse_bank_lines
 
-    slip_payload = [(f.read(), f.filename or "") for f in slip_files]
-    slip_result = extract_deposit_slips_batch(slip_payload, bank_hint)
-    match_result = match_slips_to_bank_transactions(slip_result["slips"], transactions)
+            bank_text = extract_from_csv(bank_content)
+            transactions = parse_bank_lines(bank_text)
 
-    elapsed_ms = int((time.perf_counter() - started) * 1000)
-    return jsonify({
-        "success": True,
-        "bank_transactions": transactions,
-        "slips": slip_result["slips"],
-        "manual_flag_rate": slip_result["manual_flag_rate"],
-        "manual_flag_count": slip_result["manual_flag_count"],
-        "matching": match_result,
-        "processing_ms": elapsed_ms,
-        "transaction_count": len(transactions),
-        "slip_count": slip_result["total"],
-    })
+        slip_payload = [(f.read(), f.filename or "") for f in slip_files]
+        slip_result = extract_deposit_slips_batch(slip_payload, bank_hint)
+        match_result = match_slips_to_bank_transactions(slip_result["slips"], transactions)
 
-
-def _parse_transaction_lines(text: str):
-    """Reuse bank line parser for CSV statements."""
-    import re
-    from batch_matching_service import clean_batch_number, parse_amount, parse_date
-
-    out = []
-    pattern1 = r"(\d{1,2}/\d{1,2}/\d{4})\s+.*?(\d{5,})\s+([0-9,]+\.?\d{0,2})"
-    pattern2 = r"(\d{4}-\d{2}-\d{2}).*?REF[:\s]*(\d+).*?([0-9,]+\.?\d{0,2})"
-    pattern3 = r"DEPOSIT.*?(\d{5,}).*?([0-9,]+\.?\d{0,2})"
-    pattern4 = r"(?:TXN|REF|BATCH)[\s#:]*([A-Z0-9]{5,20}).*?([0-9,]+\.?\d{0,2})"
-    for line in text.split("\n"):
-        for pattern in [pattern1, pattern2, pattern3, pattern4]:
-            match = re.search(pattern, line, re.IGNORECASE)
-            if match:
-                groups = match.groups()
-                if len(groups) == 2:
-                    batch_num, amount_str = groups
-                    date_str = None
-                else:
-                    date_str, batch_num, amount_str = groups[0], groups[1], groups[2]
-                d = parse_date(date_str) if date_str else None
-                out.append({
-                    "date": d.isoformat() if d and hasattr(d, "isoformat") else None,
-                    "batch_number": clean_batch_number(batch_num),
-                    "amount": parse_amount(amount_str),
-                    "raw_line": line.strip(),
-                })
-                break
-    return out
+        elapsed_ms = int((time.perf_counter() - started) * 1000)
+        return jsonify({
+            "success": True,
+            "bank_transactions": transactions,
+            "slips": slip_result["slips"],
+            "manual_flag_rate": slip_result["manual_flag_rate"],
+            "manual_flag_count": slip_result["manual_flag_count"],
+            "matching": match_result,
+            "processing_ms": elapsed_ms,
+            "transaction_count": len(transactions),
+            "slip_count": slip_result["total"],
+        })
+    except Exception as e:
+        logger.exception("OCR reconcile failed")
+        return jsonify({"error": str(e)}), 500
 
 
-@app.route("/health", methods=["GET"])
-def health():
-    return jsonify({
+def _health_payload():
+    return {
         "status": "ok",
         "service": "Python OCR & Matching Service",
         "ocr_enabled": True,
         "timestamp": __import__("datetime").datetime.now().isoformat(),
-    })
+        "endpoints": {
+            "GET /": "This status page",
+            "GET /health": "JSON health check",
+            "POST /ocr/reconcile": "Bank PDF + deposit slips",
+            "POST /ocr/deposit-slip": "Single slip OCR",
+            "POST /ocr/deposit-slips": "Batch slip OCR",
+            "POST /extract-transactions": "Bank PDF transaction extract",
+            "POST /batch/match": "CSV + bank matching",
+        },
+        "ui": "http://localhost:5173/accountant/batch-reconciliation",
+    }
+
+
+@app.route("/", methods=["GET"])
+def root():
+    """Browser-friendly landing so opening :8000 is not a 404."""
+    if request.accept_mimetypes.best == "application/json":
+        return jsonify(_health_payload())
+    info = _health_payload()
+    links = "".join(
+        f"<li><code>{path}</code> — {desc}</li>"
+        for path, desc in info["endpoints"].items()
+    )
+    html = f"""<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>ICU OCR Service</title>
+<style>
+body{{font-family:system-ui,sans-serif;max-width:40rem;margin:3rem auto;padding:0 1rem;color:#0f172a}}
+code{{background:#e2e8f0;padding:.1rem .35rem;border-radius:.25rem}}
+.ok{{color:#047857;font-weight:700}}
+</style></head><body>
+<h1>ICU OCR service</h1>
+<p class="ok">Running</p>
+<p>This is an API used by the accountant Batch OCR page. It is not the website.</p>
+<p>Open the app: <a href="{info["ui"]}">{info["ui"]}</a></p>
+<p>Health JSON: <a href="/health">/health</a></p>
+<ul>{links}</ul>
+</body></html>"""
+    return html, 200, {"Content-Type": "text/html; charset=utf-8"}
+
+
+@app.route("/health", methods=["GET"])
+def health():
+    return jsonify(_health_payload())
 
 
 if __name__ == "__main__":

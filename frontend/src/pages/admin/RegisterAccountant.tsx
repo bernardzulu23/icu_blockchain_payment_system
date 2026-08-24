@@ -4,6 +4,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { userService } from '../../api/services';
 import { ACADEMIC_YEAR_START, ACADEMIC_YEAR_END } from '../../constants/options';
+import PasswordInput from '../../components/PasswordInput';
 
 type FormData = {
   fullName: string;
@@ -118,10 +119,10 @@ export default function RegisterAccountant() {
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
               Password <span className="text-red-500">*</span>
             </label>
-            <input
-              type="password"
+            <PasswordInput
               className="input-field w-full"
               placeholder="Min 8 characters"
+              autoComplete="new-password"
               {...register('password', {
                 required: 'Password is required',
                 minLength: { value: 8, message: 'Min 8 characters' },
@@ -135,10 +136,10 @@ export default function RegisterAccountant() {
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
               Confirm Password <span className="text-red-500">*</span>
             </label>
-            <input
-              type="password"
+            <PasswordInput
               className="input-field w-full"
               placeholder="Re-enter password"
+              autoComplete="new-password"
               {...register('confirmPassword', {
                 required: 'Please confirm password',
                 validate: (v) => v === watch('password') || 'Passwords do not match',

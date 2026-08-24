@@ -219,10 +219,10 @@ export default function Profile() {
           </div>
           <div>
             <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">
-              Student Number
+              Student ID
             </label>
             <p className="text-slate-800 dark:text-slate-100 font-medium">
-              {profile.student_number || '—'}
+              {profile.student_number || profile.student_id || '—'}
             </p>
           </div>
           <div>

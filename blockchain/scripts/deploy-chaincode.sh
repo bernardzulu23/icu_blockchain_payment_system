@@ -8,6 +8,8 @@ CC_NAME="${CC_NAME:-reconciliation-chaincode}"
 CC_VERSION="${CC_VERSION:-1.0}"
 CC_SEQUENCE="${CC_SEQUENCE:-1}"
 CC_LANG="${CC_LANG:-go}"
+# Optional explicit endorsement policy, e.g. AND('Org1MSP.peer','Org2MSP.peer')
+CC_ENDORSEMENT_POLICY="${CC_ENDORSEMENT_POLICY:-}"
 
 REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 CC_PATH="${CC_PATH:-${REPO_ROOT}/blockchain/chaincode}"
@@ -36,13 +38,19 @@ echo "==> Deploying ${CC_NAME} v${CC_VERSION} to channel ${CHANNEL}"
 cd "${TEST_NETWORK}"
 
 # network.sh deployCC handles package/install/approve/commit on Org1 and Org2
-./network.sh deployCC \
-  -c "${CHANNEL}" \
-  -ccn "${CC_NAME}" \
-  -ccp "${CC_PATH}" \
-  -ccl "${CC_LANG}" \
-  -ccv "${CC_VERSION}" \
+DEPLOY_ARGS=(
+  -c "${CHANNEL}"
+  -ccn "${CC_NAME}"
+  -ccp "${CC_PATH}"
+  -ccl "${CC_LANG}"
+  -ccv "${CC_VERSION}"
   -ccs "${CC_SEQUENCE}"
+)
+if [[ -n "${CC_ENDORSEMENT_POLICY}" ]]; then
+  echo "==> Explicit endorsement policy: ${CC_ENDORSEMENT_POLICY}"
+  DEPLOY_ARGS+=(-ccep "${CC_ENDORSEMENT_POLICY}")
+fi
+./network.sh deployCC "${DEPLOY_ARGS[@]}"
 
 echo ""
 echo "Deployed: ${CC_NAME} on ${CHANNEL}"

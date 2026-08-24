@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
 import { apiClient } from '../../api/client';
 import { BANKS } from '../../constants/options';
+import BankPicker from '../../components/BankPicker';
 
 type FormData = {
   bank_name: string;
@@ -14,7 +15,7 @@ export default function UploadStatement() {
   const [loading, setLoading] = useState(false);
   const [uploadPercent, setUploadPercent] = useState(0);
 
-  const { register, handleSubmit } = useForm<FormData>({
+  const { register, handleSubmit, watch, setValue } = useForm<FormData>({
     defaultValues: { bank_name: BANKS[0].value },
   });
 
@@ -60,13 +61,12 @@ export default function UploadStatement() {
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Bank Name</label>
-            <select {...register('bank_name', { required: true })} className="input-field w-full">
-              {BANKS.map((b) => (
-                <option key={b.value} value={b.value}>
-                  {b.label}
-                </option>
-              ))}
-            </select>
+            <input type="hidden" {...register('bank_name', { required: true })} />
+            <BankPicker
+              value={watch('bank_name')}
+              onChange={(v) => setValue('bank_name', v, { shouldValidate: true })}
+              name="bank_name"
+            />
           </div>
           <div>
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Statement / Batch List Date</label>

@@ -200,6 +200,14 @@
   .dark .input-field::placeholder {
     color: rgba(239, 236, 229, 0.4);
   }
+  .input-field option {
+    background-color: #e8e4dc;
+    color: #111;
+  }
+  .dark .input-field option {
+    background-color: #1a1a1a;
+    color: #efece5;
+  }
 
   .page-bg {
     background-color: var(--color-paper);

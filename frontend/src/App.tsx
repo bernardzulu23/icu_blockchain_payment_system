@@ -34,6 +34,7 @@ import BankStatements from './pages/accountant/BankStatements';
 import Notifications from './pages/student/Notifications';
 import { useAuth } from './hooks/useAuth';
 import { getHomeForRole } from './utils/routing';
+import TargetCursor from './components/TargetCursor/TargetCursor';
 
 function StaffHome() {
   const { user } = useAuth();
@@ -62,86 +63,97 @@ function StudentOnly({ children }: { children: React.ReactNode }) {
 
 export default function App() {
   return (
-    <Routes>
-      <Route path="/login" element={<Login />} />
-      <Route path="/forgot-password" element={<ForgotPassword />} />
-      <Route path="/reset-password/:token" element={<ResetPassword />} />
-      <Route path="/student" element={<StudentPortal />} />
-      <Route
-        path="/"
-        element={
-          <PrivateRoute>
-            <Layout />
-          </PrivateRoute>
-        }
-      >
-        <Route index element={<StaffHome />} />
+    <>
+      <TargetCursor
+        spinDuration={2}
+        hideDefaultCursor
+        parallaxOn
+        hoverDuration={0.2}
+        cursorColor="#ffffff"
+        cursorColorOnTarget="#B497CF"
+        targetSelector="a, button, input, select, textarea, [role='button'], .cursor-target"
+      />
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password/:token" element={<ResetPassword />} />
+        <Route path="/student" element={<StudentPortal />} />
         <Route
-          path="history"
+          path="/"
           element={
-            <RoleRoute roles={['admin', 'accountant']}>
-              <PaymentHistory />
-            </RoleRoute>
+            <PrivateRoute>
+              <Layout />
+            </PrivateRoute>
           }
-        />
-        <Route path="batch-verification" element={<Navigate to="/accountant/batch-reconciliation" replace />} />
-        <Route path="admin" element={<AdminOnly><Admin /></AdminOnly>} />
-        <Route path="admin/dashboard" element={<AdminOnly><AdminDashboard /></AdminOnly>} />
-        <Route path="admin/students" element={<AdminOnly><StudentsManagement /></AdminOnly>} />
-        <Route path="admin/staff" element={<AdminOnly><StaffManagement /></AdminOnly>} />
-        <Route path="admin/register-accountant" element={<AdminOnly><RegisterAccountant /></AdminOnly>} />
-        <Route path="admin/audit-logs" element={<AdminOnly><AuditLogs /></AdminOnly>} />
-        <Route path="admin/register-student" element={<AdminOnly><RegisterStudent /></AdminOnly>} />
-        <Route path="admin/feedback" element={<AdminOnly><FeedbackList /></AdminOnly>} />
-        <Route path="feedback" element={<Feedback />} />
-      </Route>
-      <Route
-        path="/student-portal"
-        element={
-          <PrivateRoute>
-            <StudentOnly>
+        >
+          <Route index element={<StaffHome />} />
+          <Route
+            path="history"
+            element={
+              <RoleRoute roles={['admin', 'accountant']}>
+                <PaymentHistory />
+              </RoleRoute>
+            }
+          />
+          <Route path="batch-verification" element={<Navigate to="/accountant/batch-reconciliation" replace />} />
+          <Route path="admin" element={<AdminOnly><Admin /></AdminOnly>} />
+          <Route path="admin/dashboard" element={<AdminOnly><AdminDashboard /></AdminOnly>} />
+          <Route path="admin/students" element={<AdminOnly><StudentsManagement /></AdminOnly>} />
+          <Route path="admin/staff" element={<AdminOnly><StaffManagement /></AdminOnly>} />
+          <Route path="admin/register-accountant" element={<AdminOnly><RegisterAccountant /></AdminOnly>} />
+          <Route path="admin/audit-logs" element={<AdminOnly><AuditLogs /></AdminOnly>} />
+          <Route path="admin/register-student" element={<AdminOnly><RegisterStudent /></AdminOnly>} />
+          <Route path="admin/feedback" element={<AdminOnly><FeedbackList /></AdminOnly>} />
+          <Route path="feedback" element={<Feedback />} />
+        </Route>
+        <Route
+          path="/student-portal"
+          element={
+            <PrivateRoute>
+              <StudentOnly>
+                <Layout />
+              </StudentOnly>
+            </PrivateRoute>
+          }
+        >
+          <Route index element={<StudentDashboard />} />
+          <Route path="profile" element={<StudentProfile />} />
+          <Route path="payments" element={<StudentPayments />} />
+          <Route path="submit-payment" element={<SubmitPayment />} />
+          <Route path="clearance" element={<Clearance />} />
+          <Route path="notifications" element={<Notifications />} />
+          <Route path="feedback" element={<Feedback />} />
+        </Route>
+        <Route
+          path="/accountant"
+          element={
+            <PrivateRoute>
               <Layout />
-            </StudentOnly>
-          </PrivateRoute>
-        }
-      >
-        <Route index element={<StudentDashboard />} />
-        <Route path="profile" element={<StudentProfile />} />
-        <Route path="payments" element={<StudentPayments />} />
-        <Route path="submit-payment" element={<SubmitPayment />} />
-        <Route path="clearance" element={<Clearance />} />
-        <Route path="notifications" element={<Notifications />} />
-        <Route path="feedback" element={<Feedback />} />
-      </Route>
-      <Route
-        path="/accountant"
-        element={
-          <PrivateRoute>
-            <Layout />
-          </PrivateRoute>
-        }
-      >
-        <Route index element={<AccountantStaff><AccountantDashboard /></AccountantStaff>} />
-        <Route path="verification" element={<AccountantStaff><AccountantVerification /></AccountantStaff>} />
-        <Route path="upload-statement" element={<AccountantStaff><UploadStatement /></AccountantStaff>} />
-        <Route path="mass-clearance" element={<ClearanceStaff><MassClearance /></ClearanceStaff>} />
-        <Route path="bulk-payment-status" element={<AccountantStaff><BulkPaymentStatus /></AccountantStaff>} />
-        <Route path="batch-reconciliation" element={<AccountantStaff><BatchReconciliation /></AccountantStaff>} />
-        <Route path="bank-statements" element={<AccountantStaff><BankStatements /></AccountantStaff>} />
-      </Route>
-      <Route
-        path="/registrar"
-        element={
-          <PrivateRoute>
-            <RoleRoute roles={['admin', 'registrar']}>
-              <Layout />
-            </RoleRoute>
-          </PrivateRoute>
-        }
-      >
-        <Route index element={<RegistrarDashboard />} />
-      </Route>
-      <Route path="*" element={<PrivateRoute><RoleRedirect /></PrivateRoute>} />
-    </Routes>
+            </PrivateRoute>
+          }
+        >
+          <Route index element={<AccountantStaff><AccountantDashboard /></AccountantStaff>} />
+          <Route path="verification" element={<AccountantStaff><AccountantVerification /></AccountantStaff>} />
+          <Route path="upload-statement" element={<AccountantStaff><UploadStatement /></AccountantStaff>} />
+          <Route path="mass-clearance" element={<ClearanceStaff><MassClearance /></ClearanceStaff>} />
+          <Route path="bulk-payment-status" element={<AccountantStaff><BulkPaymentStatus /></AccountantStaff>} />
+          <Route path="batch-reconciliation" element={<AccountantStaff><BatchReconciliation /></AccountantStaff>} />
+          <Route path="bank-statements" element={<AccountantStaff><BankStatements /></AccountantStaff>} />
+        </Route>
+        <Route
+          path="/registrar"
+          element={
+            <PrivateRoute>
+              <RoleRoute roles={['admin', 'registrar']}>
+                <Layout />
+              </RoleRoute>
+            </PrivateRoute>
+          }
+        >
+          <Route index element={<RegistrarDashboard />} />
+        </Route>
+        <Route path="*" element={<PrivateRoute><RoleRedirect /></PrivateRoute>} />
+      </Routes>
+    </>
   );
 }

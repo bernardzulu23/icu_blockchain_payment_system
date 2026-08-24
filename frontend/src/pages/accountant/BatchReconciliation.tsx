@@ -7,6 +7,8 @@ import {
   type OcrMatchPair,
 } from '../../api/services';
 import LoadingSpinner from '../../components/LoadingSpinner';
+import BankPicker from '../../components/BankPicker';
+import { BANK_TEMPLATES } from '../../constants/options';
 
 function confidenceClass(conf: number) {
   if (conf >= 0.8) return 'text-green-600 dark:text-green-400';
@@ -45,7 +47,10 @@ export default function BatchReconciliation() {
         );
       },
       onError: (err: unknown) => {
-        const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
+        const msg =
+          (err as { response?: { data?: { message?: string; error?: string } } })?.response?.data
+            ?.message ||
+          (err as { response?: { data?: { error?: string } } })?.response?.data?.error;
         toast.error(msg || 'OCR batch reconciliation failed');
       },
     }
@@ -88,8 +93,9 @@ export default function BatchReconciliation() {
         Batch Reconciliation (OCR)
       </h1>
       <p className="text-slate-600 dark:text-slate-400 mb-8">
-        Upload a bank statement PDF and student deposit slip images. Tesseract OCR extracts fields using
+        Upload a bank statement PDF and student deposit slips (PNG, JPG, or PDF). Tesseract OCR extracts fields using
         Zanaco/ABSA templates, matches against bank transactions, then anchors a Merkle root on approval.
+        The Python OCR service must be running on port 8000 (`npm run dev:python`).
       </p>
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
@@ -108,14 +114,12 @@ export default function BatchReconciliation() {
           >
             <div>
               <label className="block text-sm font-medium mb-1">Bank template</label>
-              <select
+              <BankPicker
                 value={bankHint}
-                onChange={(e) => setBankHint(e.target.value)}
-                className="input-field"
-              >
-                <option value="zanaco">Zanaco Bank</option>
-                <option value="absa">ABSA Bank</option>
-              </select>
+                onChange={setBankHint}
+                options={BANK_TEMPLATES}
+                name="bank_template"
+              />
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">Bank Statement (PDF)</label>
@@ -127,10 +131,10 @@ export default function BatchReconciliation() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Deposit Slips (images)</label>
+              <label className="block text-sm font-medium mb-1">Deposit Slips (images or PDF)</label>
               <input
                 type="file"
-                accept="image/*"
+                accept="image/*,.pdf,application/pdf"
                 multiple
                 onChange={(e) => setSlipFiles([...(e.target.files || [])])}
                 className="input-field"
@@ -208,7 +212,7 @@ export default function BatchReconciliation() {
               <tbody>
                 {matches.map((m, idx) => (
                   <tr
-                    key={idx}
+                    key={`m-${idx}`}
                     className={`border-b border-slate-100 dark:border-slate-700/50 ${
                       m.mismatch ? 'bg-amber-500/10' : ''
                     }`}
@@ -242,6 +246,27 @@ export default function BatchReconciliation() {
                     </td>
                   </tr>
                 ))}
+                {(result.matching?.unmatched_slips || []).map((u, i) => (
+                  <tr
+                    key={`u-${i}`}
+                    className="border-b border-slate-100 dark:border-slate-700/50 bg-amber-500/5"
+                  >
+                    <td className="py-2 text-slate-400">—</td>
+                    <td className="py-2">{u.slip?.filename || '—'}</td>
+                    <td className="py-2">{u.slip?.student_id || '—'}</td>
+                    <td className="py-2">{u.slip?.amount ?? '—'}</td>
+                    <td className={`py-2 font-medium ${confidenceClass(u.slip?.confidence ?? 0)}`}>
+                      {((u.confidence ?? u.slip?.confidence ?? 0) * 100).toFixed(0)}%
+                    </td>
+                    <td className="py-2">{u.slip?.batch_reference || '—'}</td>
+                    <td className="py-2">—</td>
+                    <td className="py-2">
+                      <span className="px-2 py-0.5 rounded text-xs bg-amber-500/20 text-amber-700 dark:text-amber-300">
+                        {u.reason}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
@@ -254,7 +279,13 @@ export default function BatchReconciliation() {
               <ul className="text-sm space-y-1 text-slate-600 dark:text-slate-400">
                 {result.matching?.unmatched_slips?.map((u, i) => (
                   <li key={i}>
-                    {u.slip?.filename}: {u.reason} (conf {(u.confidence * 100).toFixed(0)}%)
+                    <span className="font-medium">{u.slip?.filename}</span>: {u.reason}
+                    {u.slip?.batch_reference ? ` · ref ${u.slip.batch_reference}` : ''}
+                    {u.slip?.raw_text ? (
+                      <p className="text-xs mt-1 whitespace-pre-wrap max-h-24 overflow-auto">
+                        OCR text: {u.slip.raw_text.slice(0, 400)}
+                      </p>
+                    ) : null}
                   </li>
                 ))}
               </ul>

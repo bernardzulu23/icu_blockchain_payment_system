@@ -13,6 +13,7 @@ import { apiClient } from '../../api/client';
 import { accountantService } from '../../api/services';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import { getAuthenticatedFileUrl } from '../../utils/fileUrl';
+import BankMark from '../../components/BankMark';
 
 const getAssetUrl = (path: string | undefined) => getAuthenticatedFileUrl(path);
 
@@ -30,7 +31,19 @@ type Payment = {
   payment_date: string;
   status: string;
   deposit_slip_url?: string;
+  matched_with_bank?: boolean;
+  transaction_id?: string;
 };
+
+function hasBankMatch(payment: Payment): boolean {
+  // Prefer real bank-statement linkage — not matched_with_bank alone
+  // (older verify flows set that flag even without a statement line).
+  return Boolean(
+    payment.transaction_id ||
+      payment.bank_depositor_name ||
+      payment.status === 'auto_matched'
+  );
+}
 
 type StatCardProps = {
   label: string;
@@ -86,6 +99,9 @@ export default function AccountantVerification() {
           toast.info('Payment rejected');
         }
         queryClient.invalidateQueries(['pending-payments']);
+        queryClient.invalidateQueries('accountant-stats');
+        queryClient.invalidateQueries('admin-stats');
+        queryClient.invalidateQueries('my-payments');
         setViewingPayment(null);
         setRejectReason('');
       },
@@ -103,6 +119,9 @@ export default function AccountantVerification() {
         const verified = response.data.results?.verified?.length ?? 0;
         toast.success(`Bulk verification complete: ${verified} verified`);
         queryClient.invalidateQueries(['pending-payments']);
+        queryClient.invalidateQueries('accountant-stats');
+        queryClient.invalidateQueries('admin-stats');
+        queryClient.invalidateQueries('my-payments');
         setSelectedPayments(new Set());
       },
       onError: (err: unknown) => {
@@ -145,13 +164,33 @@ export default function AccountantVerification() {
       toast.warning('Please select payments to verify');
       return;
     }
-    if (window.confirm(`Verify ${selectedPayments.size} payments?`)) {
-      bulkVerifyMutation.mutate(Array.from(selectedPayments));
+    const matchedIds = filteredPayments
+      .filter((p) => selectedPayments.has(p.payment_id) && hasBankMatch(p))
+      .map((p) => p.payment_id);
+    const skipped = selectedPayments.size - matchedIds.length;
+    if (matchedIds.length === 0) {
+      toast.error(
+        'None of the selected payments have a bank match. Match them to a bank statement first.'
+      );
+      return;
+    }
+    const confirmMsg =
+      skipped > 0
+        ? `Verify ${matchedIds.length} matched payment(s)? ${skipped} unmatched selection(s) will be skipped.`
+        : `Verify ${matchedIds.length} payments?`;
+    if (window.confirm(confirmMsg)) {
+      bulkVerifyMutation.mutate(matchedIds);
     }
   };
 
   const handleVerifyPayment = (action: string) => {
     if (!viewingPayment) return;
+    if (action === 'approve' && !hasBankMatch(viewingPayment)) {
+      toast.error(
+        'Cannot verify without a bank match. Upload a bank statement or reject this payment.'
+      );
+      return;
+    }
     if (action === 'reject' && !rejectReason.trim()) {
       toast.error('Please provide a reason for rejection');
       return;
@@ -370,14 +409,16 @@ export default function AccountantVerification() {
                       {payment.batch_number}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      {payment.bank_depositor_name ? (
+                      {hasBankMatch(payment) ? (
                         <div className="text-sm">
                           <div className="text-green-600 dark:text-green-400 font-medium">
                             ✓ Matched
                           </div>
-                          <div className="text-xs text-slate-500 dark:text-slate-400">
-                            {payment.bank_depositor_name}
-                          </div>
+                          {payment.bank_depositor_name && (
+                            <div className="text-xs text-slate-500 dark:text-slate-400">
+                              {payment.bank_depositor_name}
+                            </div>
+                          )}
                         </div>
                       ) : (
                         <span className="text-slate-400">No match</span>
@@ -466,7 +507,7 @@ export default function AccountantVerification() {
                       Bank
                     </label>
                     <p className="mt-1 text-sm text-slate-800 dark:text-slate-200">
-                      {viewingPayment.bank_name || '-'}
+                      <BankMark bank={viewingPayment.bank_name} />
                     </p>
                   </div>
                   <div>
@@ -519,23 +560,39 @@ export default function AccountantVerification() {
 
               {selectedStatus !== 'verified' &&
                 selectedStatus !== 'rejected' && (
-                  <div className="flex justify-end gap-3 pt-6 border-t border-slate-200 dark:border-slate-700">
-                    <button
-                      onClick={() => handleVerifyPayment('reject')}
-                      disabled={verifyMutation.isLoading}
-                      className="px-6 py-2 border border-red-600 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 disabled:opacity-50"
-                    >
-                      Reject
-                    </button>
-                    <button
-                      onClick={() => handleVerifyPayment('approve')}
-                      disabled={verifyMutation.isLoading}
-                      className="px-6 py-2 bg-green-600 dark:bg-green-700 text-white rounded-lg hover:bg-green-700 dark:hover:bg-green-800 disabled:opacity-50"
-                    >
-                      {verifyMutation.isLoading
-                        ? 'Verifying...'
-                        : 'Verify & Record on Blockchain'}
-                    </button>
+                  <div className="pt-6 border-t border-slate-200 dark:border-slate-700 space-y-3">
+                    {!hasBankMatch(viewingPayment) && (
+                      <p className="text-sm text-amber-700 dark:text-amber-300">
+                        This deposit slip is not matched to a bank statement line.
+                        Upload/process a bank statement first, or reject the payment.
+                        Verification is blocked until there is a bank match.
+                      </p>
+                    )}
+                    <div className="flex justify-end gap-3">
+                      <button
+                        onClick={() => handleVerifyPayment('reject')}
+                        disabled={verifyMutation.isLoading}
+                        className="px-6 py-2 border border-red-600 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 disabled:opacity-50"
+                      >
+                        Reject
+                      </button>
+                      <button
+                        onClick={() => handleVerifyPayment('approve')}
+                        disabled={
+                          verifyMutation.isLoading || !hasBankMatch(viewingPayment)
+                        }
+                        title={
+                          !hasBankMatch(viewingPayment)
+                            ? 'Requires a bank statement match'
+                            : undefined
+                        }
+                        className="px-6 py-2 bg-green-600 dark:bg-green-700 text-white rounded-lg hover:bg-green-700 dark:hover:bg-green-800 disabled:opacity-50"
+                      >
+                        {verifyMutation.isLoading
+                          ? 'Verifying...'
+                          : 'Verify & Record on Blockchain'}
+                      </button>
+                    </div>
                   </div>
                 )}
             </div>

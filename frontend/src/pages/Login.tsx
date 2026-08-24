@@ -2,10 +2,14 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { Eye, EyeOff, Sun, Moon } from 'lucide-react';
+import { Sun, Moon } from 'lucide-react';
 import { authService } from '../api/services';
 import { useTheme } from '../contexts/ThemeContext';
 import { getHomeForRole } from '../utils/routing';
+import BrandLogo from '../components/BrandLogo';
+import PasswordInput from '../components/PasswordInput';
+import FabricPoweredBadge from '../components/FabricPoweredBadge';
+import ShapeGrid from '../components/ShapeGrid/ShapeGrid';
 
 type LoginFormData = {
   identifier: string;
@@ -15,9 +19,11 @@ type LoginFormData = {
 export default function Login() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
   const { theme, toggleTheme } = useTheme();
   const { register, handleSubmit, formState: { errors } } = useForm<LoginFormData>();
+
+  const isDark = theme === 'dark';
+  const gridBorderColor = isDark ? 'rgba(201, 195, 183, 0.2)' : 'rgba(17, 17, 17, 0.35)';
 
   const onSubmit = async (data: LoginFormData) => {
     setLoading(true);
@@ -41,13 +47,25 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-paper text-ink page-bg selection:bg-accent selection:text-white">
+    <div className="relative min-h-screen overflow-hidden flex items-center justify-center p-4 bg-paper text-ink dark:bg-ink dark:text-paper selection:bg-accent selection:text-white">
+      <div className="absolute inset-0 z-0" aria-hidden>
+        <ShapeGrid
+          speed={0.5}
+          squareSize={40}
+          direction="diagonal"
+          borderColor={gridBorderColor}
+          hoverFillColor="#ff3b00"
+          shape="square"
+          hoverTrailAmount={5}
+        />
+      </div>
+
       <button
         type="button"
         onClick={toggleTheme}
         className="absolute top-4 right-4 btn-secondary text-xs z-20 inline-flex items-center gap-1.5"
       >
-        {theme === 'dark' ? (
+        {isDark ? (
           <>
             <Sun className="h-3.5 w-3.5" aria-hidden /> Light
           </>
@@ -61,20 +79,21 @@ export default function Login() {
       <div className="w-full max-w-md relative z-10 border-2 border-ink bg-[#e8e4dc] text-ink p-8 brutal-shadow-lg">
         <div className="text-center mb-8 border-b-2 border-ink pb-6">
           <div className="flex justify-center mb-4">
-            <div className="w-20 h-20 border-2 border-ink bg-white p-2 brutal-shadow">
-              <img src="/logo.jpg" alt="ICU Logo" className="w-full h-full object-contain" />
-            </div>
+            <BrandLogo size="lg" />
           </div>
           <h1 className="font-display text-4xl text-ink leading-none">ICU Pay</h1>
           <p className="font-mono text-xs text-ink font-semibold uppercase tracking-[0.15em] mt-3">
             Blockchain Reconciliation
           </p>
+          <div className="flex justify-center mt-3">
+            <FabricPoweredBadge />
+          </div>
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
           <div>
             <label className="block font-mono text-[10px] uppercase tracking-widest text-ink font-bold mb-1">
-              Email, student number, or employee ID
+              Email, student ID, or employee ID
             </label>
             <input
               {...register('identifier', { required: 'This field is required' })}
@@ -92,23 +111,12 @@ export default function Login() {
             <label className="block font-mono text-[10px] uppercase tracking-widest text-ink font-bold mb-1">
               Password
             </label>
-            <div className="relative">
-              <input
-                {...register('password', { required: 'Password is required' })}
-                type={showPassword ? 'text' : 'password'}
-                className="input-field pr-10"
-                placeholder="Enter your password"
-                autoComplete="current-password"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-ink/50 hover:text-accent"
-                aria-label={showPassword ? 'Hide password' : 'Show password'}
-              >
-                {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-              </button>
-            </div>
+            <PasswordInput
+              {...register('password', { required: 'Password is required' })}
+              className="input-field"
+              placeholder="Enter your password"
+              autoComplete="current-password"
+            />
             {errors.password && (
               <p className="text-accent text-xs mt-1 font-semibold">{errors.password.message}</p>
             )}

@@ -5,6 +5,8 @@ import { toast } from 'react-toastify';
 import { Sun, Moon } from 'lucide-react';
 import { authService } from '../api/services';
 import { useTheme } from '../contexts/ThemeContext';
+import BrandLogo from '../components/BrandLogo';
+import FabricPoweredBadge from '../components/FabricPoweredBadge';
 
 type FormData = {
   email: string;
@@ -38,14 +40,15 @@ export default function ForgotPassword() {
       <div className="w-full max-w-md relative z-10 border-2 border-ink bg-paper p-8 brutal-shadow-lg">
         <div className="text-center mb-8 border-b-2 border-ink pb-6">
           <div className="flex justify-center mb-4">
-            <div className="w-16 h-16 border-2 border-ink bg-white p-2 brutal-shadow">
-              <img src="/logo.jpg" alt="ICU Logo" className="w-full h-full object-contain" />
-            </div>
+            <BrandLogo size="lg" />
           </div>
           <h1 className="font-display text-3xl text-ink">Forgot Password</h1>
           <p className="font-mono text-xs text-ink/50 uppercase tracking-widest mt-2">
             Enter your email to receive a reset link
           </p>
+          <div className="flex justify-center mt-3">
+            <FabricPoweredBadge />
+          </div>
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">

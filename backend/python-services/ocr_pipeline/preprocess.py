@@ -40,7 +40,7 @@ def deskew(gray: np.ndarray, max_angle: float = 12.0) -> np.ndarray:
     if angle < -45:
         angle = 90 + angle
     angle = -angle
-    if abs(angle) > max_angle:
+    if abs(angle) < 1.0 or abs(angle) > max_angle:
         return gray
     h, w = gray.shape[:2]
     center = (w // 2, h // 2)
@@ -65,9 +65,11 @@ def binarize(gray: np.ndarray) -> np.ndarray:
     blurred = cv2.GaussianBlur(gray, (3, 3), 0)
     otsu_val, otsu = cv2.threshold(blurred, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
     if otsu_val < 5 or otsu_val > 250:
-        return cv2.adaptiveThreshold(
+        otsu = cv2.adaptiveThreshold(
             blurred, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 31, 10
         )
+    if otsu.mean() < 127:
+        otsu = cv2.bitwise_not(otsu)
     return otsu
 
 
@@ -77,6 +79,10 @@ def preprocess_image(image_bytes: bytes) -> Tuple[Image.Image, Image.Image]:
     Falls back to Pillow-only contrast if OpenCV is unavailable.
     """
     img = Image.open(io.BytesIO(image_bytes))
+    img.load()
+    if img.mode not in ("L", "RGB"):
+        img = img.convert("RGB")
+
     if not HAS_CV2:
         enhanced = Image.eval(img.convert("L"), lambda x: min(255, int(x * 1.4)))
         return enhanced, enhanced

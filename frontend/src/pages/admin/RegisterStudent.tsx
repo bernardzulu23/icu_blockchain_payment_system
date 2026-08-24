@@ -8,63 +8,24 @@ import {
   CALENDAR_YEARS,
   ACADEMIC_YEAR_START,
   ACADEMIC_YEAR_END,
+  SCHOOLS,
 } from '../../constants/options';
+import PasswordInput from '../../components/PasswordInput';
+import ProgramPicker from '../../components/ProgramPicker';
 
 const YEARS = CALENDAR_YEARS;
-const BACHELOR_PROGRAMS = [
-  'Bachelor of Arts in Development Studies',
-  'Bachelor of Economics and Finance',
-  'Bachelor of Arts in Economics',
-  'Bachelor of Human Resource Management',
-  'Bachelor of Arts in Journalism',
-  'Bachelor of Arts in Mass Communication',
-  'Bachelor of Arts in Public Administration',
-  'Bachelor of Arts in Project Management',
-  'Bachelor of Social Work Practice and Development',
-  'Bachelor of Business Administration',
-  'Bachelor of Education in Business Studies',
-  'Bachelor of Science in Agriculture with Education',
-  'Bachelor of Information and Communications Technology with Education',
-  'Bachelor of Design and Technology with Education',
-  'Bachelor of Fine Art in Acting and Film Production',
-  'Bachelor of Fine Art in Music and Dance Theater',
-  'Bachelor of Information and Communications Technology in IT Business Management',
-  'Bachelor of Science in Agriculture',
-  'Bachelor of Architecture',
-  'Bachelor Of Science In Environmental Management System',
-  'Bachelor of Information and Communications Technology',
-  'Bachelor of Information and Communications Technology in Information Systems',
-  'Bachelor of Information Security and Computer Forensics',
-  'Bachelor of Mobile Communications',
-  'Bachelor of Information and Communications Technology in Network Technology',
-  'Bachelor of Information and Communications Technology in Software Engineering',
-  'Bachelor of Information and Communications Technology in Systems Engineering',
-  'Bachelor of Information and Communications Technology in Technology Management',
-  'Bachelor of Science in Electrical and Electronics Engineering',
-];
-const MASTERS_PROGRAMS = [
-  'Master in Development Studies',
-  'Master of Education',
-  'Master in Project Planning Management',
-  'Master in Business Administration',
-  'Master of Arts in Economics',
-  'Master of Design and Technology',
-  'Master In Social Work',
-  'Master of Public Administration',
-  'Master of Science in Plant and Soil Science',
-  'Master in Information and Communications Technology',
-];
-const PROGRAMS = [...BACHELOR_PROGRAMS, ...MASTERS_PROGRAMS];
-const SCHOOLS = [
-  'School of Business',
-  'School of Education',
-  'School of Engineering',
-  'School of Humanities',
-];
 
 export default function RegisterStudent() {
   const navigate = useNavigate();
-  const { register, handleSubmit, formState: { errors } } = useForm<CreateStudentData & { confirmPassword?: string }>();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    watch,
+    setValue,
+  } = useForm<CreateStudentData & { confirmPassword?: string }>({
+    defaultValues: { program: '' },
+  });
 
   const onSubmit = async (data: CreateStudentData & { confirmPassword?: string }) => {
     if (data.password && data.password !== data.confirmPassword) {
@@ -72,9 +33,12 @@ export default function RegisterStudent() {
       return;
     }
     try {
-      const { password, confirmPassword, ...rest } = data;
+      const { password, confirmPassword: _c, studentId, ...rest } = data;
+      const id = String(studentId || '').trim();
       await studentService.create({
         ...rest,
+        studentId: id,
+        studentNumber: id,
         password: password!,
       });
       toast.success('Student registered — they can log in with the email and password you set');
@@ -91,35 +55,26 @@ export default function RegisterStudent() {
         Register Student
       </h1>
       <p className="text-slate-600 dark:text-slate-400 mb-6">
-        Set the student&apos;s email and password here. They will use that email (or student number)
+        Set the student&apos;s email and password here. They will use that email (or student ID)
         and password to sign in on the login page.
       </p>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="card p-8 space-y-6">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-          <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-              Student ID <span className="text-red-500">*</span>
-            </label>
-            <input
-              {...register('studentId', { required: 'Required' })}
-              className="input-field w-full"
-              placeholder="e.g. ICU2024001"
-            />
-            {errors.studentId && (
-              <p className="text-red-500 text-sm mt-1">{errors.studentId.message}</p>
-            )}
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-              Student Number
-            </label>
-            <input
-              {...register('studentNumber')}
-              className="input-field w-full"
-              placeholder="Same as ID if blank"
-            />
-          </div>
+      <form onSubmit={handleSubmit(onSubmit)} className="card p-8 space-y-6 overflow-visible">
+        <div>
+          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+            Student ID <span className="text-red-500">*</span>
+          </label>
+          <input
+            {...register('studentId', { required: 'Required' })}
+            className="input-field w-full"
+            placeholder="e.g. ICU2024001"
+          />
+          <p className="text-xs text-slate-500 mt-1">
+            This is the student&apos;s unique ID (same as student number). Used for login with email or ID.
+          </p>
+          {errors.studentId && (
+            <p className="text-red-500 text-sm mt-1">{errors.studentId.message}</p>
+          )}
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -163,27 +118,22 @@ export default function RegisterStudent() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-          <div>
+          <div className="relative z-20">
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
               Program
             </label>
-            <select {...register('program')} className="input-field w-full">
-              <option value="">Select program</option>
-              {PROGRAMS.map((program) => (
-                <option key={program} value={program}>
-                  {program}
-                </option>
-              ))}
-            </select>
+            <input type="hidden" {...register('program')} />
+            <ProgramPicker
+              value={watch('program') || ''}
+              onChange={(v) => setValue('program', v, { shouldDirty: true })}
+              name="program"
+            />
           </div>
           <div>
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
               School
             </label>
-            <select
-              {...register('department')}
-              className="input-field w-full"
-            >
+            <select {...register('department')} className="input-field w-full">
               <option value="">Select school</option>
               {SCHOOLS.map((school) => (
                 <option key={school} value={school}>
@@ -268,14 +218,14 @@ export default function RegisterStudent() {
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
               Password <span className="text-red-500">*</span>
             </label>
-            <input
-              type="password"
+            <PasswordInput
               {...register('password', {
                 required: 'Password is required for student login',
                 minLength: { value: 6, message: 'Min 6 characters' },
               })}
               className="input-field w-full"
               placeholder="Student will use this to log in (min 6 characters)"
+              autoComplete="new-password"
             />
             {errors.password && (
               <p className="text-red-500 text-sm mt-1">{errors.password.message}</p>
@@ -285,11 +235,11 @@ export default function RegisterStudent() {
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
               Confirm Password <span className="text-red-500">*</span>
             </label>
-            <input
-              type="password"
+            <PasswordInput
               {...register('confirmPassword', { required: 'Please confirm password' })}
               className="input-field w-full"
               placeholder="Re-enter password"
+              autoComplete="new-password"
             />
             {errors.confirmPassword && (
               <p className="text-red-500 text-sm mt-1">{errors.confirmPassword.message}</p>

@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="ICU">
+  <rect width="64" height="64" fill="#1e3a5f"/>
+  <path
+    d="M32 7L52 15.2V34.5c0 12.2-8.8 20.4-20 24.5C20.8 54.9 12 46.7 12 34.5V15.2L32 7z"
+    fill="#16304f"
+    stroke="#e8b923"
+    stroke-width="2.25"
+  />
+  <text
+    x="32"
+    y="38"
+    text-anchor="middle"
+    font-family="Montserrat, Arial, sans-serif"
+    font-weight="700"
+    font-size="15"
+    fill="#e8b923"
+    letter-spacing="1.5"
+  >ICU</text>
+  <rect x="22" y="44" width="20" height="2" fill="#e8b923"/>
+</svg>

@@ -5,6 +5,30 @@ const fabricGateway = require('./fabricGateway');
 
 const REQUIRED_CLEARANCE_SEMESTERS = parseInt(process.env.CLEARANCE_REQUIRED_SEMESTERS || '8', 10);
 
+function semesterNumber(sem) {
+  const n = parseInt(String(sem || '').replace(/\D/g, ''), 10);
+  return Number.isFinite(n) && n > 0 ? n : 0;
+}
+
+async function checkClearanceEligibilityFromPostgres(studentId, requiredSemesters) {
+  const { query } = require('../config/database');
+  const { rows } = await query(
+    `SELECT DISTINCT semester FROM student_payments
+     WHERE student_id = $1 AND status = 'verified'`,
+    [studentId]
+  );
+  const paid = new Set(rows.map((r) => semesterNumber(r.semester)).filter(Boolean));
+  const missingSemesters = [];
+  for (let i = 1; i <= requiredSemesters; i += 1) {
+    if (!paid.has(i)) missingSemesters.push(i);
+  }
+  return {
+    eligible: missingSemesters.length === 0,
+    missingSemesters,
+    source: 'postgres',
+  };
+}
+
 /**
  * Record verified payment on Fabric ledger (source of truth).
  * Postgres is updated afterward as the fast-query cache.
@@ -55,10 +79,10 @@ async function checkClearanceEligibilityOnChain(studentId, requiredSemesters = R
     };
   } catch (fabricError) {
     if (env.BLOCKCHAIN_OPTIONAL) {
-      logger.warn('Fabric clearance check unavailable — caller should not rely on Postgres-only path', {
+      logger.warn('Fabric clearance check unavailable — using verified payments in Postgres', {
         error: fabricError.message,
       });
-      return null;
+      return checkClearanceEligibilityFromPostgres(studentId, requiredSemesters);
     }
     throw fabricError;
   }

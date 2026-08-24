@@ -119,7 +119,8 @@ module.exports = {
   FABRIC_IDENTITY: process.env.FABRIC_IDENTITY || 'accountantAdmin',
   FABRIC_AS_LOCALHOST: process.env.FABRIC_AS_LOCALHOST !== 'false',
   CLEARANCE_REQUIRED_SEMESTERS: parseInt(process.env.CLEARANCE_REQUIRED_SEMESTERS || '8', 10),
-  PYTHON_SERVICE_URL: process.env.PYTHON_SERVICE_URL || '',
+  PYTHON_SERVICE_URL:
+    process.env.PYTHON_SERVICE_URL || (isProd ? '' : 'http://127.0.0.1:8000'),
   UPLOAD_PATH: process.env.UPLOAD_PATH || 'uploads',
   /** Supabase project URL e.g. https://xxxx.supabase.co */
   SUPABASE_URL: process.env.SUPABASE_URL || '',

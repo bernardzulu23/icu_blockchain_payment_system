@@ -7,6 +7,20 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Tuple
 
+# Shared field patterns — longer bank prefixes first (ABSA before ABS, ZANACO before ZNC).
+BANK_REF_RE = r"((?:ABSA|ABS|ZANACO|ZNC|FNB)[A-Z0-9]{6,24})"
+LABELED_REF_RE = (
+    r"\b(?:TXN|BATCH|TRANS(?:ACTION)?|SERIAL)\b[\s:#]*([A-Z0-9]{6,24})"
+    r"|\bREFERENCE\b[\s:#]+([A-Z0-9]{6,24})"
+    r"|\bREF\b(?!ERENCE)[\s:#]+([A-Z0-9]{6,24})"
+)
+ISO_OR_DMY_DATE_RE = r"(\d{4}-\d{2}-\d{2}|\d{1,2}[/-]\d{1,2}[/-]\d{2,4})"
+CURRENCY_AMOUNT_RE = (
+    r"(?:K|ZMW)\s*([0-9]{1,3}(?:,[0-9]{3})+(?:\.[0-9]{2})?|[0-9]+\.[0-9]{2})"
+    r"|(?:AMOUNT|AMT|TOTAL)[\s:]*(?:K|ZMW)?\s*"
+    r"([0-9]{1,3}(?:,[0-9]{3})+(?:\.[0-9]{2})?|[0-9]+\.[0-9]{2})"
+)
+
 
 @dataclass(frozen=True)
 class FieldRegion:
@@ -39,10 +53,10 @@ ZANACO_TEMPLATE = BankTemplate(
         FieldRegion("date", 0.50, 0.20, 0.44, 0.07),
         FieldRegion("batch_ref", 0.04, 0.76, 0.60, 0.08),
     ),
-    student_id_pattern=r"(?:ICU|STU|REF)[\s\-]*(\d{6,10})|(\d{6,10})",
-    amount_pattern=r"(?:K\s*|ZMW\s*|AMOUNT[\s:\(ZMW\)]*)?([0-9]{1,3}(?:,[0-9]{3})*(?:\.[0-9]{2})?)",
-    date_pattern=r"(\d{1,2}[/-]\d{1,2}[/-]\d{2,4})",
-    batch_pattern=r"(?:TXN|REF|BATCH|TRANS)[\s#:]*([A-Z0-9]{5,24})",
+    student_id_pattern=r"(?:ICU|STU)[\s\-]*(\d{6,10})",
+    amount_pattern=CURRENCY_AMOUNT_RE,
+    date_pattern=ISO_OR_DMY_DATE_RE,
+    batch_pattern=rf"{LABELED_REF_RE}|{BANK_REF_RE}",
 )
 
 FNB_TEMPLATE = BankTemplate(
@@ -55,10 +69,10 @@ FNB_TEMPLATE = BankTemplate(
         FieldRegion("date", 0.48, 0.22, 0.44, 0.07),
         FieldRegion("batch_ref", 0.06, 0.71, 0.55, 0.10),
     ),
-    student_id_pattern=r"(?:ICU|STU|STUDENT|REF)[\s\-#:]*(\d{6,10})|(\d{6,10})",
-    amount_pattern=r"(?:K\s*|ZMW\s*|AMT[\s:]*)?([0-9]{1,3}(?:,[0-9]{3})*(?:\.[0-9]{2})?)",
-    date_pattern=r"(\d{1,2}[/-]\d{1,2}[/-]\d{2,4})",
-    batch_pattern=r"(?:TXN|REF|BATCH|TRANS|SERIAL)[\s#:]*([A-Z0-9]{5,24})",
+    student_id_pattern=r"(?:ICU|STU)[\s\-#:]*(\d{6,10})",
+    amount_pattern=CURRENCY_AMOUNT_RE,
+    date_pattern=ISO_OR_DMY_DATE_RE,
+    batch_pattern=rf"{LABELED_REF_RE}|{BANK_REF_RE}",
 )
 
 ABSA_TEMPLATE = BankTemplate(
@@ -71,10 +85,10 @@ ABSA_TEMPLATE = BankTemplate(
         FieldRegion("date", 0.49, 0.21, 0.44, 0.07),
         FieldRegion("batch_ref", 0.05, 0.74, 0.58, 0.09),
     ),
-    student_id_pattern=r"(?:ICU|STU|STUDENT|REF)[\s\-#:]*(\d{6,10})|(\d{6,10})",
-    amount_pattern=r"(?:K\s*|ZMW\s*|AMOUNT[\s:]*)?([0-9]{1,3}(?:,[0-9]{3})*(?:\.[0-9]{2})?)",
-    date_pattern=r"(\d{1,2}[/-]\d{1,2}[/-]\d{2,4})",
-    batch_pattern=r"(?:TXN|REF|BATCH|TRANS|SERIAL)[\s#:]*([A-Z0-9]{5,24})",
+    student_id_pattern=r"(?:ICU|STU)[\s\-#:]*(\d{6,10})",
+    amount_pattern=CURRENCY_AMOUNT_RE,
+    date_pattern=ISO_OR_DMY_DATE_RE,
+    batch_pattern=rf"{LABELED_REF_RE}|{BANK_REF_RE}",
 )
 
 TEMPLATES: Dict[str, BankTemplate] = {
@@ -94,7 +108,7 @@ def detect_template(full_text: str, bank_hint: Optional[str] = None) -> BankTemp
             return TEMPLATES[key]
         if "zanaco" in key:
             return ZANACO_TEMPLATE
-        if "absa" in key or "barclays" in key:
+        if "absa" in key or "barclays" in key or key == "abs":
             return ABSA_TEMPLATE
         # Legacy FNB hint maps to ABSA (banks limited to Zanaco + ABSA)
         if "fnb" in key or "first national" in key:

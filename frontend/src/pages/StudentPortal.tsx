@@ -6,6 +6,8 @@ import { Sun, Moon } from 'lucide-react';
 import { studentService } from '../api/services';
 import { useTheme } from '../contexts/ThemeContext';
 import LoadingSpinner from '../components/LoadingSpinner';
+import BrandLogo from '../components/BrandLogo';
+import FabricPoweredBadge from '../components/FabricPoweredBadge';
 
 type FormData = { studentNumber: string; reference: string };
 
@@ -36,14 +38,15 @@ export default function StudentPortal() {
       <div className="w-full max-w-lg relative z-10 border-2 border-ink bg-paper p-8 brutal-shadow-lg">
         <div className="text-center mb-8 border-b-2 border-ink pb-6">
           <div className="flex justify-center mb-4">
-            <div className="w-16 h-16 border-2 border-ink bg-white p-2 brutal-shadow">
-              <img src="/logo.jpg" alt="ICU Logo" className="w-full h-full object-contain" />
-            </div>
+            <BrandLogo size="lg" />
           </div>
           <h1 className="font-display text-3xl text-ink">Check Payment Status</h1>
           <p className="font-mono text-[10px] text-accent uppercase tracking-[0.2em] mt-2">
             No queues · No lost slips · 24/7
           </p>
+          <div className="flex justify-center mt-3">
+            <FabricPoweredBadge />
+          </div>
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
@@ -52,7 +55,7 @@ export default function StudentPortal() {
               {...register('studentNumber', { required: true })}
               type="text"
               className="input-field"
-              placeholder="Student number (e.g. ICU2024001)"
+              placeholder="Student ID (e.g. ICU2024001)"
             />
           </div>
           <div>
@@ -104,7 +107,7 @@ export default function StudentPortal() {
               <div className="border-2 border-accent bg-[#FFE8E0] p-5">
                 <p className="font-bold text-accent uppercase text-sm mb-2">No Match Found</p>
                 <p className="text-sm text-ink/70 leading-relaxed">
-                  Verify your student number and batch number. If you paid recently, allow 24–48 hours for
+                  Verify your student ID and batch number. If you paid recently, allow 24–48 hours for
                   verification.
                 </p>
               </div>
