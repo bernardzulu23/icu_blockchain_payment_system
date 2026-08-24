@@ -28,9 +28,10 @@ function withServerlessDbParams(url) {
   try {
     const u = new URL(url);
     if (!u.searchParams.has('connect_timeout')) u.searchParams.set('connect_timeout', '5');
-    if (isSupabaseUrl(url) && !u.searchParams.has('sslmode')) {
-      u.searchParams.set('sslmode', 'require');
-    }
+    // Do NOT set sslmode in the URL — libpq "require" still verifies the chain in node-pg
+    // and causes "self-signed certificate in certificate chain". SSL is set on Pool below.
+    u.searchParams.delete('sslmode');
+    u.searchParams.delete('ssl');
     // Helps some ORMs/pgbouncer; harmless for node-pg
     if (url.includes('pooler.supabase') && !u.searchParams.has('pgbouncer')) {
       u.searchParams.set('pgbouncer', 'true');
@@ -45,7 +46,11 @@ const connectionUrl = withServerlessDbParams(resolveConnectionUrl());
 const useSsl =
   env.DB_SSL ||
   isSupabaseUrl(connectionUrl) ||
-  process.env.NODE_ENV === 'production';
+  process.env.NODE_ENV === 'production' ||
+  Boolean(process.env.VERCEL);
+
+/** Supabase / managed Postgres often present a chain Node does not trust by default. */
+const sslConfig = useSsl ? { rejectUnauthorized: false } : false;
 
 const poolConfig = connectionUrl
   ? {
@@ -53,7 +58,7 @@ const poolConfig = connectionUrl
       max: process.env.VERCEL ? 1 : 20,
       idleTimeoutMillis: process.env.VERCEL ? 1000 : 10000,
       connectionTimeoutMillis: process.env.VERCEL ? 5000 : 15000,
-      ssl: useSsl ? { rejectUnauthorized: false } : false,
+      ssl: sslConfig,
       allowExitOnIdle: Boolean(process.env.VERCEL),
     }
   : {
@@ -65,7 +70,7 @@ const poolConfig = connectionUrl
       max: process.env.VERCEL ? 1 : 20,
       idleTimeoutMillis: 30000,
       connectionTimeoutMillis: process.env.VERCEL ? 5000 : 2000,
-      ssl: env.DB_SSL ? { rejectUnauthorized: false } : false,
+      ssl: sslConfig,
       allowExitOnIdle: Boolean(process.env.VERCEL),
     };
 
