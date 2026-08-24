@@ -3,7 +3,15 @@
  * OCR (Python) and Fabric need a VPS; set BLOCKCHAIN_OPTIONAL=true on Vercel.
  */
 const path = require('path');
+const dns = require('dns');
 const { URL } = require('url');
+
+// Vercel + Supabase: Node may try IPv6 first and hang until FUNCTION_INVOCATION_TIMEOUT
+try {
+  dns.setDefaultResultOrder('ipv4first');
+} catch {
+  /* Node < 17 */
+}
 
 // Prefer backend/.env locally; on Vercel, env comes from the dashboard
 require('dotenv').config({ path: path.join(__dirname, '../backend/.env') });
@@ -15,7 +23,7 @@ process.env.TRUST_PROXY = process.env.TRUST_PROXY || 'true';
 // Vercel FS is read-only except /tmp — never mkdir under /var/task
 process.env.UPLOAD_PATH = process.env.UPLOAD_PATH || '/tmp/uploads';
 
-const DB_CONNECT_MS = Number(process.env.DB_CONNECT_TIMEOUT_MS || 8000);
+const DB_CONNECT_MS = Number(process.env.DB_CONNECT_TIMEOUT_MS || 5000);
 
 function sendJson(res, status, body) {
   res.statusCode = status;
@@ -24,15 +32,20 @@ function sendJson(res, status, body) {
 }
 
 function requestPath(req) {
+  const raw =
+    req.url ||
+    req.originalUrl ||
+    (req.headers && (req.headers['x-forwarded-uri'] || req.headers['x-invoke-path'])) ||
+    '/';
   try {
-    return new URL(req.url || '/', 'http://localhost').pathname;
+    return new URL(raw, 'http://localhost').pathname;
   } catch {
-    return String(req.url || '').split('?')[0];
+    return String(raw).split('?')[0];
   }
 }
 
 function isHealthPath(pathname) {
-  return pathname === '/api/health' || pathname === '/health';
+  return pathname === '/api/health' || pathname === '/health' || pathname.endsWith('/health');
 }
 
 let handler;
@@ -49,13 +62,17 @@ try {
   let ready;
   async function ensureReady() {
     if (!ready) {
+      const started = Date.now();
       ready = Promise.race([
-        connectDB(),
+        connectDB().then((pool) => {
+          console.log(`DB ready in ${Date.now() - started}ms`);
+          return pool;
+        }),
         new Promise((_, reject) => {
           setTimeout(() => {
             reject(
               new Error(
-                `Database connection timed out after ${DB_CONNECT_MS}ms. Use Supabase Transaction pooler (port 6543) in DATABASE_URL.`
+                `Database connection timed out after ${DB_CONNECT_MS}ms. On Vercel use Supabase Transaction pooler host (port 6543) in DATABASE_URL.`
               )
             );
           }, DB_CONNECT_MS);

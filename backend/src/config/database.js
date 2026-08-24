@@ -1,8 +1,15 @@
 const { Pool } = require('pg');
 const { readFileSync, readdirSync } = require('fs');
 const path = require('path');
+const dns = require('dns');
 const logger = require('../utils/logger');
 const env = require('./environment');
+
+try {
+  dns.setDefaultResultOrder('ipv4first');
+} catch {
+  /* ignore */
+}
 
 function isSupabaseUrl(url) {
   return (
@@ -15,7 +22,26 @@ function resolveConnectionUrl() {
   return env.DATABASE_URL || null;
 }
 
-const connectionUrl = resolveConnectionUrl();
+/** Ensure serverless-friendly query params for Supabase pooler / Vercel. */
+function withServerlessDbParams(url) {
+  if (!url || typeof url !== 'string') return url;
+  try {
+    const u = new URL(url);
+    if (!u.searchParams.has('connect_timeout')) u.searchParams.set('connect_timeout', '5');
+    if (isSupabaseUrl(url) && !u.searchParams.has('sslmode')) {
+      u.searchParams.set('sslmode', 'require');
+    }
+    // Helps some ORMs/pgbouncer; harmless for node-pg
+    if (url.includes('pooler.supabase') && !u.searchParams.has('pgbouncer')) {
+      u.searchParams.set('pgbouncer', 'true');
+    }
+    return u.toString();
+  } catch {
+    return url;
+  }
+}
+
+const connectionUrl = withServerlessDbParams(resolveConnectionUrl());
 const useSsl =
   env.DB_SSL ||
   isSupabaseUrl(connectionUrl) ||
@@ -48,10 +74,14 @@ const pool = new Pool(poolConfig);
 async function connectDB() {
   try {
     const client = await pool.connect();
-    const result = await client.query('SELECT NOW()');
-    const hostHint = isSupabaseUrl(connectionUrl) ? 'Supabase Postgres' : 'PostgreSQL';
-    logger.info(`${hostHint} connected at: ${result.rows[0].now}`);
-    client.release();
+    try {
+      await client.query("SELECT set_config('statement_timeout', '8000', false)");
+      const result = await client.query('SELECT NOW()');
+      const hostHint = isSupabaseUrl(connectionUrl) ? 'Supabase Postgres' : 'PostgreSQL';
+      logger.info(`${hostHint} connected at: ${result.rows[0].now}`);
+    } finally {
+      client.release();
+    }
     return pool;
   } catch (error) {
     logger.error('PostgreSQL connection failed:', error);

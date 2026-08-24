@@ -31,7 +31,15 @@ let Wallets;
 
 function loadFabricSdk() {
   if (!Gateway || !Wallets) {
-    ({ Gateway, Wallets } = require('fabric-network'));
+    try {
+      ({ Gateway, Wallets } = require('fabric-network'));
+    } catch (err) {
+      const wrapped = new Error(
+        'fabric-network is not installed. Install optional deps on the Fabric VPS (npm install in backend).'
+      );
+      wrapped.cause = err;
+      throw wrapped;
+    }
   }
 }
 
