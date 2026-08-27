@@ -152,7 +152,7 @@ function saveLocally(file, subdir) {
   return getPublicUrl(subdir, filename);
 }
 
-async function uploadToSupabase(file, subdir) {
+async function uploadToSupabase(file, subdir, storedName) {
   const client = getSupabase();
   if (!client) throw new Error('Supabase storage is not configured');
 
@@ -162,7 +162,7 @@ async function uploadToSupabase(file, subdir) {
   }
 
   const ext = path.extname(file.originalname || '') || '.bin';
-  const filename = `${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`;
+  const filename = storedName || `${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`;
   const objectPath = `${subdir}/${filename}`;
   const buffer = file.buffer || (file.path && fs.readFileSync(file.path));
   if (!buffer) throw new Error('Could not read file');
@@ -184,6 +184,52 @@ async function uploadToSupabase(file, subdir) {
   }
 
   return `sb:${BUCKET}/${objectPath}`;
+}
+
+function saveLocallyWithName(buffer, subdir, filename, mimeType) {
+  const filepath = getUploadPath(subdir, filename);
+  fs.mkdirSync(path.dirname(filepath), { recursive: true });
+  fs.writeFileSync(filepath, buffer);
+  return getPublicUrl(subdir, filename);
+}
+
+/**
+ * Persist a validated upload from upload-hardening (opaque filename + content hash).
+ */
+async function uploadHardenedFile(uploadedFile, subdir) {
+  if (!uploadedFile?.buffer || !uploadedFile.storedName) {
+    throw new Error('Invalid hardened upload payload');
+  }
+
+  const pseudoFile = {
+    buffer: uploadedFile.buffer,
+    mimetype: uploadedFile.mimeType,
+    originalname: uploadedFile.originalName,
+  };
+
+  if (useSupabaseStorage()) {
+    try {
+      return await uploadToSupabase(pseudoFile, subdir, uploadedFile.storedName);
+    } catch (err) {
+      logger.warn(
+        'Supabase upload failed; saving to local uploads/ instead:',
+        formatStorageError(err)
+      );
+      return saveLocallyWithName(
+        uploadedFile.buffer,
+        subdir,
+        uploadedFile.storedName,
+        uploadedFile.mimeType
+      );
+    }
+  }
+
+  return saveLocallyWithName(
+    uploadedFile.buffer,
+    subdir,
+    uploadedFile.storedName,
+    uploadedFile.mimeType
+  );
 }
 
 async function uploadToStorage(file, subdir) {
@@ -242,6 +288,7 @@ module.exports = {
   getPublicUrl,
   saveFile,
   uploadToStorage,
+  uploadHardenedFile,
   readStoredFile,
   isRemoteUrl,
   isSupabaseRef,

@@ -1,4 +1,5 @@
 const { pool } = require('../config/database');
+const { buildUpdateClause } = require('../utils/db-safe-queries');
 
 function mapPayment(row) {
   const firstName = row.first_name || '';
@@ -22,24 +23,34 @@ function mapPayment(row) {
 
 async function list({ status, page = 1, limit = 50 } = {}) {
   const offset = (page - 1) * limit;
-  let query = `
-    SELECT sp.*, s.first_name, s.last_name
-    FROM student_payments sp
-    JOIN students s ON sp.student_id = s.student_id
-  `;
   const params = [];
+  let whereSql = '';
+
   if (status) {
     params.push(status);
-    query += ' WHERE sp.status = $1';
+    whereSql = ' WHERE sp.status = $1';
   }
-  query += ' ORDER BY sp.created_at DESC LIMIT $' + (params.length + 1) + ' OFFSET $' + (params.length + 2);
+
   params.push(limit, offset);
-  const { rows } = await pool.query(query, params);
-  const { rows: countRows } = await pool.query(
-    'SELECT COUNT(*) FROM student_payments' + (status ? ' WHERE status = $1' : ''),
-    status ? [status] : []
+  const limitIdx = params.length - 1;
+  const offsetIdx = params.length;
+
+  const { rows } = await pool.query(
+    `SELECT sp.*, s.first_name, s.last_name
+     FROM student_payments sp
+     JOIN students s ON sp.student_id = s.student_id
+     ${whereSql}
+     ORDER BY sp.created_at DESC
+     LIMIT $${limitIdx} OFFSET $${offsetIdx}`,
+    params
   );
-  return { payments: rows.map(mapPayment), total: parseInt(countRows[0].count) };
+
+  const countParams = status ? [status] : [];
+  const { rows: countRows } = await pool.query(
+    `SELECT COUNT(*) FROM student_payments${status ? ' WHERE status = $1' : ''}`,
+    countParams
+  );
+  return { payments: rows.map(mapPayment), total: parseInt(countRows[0].count, 10) };
 }
 
 async function findById(paymentId) {
@@ -89,23 +100,23 @@ async function findByStudentAndBatch(studentId, batchNumber, status = 'verified'
 }
 
 async function update(paymentId, fields) {
-  // status is intentionally excluded — use verify/reject endpoints only
-  const allowed = {
-    semester: 'semester',
-    academic_year: 'academicYear',
-    amount: 'amount',
-    batch_number: 'batchNumber',
-    bank_name: 'bankName',
-    payment_date: 'paymentDate',
+  const allowedKeys = [
+    'semester',
+    'academic_year',
+    'amount',
+    'batch_number',
+    'bank_name',
+    'payment_date',
+  ];
+  const dbFields = {
+    semester: fields.semester,
+    academic_year: fields.academicYear,
+    amount: fields.amount,
+    batch_number: fields.batchNumber,
+    bank_name: fields.bankName,
+    payment_date: fields.paymentDate,
   };
-  const sets = [];
-  const params = [];
-  for (const [col, key] of Object.entries(allowed)) {
-    if (fields[key] !== undefined) {
-      params.push(fields[key]);
-      sets.push(`${col} = $${params.length}`);
-    }
-  }
+  const { sets, params } = buildUpdateClause(dbFields, allowedKeys);
   if (!sets.length) return findById(paymentId);
   params.push(paymentId);
   sets.push('updated_at = NOW()');

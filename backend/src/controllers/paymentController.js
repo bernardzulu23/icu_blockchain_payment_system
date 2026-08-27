@@ -5,10 +5,9 @@ const { getCurrentSemester } = require('../utils/helpers');
 const auditService = require('../services/auditService');
 const { createAuditLog } = require('../services/auditService');
 const pdfService = require('../services/pdfService');
-const { uploadToStorage } = require('../services/storageService');
+const { uploadToStorage, uploadHardenedFile } = require('../services/storageService');
 const { sendNotification, notifyAccountantsPendingVerification } = require('../services/notificationService');
 const { rematchPendingPayments } = require('../services/paymentMatchingService');
-const { handleValidation } = require('../utils/validators');
 const logger = require('../utils/logger');
 
 async function list(req, res, next) {
@@ -96,13 +95,17 @@ async function submitPayment(req, res) {
       payment_date,
     } = req.body;
 
-    const depositSlipFile = req.file;
+    const depositMeta = req.uploadedFile;
 
     if (!semester || !academic_year || !amount || !batch_number || !payment_date) {
       return res.status(400).json({
         error: 'Missing required fields',
         required: ['semester', 'academic_year', 'amount', 'batch_number', 'payment_date'],
       });
+    }
+
+    if (!depositMeta) {
+      return res.status(400).json({ error: 'Deposit slip image required' });
     }
 
     const {
@@ -133,10 +136,6 @@ async function submitPayment(req, res) {
       });
     }
     const normalizedBank = normalizeBankName(bank_name);
-
-    if (!depositSlipFile) {
-      return res.status(400).json({ error: 'Deposit slip image required' });
-    }
 
     await client.query('BEGIN');
 
@@ -179,7 +178,7 @@ async function submitPayment(req, res) {
       }
     }
 
-    const slipUrl = await uploadToStorage(depositSlipFile, 'deposit-slips');
+    const slipUrl = await uploadHardenedFile(depositMeta, 'deposit-slips');
 
     const insertResult = await client.query(
       `INSERT INTO student_payments
@@ -198,7 +197,14 @@ async function submitPayment(req, res) {
       action: 'PAYMENT_SUBMITTED',
       entity_type: 'payment',
       entity_id: payment.payment_id,
-      details: { semester, academic_year, amount, batch_number },
+      details: {
+        semester,
+        academic_year,
+        amount,
+        batch_number,
+        deposit_slip_hash: depositMeta.contentHash,
+        original_filename: depositMeta.originalName,
+      },
       ip_address: req.ip,
     });
 

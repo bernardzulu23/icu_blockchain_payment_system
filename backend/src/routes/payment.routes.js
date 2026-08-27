@@ -2,8 +2,16 @@ const express = require('express');
 const paymentController = require('../controllers/paymentController');
 const { authenticateToken } = require('../middleware/auth');
 const { requireAccountant, requireRole } = require('../middleware/rbac');
-const { upload } = require('../middleware/upload');
-const { paymentValidators, handleValidation } = require('../utils/validators');
+const {
+  depositSlipUpload,
+  handleDepositSlipUpload,
+} = require('../middleware/upload-hardening');
+const {
+  paymentValidators,
+  handleValidation,
+  validatePaymentSubmit,
+  validatePagination,
+} = require('../utils/validators');
 
 const router = express.Router();
 
@@ -15,7 +23,9 @@ router.post(
   '/submit',
   authenticateToken,
   requireStudent,
-  upload.single('depositSlip'),
+  depositSlipUpload.single('depositSlip'),
+  handleDepositSlipUpload,
+  validatePaymentSubmit,
   paymentController.submitPayment
 );
 
@@ -31,7 +41,7 @@ router.get(
 router.use(authenticateToken);
 router.use(requireAccountant);
 
-router.get('/', paymentController.list);
+router.get('/', validatePagination, paymentController.list);
 router.get('/:id', paymentValidators.uuidParam, handleValidation, paymentController.getById);
 router.post('/', paymentValidators.create, handleValidation, paymentController.create);
 router.put('/:id', paymentValidators.uuidParam, handleValidation, paymentController.update);

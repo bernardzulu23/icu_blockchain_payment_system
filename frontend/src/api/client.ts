@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { ensureCsrfToken, getCsrfTokenFromCookie } from '../utils/csrf';
 
 const BAD_HOST =
   /your-backend-host|YOUR-BACKEND|YOUR-API|YOUR-APP|example\.com|your-domain|yourdomain/i;
@@ -64,15 +65,26 @@ const API_URL = resolveApiUrl();
 
 export const apiClient = axios.create({
   baseURL: API_URL,
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-apiClient.interceptors.request.use((config) => {
+apiClient.interceptors.request.use(async (config) => {
   const token = localStorage.getItem('token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
+  }
+  const method = (config.method || 'get').toUpperCase();
+  if (!['GET', 'HEAD', 'OPTIONS'].includes(method)) {
+    if (!getCsrfTokenFromCookie()) {
+      await ensureCsrfToken(config.baseURL || API_URL);
+    }
+    const csrf = getCsrfTokenFromCookie();
+    if (csrf) {
+      config.headers['x-csrf-token'] = csrf;
+    }
   }
   return config;
 });

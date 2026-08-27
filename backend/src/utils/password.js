@@ -1,8 +1,3 @@
-const bcrypt = require('bcrypt');
-const env = require('../config/environment');
+const { hashPassword, verifyPassword, isPasswordStrong } = require('../middleware/auth-hardening');
 
-async function hashPassword(plain) {
-  return bcrypt.hash(plain, env.BCRYPT_ROUNDS);
-}
-
-module.exports = { hashPassword };
+module.exports = { hashPassword, verifyPassword, isPasswordStrong };

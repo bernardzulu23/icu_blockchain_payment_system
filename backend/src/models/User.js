@@ -1,5 +1,6 @@
 const { pool } = require('../config/database');
 const { parsePagination, paginatedResponse } = require('../utils/pagination');
+const { buildUpdateClause } = require('../utils/db-safe-queries');
 
 const PUBLIC_COLS =
   'user_id, username, email, full_name, role, status, employee_id, residential_address, date_of_birth, created_at, last_login';
@@ -111,19 +112,9 @@ async function update(userId, fields) {
     'employee_id',
     'residential_address',
     'date_of_birth',
+    'password_hash',
   ];
-  const sets = [];
-  const params = [];
-  for (const key of allowed) {
-    if (fields[key] !== undefined) {
-      params.push(fields[key]);
-      sets.push(`${key} = $${params.length}`);
-    }
-  }
-  if (fields.password_hash) {
-    params.push(fields.password_hash);
-    sets.push(`password_hash = $${params.length}`);
-  }
+  const { sets, params } = buildUpdateClause(fields, allowed);
   if (!sets.length) return findById(userId);
   params.push(userId);
   const { rows } = await pool.query(

@@ -3,6 +3,7 @@ const { query, getClient } = require('../config/database');
 const { computeBatchMerkleRoot } = require('../utils/merkle');
 const { matchPaymentOnChain, submitBatchRootOnChain } = require('./blockchainService');
 const { ocrReconcileBatch, multerFileBuffer } = require('./ocrService');
+const { sanitizeOcrPreviewResult } = require('../utils/input-validation');
 const logger = require('../utils/logger');
 
 async function createReconciliationPreview({
@@ -67,7 +68,7 @@ async function createReconciliationPreview({
     matched: ocrResult.matching?.matched_count,
   });
 
-  return {
+  return sanitizeOcrPreviewResult({
     batch_id: batchId,
     status: 'preview',
     merkle_root: merkleRoot,
@@ -83,7 +84,7 @@ async function createReconciliationPreview({
       python_ms: ocrResult.processing_ms,
       node_overhead_ms: ocrResult.node_overhead_ms,
     },
-  };
+  });
 }
 
 async function approveReconciliationBatch(batchId, approvedBy, approvedMatchIndexes = null) {

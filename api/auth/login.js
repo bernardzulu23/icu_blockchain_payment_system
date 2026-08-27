@@ -8,10 +8,29 @@ const { pool } = require('../../backend/src/config/database');
 const env = require('../../backend/src/config/environment');
 const { generateAccessToken, generateRefreshToken } = require('../../backend/src/middleware/auth');
 
+const {
+  createCsrfToken,
+  setCsrfCookieHeader,
+  verifyCsrfRequest,
+} = require('../../backend/src/middleware/csrf');
+
+const {
+  checkLoginAllowed,
+  recordFailedLogin,
+  resetLoginFailures,
+  INVALID_CREDENTIALS_RESPONSE,
+} = require('../../backend/src/services/loginSecurity');
+
 function sendJson(res, status, body) {
   res.statusCode = status;
   res.setHeader('Content-Type', 'application/json');
   res.end(JSON.stringify(body));
+}
+
+function sendJsonWithCsrf(res, status, body) {
+  const token = createCsrfToken();
+  setCsrfCookieHeader(res, token);
+  sendJson(res, status, body);
 }
 
 async function readBody(req) {
@@ -71,22 +90,30 @@ async function loginStaff(user, password) {
   if (user.status !== 'active') {
     return { status: 403, body: { error: 'Account inactive', message: 'Contact administration.' } };
   }
-  if (!user.password_hash || !(await bcrypt.compare(password, user.password_hash))) {
-    return {
-      status: 401,
-      body: { error: 'Invalid credentials', message: 'Username or password is incorrect' },
-    };
+
+  const lockCheck = await checkLoginAllowed('staff', user.user_id);
+  if (!lockCheck.allowed) {
+    return { status: lockCheck.status, body: lockCheck.body };
   }
+
+  if (!user.password_hash || !(await bcrypt.compare(password, user.password_hash))) {
+    await recordFailedLogin('staff', user.user_id);
+    return { status: 401, body: INVALID_CREDENTIALS_RESPONSE };
+  }
+
+  await resetLoginFailures('staff', user.user_id);
 
   const accessToken = generateAccessToken({
     userId: user.user_id,
     type: 'staff',
     role: user.role,
+    tokenVersion: lockCheck.tokenVersion,
   });
   const refreshToken = generateRefreshToken({
     userId: user.user_id,
     type: 'staff',
     role: user.role,
+    tokenVersion: lockCheck.tokenVersion,
   });
 
   pool.query('UPDATE users SET last_login = NOW() WHERE user_id = $1', [user.user_id]).catch(() => {});
@@ -115,24 +142,28 @@ async function loginStaff(user, password) {
 }
 
 async function loginStudent(student, password) {
-  if (!student.password_hash || !(await bcrypt.compare(password, student.password_hash))) {
-    return {
-      status: 401,
-      body: {
-        error: 'Invalid credentials',
-        message: 'Email/student number or password is incorrect',
-      },
-    };
+  const lockCheck = await checkLoginAllowed('student', student.student_id);
+  if (!lockCheck.allowed) {
+    return { status: lockCheck.status, body: lockCheck.body };
   }
+
+  if (!student.password_hash || !(await bcrypt.compare(password, student.password_hash))) {
+    await recordFailedLogin('student', student.student_id);
+    return { status: 401, body: INVALID_CREDENTIALS_RESPONSE };
+  }
+
+  await resetLoginFailures('student', student.student_id);
 
   const accessToken = generateAccessToken({
     userId: student.student_id,
     type: 'student',
     role: 'student',
+    tokenVersion: lockCheck.tokenVersion,
   });
   const refreshToken = generateRefreshToken({
     userId: student.student_id,
     type: 'student',
+    tokenVersion: lockCheck.tokenVersion,
   });
 
   return {
@@ -179,6 +210,11 @@ module.exports = async (req, res) => {
     return;
   }
 
+  if (!verifyCsrfRequest(req)) {
+    sendJson(res, 403, { error: 'CSRF validation failed.' });
+    return;
+  }
+
   try {
     const body = await readBody(req);
     const identifier = String(
@@ -197,21 +233,26 @@ module.exports = async (req, res) => {
     const staff = await findStaff(identifier);
     if (staff) {
       const result = await loginStaff(staff, password);
-      sendJson(res, result.status, result.body);
+      if (result.status === 200) {
+        sendJsonWithCsrf(res, result.status, result.body);
+      } else {
+        sendJson(res, result.status, result.body);
+      }
       return;
     }
 
     const student = await findStudent(identifier);
     if (student) {
       const result = await loginStudent(student, password);
-      sendJson(res, result.status, result.body);
+      if (result.status === 200) {
+        sendJsonWithCsrf(res, result.status, result.body);
+      } else {
+        sendJson(res, result.status, result.body);
+      }
       return;
     }
 
-    sendJson(res, 401, {
-      error: 'Invalid credentials',
-      message: 'Username or password is incorrect',
-    });
+    sendJson(res, 401, INVALID_CREDENTIALS_RESPONSE);
   } catch (err) {
     console.error('Login handler error:', err);
     const msg = String(err.message || err);

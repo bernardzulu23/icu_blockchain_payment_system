@@ -3,7 +3,7 @@ const studentController = require('../controllers/studentController');
 const { authenticateToken } = require('../middleware/auth');
 const { requireAdmin, requireStudent } = require('../middleware/rbac');
 const { upload, uploadImage } = require('../middleware/upload');
-const { studentValidators, handleValidation } = require('../utils/validators');
+const { studentValidators, handleValidation, validatePagination, validateStudentIdParam } = require('../utils/validators');
 const { publicCheckLimiter } = require('../middleware/rateLimit');
 
 const router = express.Router();
@@ -24,8 +24,8 @@ router.post(
 router.use(authenticateToken);
 router.use(requireAdmin);
 
-router.get('/', studentController.list);
-router.get('/:id', studentController.getById);
+router.get('/', validatePagination, studentController.list);
+router.get('/:id', validateStudentIdParam, studentController.getById);
 router.post('/', studentValidators.create, handleValidation, studentController.create);
 router.put('/:id', studentController.update);
 router.delete('/:id', studentController.remove);

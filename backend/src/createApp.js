@@ -1,18 +1,14 @@
 const express = require('express');
-const cors = require('cors');
-const helmet = require('helmet');
 const morgan = require('morgan');
 
 const errorHandler = require('./middleware/errorHandler');
-const {
-  apiLimiter,
-  authLimiter,
-} = require('./middleware/rateLimit');
+const { applyServerHardening } = require('./middleware/server-hardening');
+const { issueCsrfToken, verifyCsrfToken } = require('./middleware/csrf');
 const logger = require('./utils/logger');
 const env = require('./config/environment');
 
 function getAllowedOrigins() {
-  const origins = new Set(env.FRONTEND_ORIGINS || [env.FRONTEND_URL]);
+  const origins = new Set([...(env.FRONTEND_ORIGINS || []), ...(env.ALLOWED_ORIGINS || [])]);
   return [...origins].filter(Boolean);
 }
 
@@ -46,48 +42,18 @@ function lazyRouter(loader) {
 function createApp() {
   const app = express();
 
-  if (env.TRUST_PROXY) {
-    app.set('trust proxy', 1);
-  }
+  applyServerHardening(app, { isAllowedOrigin });
 
-  app.use(
-    helmet({
-      crossOriginResourcePolicy: { policy: 'same-site' },
-      contentSecurityPolicy: false, // SPA sets its own CSP via host headers
-      hsts: env.NODE_ENV === 'production' ? { maxAge: 15552000, includeSubDomains: true } : false,
-      referrerPolicy: { policy: 'no-referrer' },
-    })
-  );
-
-  app.use(
-    cors({
-      origin(origin, callback) {
-        if (isAllowedOrigin(origin)) {
-          callback(null, true);
-        } else {
-          logger.warn(`CORS blocked origin: ${origin}`);
-          callback(new Error('Not allowed by CORS'));
-        }
-      },
-      credentials: true,
-      methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-      allowedHeaders: ['Content-Type', 'Authorization'],
-    })
-  );
-
-  app.use('/api/', apiLimiter);
-
-  app.use(express.json({ limit: '1mb' }));
-  app.use(express.urlencoded({ extended: true, limit: '1mb' }));
+  // CSRF on state-changing API calls (GET /api/auth/csrf issues the token first)
+  app.use('/api', (req, res, next) => {
+    if (req.path === '/auth/csrf' || req.path === '/health') {
+      return next();
+    }
+    return verifyCsrfToken(req, res, next);
+  });
 
   if (env.NODE_ENV === 'development') {
     app.use(morgan('dev'));
-  } else {
-    app.use(
-      morgan('combined', {
-        stream: { write: (msg) => logger.info(msg.trim()) },
-      })
-    );
   }
 
   // Auth + files are needed for login; load eagerly. Everything else is lazy.
@@ -125,9 +91,11 @@ function createApp() {
   });
 
   // Auth must be available immediately for login (bcrypt/pg only — no PDF/Fabric)
+  app.get('/api/auth/csrf', issueCsrfToken, (req, res) => {
+    res.json({ csrfToken: req.csrfToken });
+  });
   app.use(
     '/api/auth',
-    authLimiter,
     lazyRouter(() => require('./routes/auth.routes'))
   );
   app.use(
@@ -167,6 +135,7 @@ function createApp() {
     res.status(404).json({
       error: 'Not Found',
       message: 'Route not found',
+      requestId: req.id,
     });
   });
 

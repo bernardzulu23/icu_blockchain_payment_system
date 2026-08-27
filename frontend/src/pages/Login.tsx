@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { Sun, Moon } from 'lucide-react';
 import { authService } from '../api/services';
+import { ensureCsrfToken } from '../utils/csrf';
 import { useTheme } from '../contexts/ThemeContext';
 import { getHomeForRole } from '../utils/routing';
 import BrandLogo from '../components/BrandLogo';
@@ -25,9 +26,16 @@ export default function Login() {
   const isDark = theme === 'dark';
   const gridBorderColor = isDark ? 'rgba(201, 195, 183, 0.2)' : 'rgba(17, 17, 17, 0.35)';
 
+  useEffect(() => {
+    ensureCsrfToken().catch(() => {
+      /* login will surface CSRF error if cookie missing */
+    });
+  }, []);
+
   const onSubmit = async (data: LoginFormData) => {
     setLoading(true);
     try {
+      await ensureCsrfToken();
       const res = await authService.login(data.identifier, data.password);
       const token = res.data.token || res.data.accessToken;
       localStorage.setItem('token', token);

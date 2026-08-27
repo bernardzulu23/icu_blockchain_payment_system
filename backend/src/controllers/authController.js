@@ -1,15 +1,20 @@
-const bcrypt = require('bcrypt');
-const { hashPassword } = require('../utils/password');
-const jwt = require('jsonwebtoken');
+const { hashPassword, isPasswordStrong } = require('../utils/password');
 const { query, getClient } = require('../config/database');
 const User = require('../models/User');
 const { generateAccessToken, generateRefreshToken } = require('../middleware/auth');
 const { createAuditLog } = require('../services/auditService');
+const {
+  checkLoginAllowed,
+  recordFailedLogin,
+  resetLoginFailures,
+  INVALID_CREDENTIALS_RESPONSE,
+} = require('../services/loginSecurity');
 const logger = require('../utils/logger');
 const env = require('../config/environment');
 const crypto = require('crypto');
 const { sendResetEmail } = require('../config/email');
 const { sendPasswordResetLinkSms, sendPasswordResetConfirmation } = require('../services/notificationService');
+const { attachCsrfCookie } = require('../middleware/csrf');
 
 async function studentLogin(req, res) {
   try {
@@ -27,7 +32,7 @@ async function studentLogin(req, res) {
 
     const result = await query(
       `SELECT student_id, student_number, first_name, last_name, email,
-              phone, password_hash, status
+              phone, password_hash, status, failed_attempts, locked_at, token_version
        FROM students
        WHERE status = 'active'
          AND (
@@ -39,13 +44,15 @@ async function studentLogin(req, res) {
     );
 
     if (result.rows.length === 0) {
-      return res.status(401).json({
-        error: 'Invalid credentials',
-        message: 'Email/student number or password is incorrect',
-      });
+      return res.status(401).json(INVALID_CREDENTIALS_RESPONSE);
     }
 
     const student = result.rows[0];
+
+    const lockCheck = await checkLoginAllowed('student', student.student_id);
+    if (!lockCheck.allowed) {
+      return res.status(lockCheck.status).json(lockCheck.body);
+    }
 
     if (student.status !== 'active') {
       return res.status(403).json({
@@ -55,15 +62,14 @@ async function studentLogin(req, res) {
     }
 
     if (!student.password_hash) {
-      return res.status(401).json({
-        error: 'Invalid credentials',
-        message: 'Email/student number or password is incorrect',
-      });
+      return res.status(401).json(INVALID_CREDENTIALS_RESPONSE);
     }
 
+    const bcrypt = require('bcrypt');
     const isValidPassword = await bcrypt.compare(password, student.password_hash);
 
     if (!isValidPassword) {
+      await recordFailedLogin('student', student.student_id);
       await createAuditLog({
         user_id: student.student_id,
         user_type: 'student',
@@ -72,21 +78,22 @@ async function studentLogin(req, res) {
         ip_address: req.ip,
       });
 
-      return res.status(401).json({
-        error: 'Invalid credentials',
-        message: 'Email/student number or password is incorrect',
-      });
+      return res.status(401).json(INVALID_CREDENTIALS_RESPONSE);
     }
+
+    await resetLoginFailures('student', student.student_id);
 
     const accessToken = generateAccessToken({
       userId: student.student_id,
       type: 'student',
       role: 'student',
+      tokenVersion: lockCheck.tokenVersion,
     });
 
     const refreshToken = generateRefreshToken({
       userId: student.student_id,
       type: 'student',
+      tokenVersion: lockCheck.tokenVersion,
     });
 
     await createAuditLog({
@@ -99,6 +106,7 @@ async function studentLogin(req, res) {
 
     logger.info(`Student logged in: ${student.student_number}`);
 
+    attachCsrfCookie(res);
     res.json({
       success: true,
       message: 'Login successful',
@@ -176,10 +184,12 @@ async function staffLogin(req, res) {
     }
 
     if (!user) {
-      return res.status(401).json({
-        error: 'Invalid credentials',
-        message: 'Username or password is incorrect',
-      });
+      return res.status(401).json(INVALID_CREDENTIALS_RESPONSE);
+    }
+
+    const lockCheck = await checkLoginAllowed('staff', user.user_id);
+    if (!lockCheck.allowed) {
+      return res.status(lockCheck.status).json(lockCheck.body);
     }
 
     if (user.status !== 'active') {
@@ -189,9 +199,11 @@ async function staffLogin(req, res) {
       });
     }
 
+    const bcrypt = require('bcrypt');
     const isValidPassword = await bcrypt.compare(password, user.password_hash);
 
     if (!isValidPassword) {
+      await recordFailedLogin('staff', user.user_id);
       await createAuditLog({
         user_id: user.user_id,
         user_type: user.role,
@@ -200,22 +212,23 @@ async function staffLogin(req, res) {
         ip_address: req.ip,
       });
 
-      return res.status(401).json({
-        error: 'Invalid credentials',
-        message: 'Username or password is incorrect',
-      });
+      return res.status(401).json(INVALID_CREDENTIALS_RESPONSE);
     }
+
+    await resetLoginFailures('staff', user.user_id);
 
     const accessToken = generateAccessToken({
       userId: user.user_id,
       type: 'staff',
       role: user.role,
+      tokenVersion: lockCheck.tokenVersion,
     });
 
     const refreshToken = generateRefreshToken({
       userId: user.user_id,
       type: 'staff',
       role: user.role,
+      tokenVersion: lockCheck.tokenVersion,
     });
 
     await query('UPDATE users SET last_login = NOW() WHERE user_id = $1', [user.user_id]);
@@ -230,6 +243,7 @@ async function staffLogin(req, res) {
 
     logger.info(`Staff logged in: ${user.username} (${user.role})`);
 
+    attachCsrfCookie(res);
     res.json({
       success: true,
       message: 'Login successful',
@@ -374,9 +388,10 @@ async function refreshAccessToken(req, res) {
 
     const role = user.role || (decoded.type === 'student' ? 'student' : undefined);
     const newAccessToken = generateAccessToken({
-      userId: decoded.userId,
+      userId: decoded.userId || decoded.sub,
       type: decoded.type || user.type,
       role,
+      tokenVersion: user.token_version ?? 0,
     });
 
     res.json({
@@ -498,8 +513,12 @@ async function resetPassword(req, res) {
       return res.status(400).json({ success: false, error: 'Passwords do not match' });
     }
 
-    if (typeof newPassword !== 'string' || newPassword.length < 6) {
-      return res.status(400).json({ success: false, error: 'Password must be at least 6 characters' });
+    if (typeof newPassword !== 'string' || !isPasswordStrong(newPassword)) {
+      return res.status(400).json({
+        success: false,
+        error:
+          'Password must be at least 12 characters with upper, lower, digit, and symbol',
+      });
     }
 
     const resetTokenHash = crypto.createHash('sha256').update(token).digest('hex');
@@ -525,7 +544,9 @@ async function resetPassword(req, res) {
       const passwordHash = await hashPassword(newPassword);
       await client.query(
         `UPDATE users
-         SET password_hash = $1, reset_token_hash = NULL, reset_token_expires_at = NULL
+         SET password_hash = $1, reset_token_hash = NULL, reset_token_expires_at = NULL,
+             token_version = COALESCE(token_version, 0) + 1,
+             failed_attempts = 0, locked_at = NULL
          WHERE user_id = $2`,
         [passwordHash, userResult.rows[0].user_id]
       );
@@ -576,7 +597,9 @@ async function resetPassword(req, res) {
     const passwordHash = await hashPassword(newPassword);
     await client.query(
       `UPDATE students
-       SET password_hash = $1, reset_token_hash = NULL, reset_token_expires_at = NULL
+       SET password_hash = $1, reset_token_hash = NULL, reset_token_expires_at = NULL,
+           token_version = COALESCE(token_version, 0) + 1,
+           failed_attempts = 0, locked_at = NULL
        WHERE student_id = $2`,
       [passwordHash, studentResult.rows[0].student_id]
     );

@@ -1,9 +1,11 @@
 const express = require('express');
 const authController = require('../controllers/authController');
 const { authenticateToken } = require('../middleware/auth');
+const { loginLimiter } = require('../middleware/auth-hardening');
 const { forgotPasswordLimiter } = require('../middleware/rateLimit');
 const { body } = require('express-validator');
-const { handleValidation } = require('../utils/validators');
+const { handleValidation, validateLogin } = require('../utils/validators');
+const { isPasswordStrong } = require('../utils/password');
 const env = require('../config/environment');
 
 const router = express.Router();
@@ -19,18 +21,11 @@ router.use((req, res, next) => {
   return next();
 });
 
-const loginValidation = [
-  body('identifier').optional().trim(),
-  body('username').optional().trim(),
-  body('email').optional().trim(),
-  body('student_number').optional().trim(),
-  body('password').notEmpty().withMessage('Password is required').isLength({ min: 6 }),
-  handleValidation,
-];
+const loginValidation = validateLogin;
 
-router.post('/login/student', loginValidation, authController.studentLogin);
-router.post('/login/staff', loginValidation, authController.staffLogin);
-router.post('/login', loginValidation, authController.unifiedLogin);
+router.post('/login/student', loginLimiter, loginValidation, authController.studentLogin);
+router.post('/login/staff', loginLimiter, loginValidation, authController.staffLogin);
+router.post('/login', loginLimiter, loginValidation, authController.unifiedLogin);
 
 router.post(
   '/forgot-password',
@@ -41,7 +36,15 @@ router.post(
 );
 router.post(
   '/reset-password/:token',
-  body('newPassword').isLength({ min: 8 }).withMessage('Password must be at least 8 characters'),
+  body('newPassword')
+    .custom((value) => {
+      if (!isPasswordStrong(value)) {
+        throw new Error(
+          'Password must be at least 12 characters with upper, lower, digit, and symbol'
+        );
+      }
+      return true;
+    }),
   body('confirmPassword').custom((value, { req }) => {
     if (value !== req.body.newPassword) throw new Error('Passwords do not match');
     return true;

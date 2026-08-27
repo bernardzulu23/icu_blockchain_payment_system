@@ -91,11 +91,24 @@ function createUploader(kinds, maxSize = 10 * 1024 * 1024) {
   });
 }
 
-/** Default: documents + images (deposit slips, statements) */
+/** Legacy uploader — prefer upload-hardening for payment/bank routes. */
+const {
+  depositSlipUpload,
+  bankStatementUpload,
+} = require('./upload-hardening');
+
+/** Default: documents + images (non-hardened batch paths only) */
 const upload = createUploader(['pdf', 'csv', 'image']);
 /** Profile pictures only */
 const uploadImage = createUploader(['image'], 5 * 1024 * 1024);
-/** Bank PDFs / CSV */
+/** Bank PDFs / CSV (legacy) */
 const uploadDocument = createUploader(['pdf', 'csv']);
 
-module.exports = { upload, uploadImage, uploadDocument, createUploader };
+module.exports = {
+  upload,
+  uploadImage,
+  uploadDocument,
+  createUploader,
+  depositSlipUpload,
+  bankStatementUpload,
+};

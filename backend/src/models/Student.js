@@ -1,5 +1,6 @@
 const { pool } = require('../config/database');
 const { parsePagination, paginatedResponse } = require('../utils/pagination');
+const { buildUpdateClause } = require('../utils/db-safe-queries');
 
 async function findById(studentId) {
   const { rows } = await pool.query(
@@ -100,19 +101,9 @@ async function update(studentId, fields) {
     'current_term',
     'profile_picture_url',
     'status',
+    'password_hash',
   ];
-  const sets = [];
-  const params = [];
-  for (const key of allowed) {
-    if (fields[key] !== undefined) {
-      params.push(fields[key]);
-      sets.push(`${key} = $${params.length}`);
-    }
-  }
-  if (fields.password_hash) {
-    params.push(fields.password_hash);
-    sets.push(`password_hash = $${params.length}`);
-  }
+  const { sets, params } = buildUpdateClause(fields, allowed);
   if (!sets.length) return findById(studentId);
   params.push(studentId);
   sets.push('updated_at = NOW()');

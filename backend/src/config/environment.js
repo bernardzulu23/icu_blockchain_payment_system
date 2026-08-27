@@ -103,6 +103,15 @@ module.exports = {
   PORT: parseInt(process.env.PORT, 10) || 5000,
   FRONTEND_URL: resolveFrontendUrl(),
   FRONTEND_ORIGINS: resolveFrontendOrigins(),
+  /** Extra CORS allowlist (comma-separated); merged with FRONTEND_ORIGINS */
+  ALLOWED_ORIGINS: (process.env.ALLOWED_ORIGINS || '')
+    .split(',')
+    .map((o) => o.trim())
+    .filter(Boolean),
+  /** CSP connect-src for API responses (optional) */
+  API_ORIGIN: process.env.API_ORIGIN || process.env.API_PUBLIC_URL || '',
+  COOKIE_SECRET: process.env.COOKIE_SECRET || '',
+  BODY_JSON_LIMIT: process.env.BODY_JSON_LIMIT || '100kb',
   DATABASE_URL: resolveDatabaseUrl(),
   DATABASE_DIRECT_URL: resolveDatabaseDirectUrl(),
   DATABASE_PUBLIC_URL: process.env.DATABASE_PUBLIC_URL || process.env.SUPABASE_DB_DIRECT_URL,

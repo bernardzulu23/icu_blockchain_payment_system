@@ -1,5 +1,5 @@
 const { query, getClient } = require('../config/database');
-const { uploadToStorage, readStoredFile, isRemoteUrl } = require('../services/storageService');
+const { uploadToStorage, uploadHardenedFile, readStoredFile, isRemoteUrl } = require('../services/storageService');
 const { createAuditLog, log: auditLog } = require('../services/auditService');
 const { sendNotification, sendPaymentVerified } = require('../services/notificationService');
 const { generateStatementPDF, generateStatement, generateProofOfNoBalancePDF } = require('../services/pdfService');
@@ -21,6 +21,7 @@ const logger = require('../utils/logger');
 const env = require('../config/environment');
 const path = require('path');
 const fs = require('fs');
+const { sanitizeBankTransaction } = require('../utils/input-validation');
 
 async function uploadBankStatement(req, res) {
   const client = await getClient();
@@ -29,7 +30,7 @@ async function uploadBankStatement(req, res) {
     const user_id = req.user.user_id || req.user.userId;
     const role = req.user.role;
     const { bank_name, upload_date } = req.body;
-    const statementFile = req.file;
+    const statementMeta = req.uploadedFile;
 
     if (role !== 'accountant' && role !== 'admin') {
       return res.status(403).json({
@@ -38,7 +39,7 @@ async function uploadBankStatement(req, res) {
       });
     }
 
-    if (!statementFile) {
+    if (!statementMeta) {
       return res.status(400).json({ error: 'Bank statement PDF required' });
     }
 
@@ -57,7 +58,7 @@ async function uploadBankStatement(req, res) {
 
     await client.query('BEGIN');
 
-    const statementUrl = await uploadToStorage(statementFile, 'bank-statements');
+    const statementUrl = await uploadHardenedFile(statementMeta, 'bank-statements');
 
     const uploadDate = upload_date || new Date().toISOString().split('T')[0];
     const statementResult = await client.query(
@@ -76,7 +77,11 @@ async function uploadBankStatement(req, res) {
       action: 'BANK_STATEMENT_UPLOADED',
       entity_type: 'bank_statement',
       entity_id: statement.statement_id,
-      details: { bank_name: normalizedBank, file: statementFile.originalname },
+      details: {
+        bank_name: normalizedBank,
+        file: statementMeta.originalName,
+        content_hash: statementMeta.contentHash,
+      },
       ip_address: req.ip,
     });
 
@@ -180,11 +185,12 @@ async function processBankStatement(statementId, statementUrl, uploadedBy) {
 
     if (extractedCount === 0 && transactions.length > 0) {
       for (const txn of transactions) {
-        const txnDate = txn.date || new Date().toISOString().split('T')[0];
+        const safe = sanitizeBankTransaction(txn);
+        const txnDate = safe.date || txn.date || new Date().toISOString().split('T')[0];
         await client.query(
           `INSERT INTO bank_transactions (statement_id, batch_number, amount, transaction_date, depositor_name)
            VALUES ($1, $2, $3, $4, $5)`,
-          [statementId, txn.batch_number, txn.amount, txnDate, txn.depositor_name || '']
+          [statementId, safe.batch_number, safe.amount, txnDate, safe.depositor_name || '']
         );
         extractedCount++;
       }
@@ -900,11 +906,24 @@ async function batchVerify(req, res) {
  * OCR-based batch reconciliation: bank PDF + deposit slip images.
  * Returns side-by-side matches with confidence for accountant review.
  */
+function asMulterFile(uploaded) {
+  return {
+    buffer: uploaded.buffer,
+    originalname: uploaded.originalName,
+    mimetype: uploaded.mimeType,
+    size: uploaded.sizeBytes,
+  };
+}
+
 async function batchReconcileOcr(req, res) {
   const started = Date.now();
   try {
-    const bankFile = req.files?.bankStatement?.[0];
-    const slipFiles = req.files?.slips || [];
+    const bankFile = req.uploadedFile
+      ? asMulterFile(req.uploadedFile)
+      : req.files?.bankStatement?.[0];
+    const slipFiles = req.uploadedFiles?.length
+      ? req.uploadedFiles.map(asMulterFile)
+      : req.files?.slips || [];
     const { bank_name: bankHint, statement_id: statementId } = req.body;
     const userId = req.user.user_id || req.user.userId;
 

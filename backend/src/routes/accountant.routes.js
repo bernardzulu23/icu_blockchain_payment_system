@@ -2,7 +2,13 @@ const express = require('express');
 const accountantController = require('../controllers/accountantController');
 const { authenticateToken } = require('../middleware/auth');
 const { requireRole, requireAccountant } = require('../middleware/rbac');
-const { upload, uploadDocument } = require('../middleware/upload');
+const { upload } = require('../middleware/upload');
+const {
+  bankStatementUpload,
+  handleBankStatementUpload,
+  batchSlipsUpload,
+  handleBatchReconcileUploads,
+} = require('../middleware/upload-hardening');
 
 const router = express.Router();
 
@@ -11,7 +17,8 @@ router.use(requireAccountant);
 
 router.post(
   '/bank-statement',
-  uploadDocument.single('statement'),
+  bankStatementUpload.single('statement'),
+  handleBankStatementUpload,
   accountantController.uploadBankStatement
 );
 
@@ -50,10 +57,11 @@ router.post(
 
 router.post(
   '/batch/reconcile',
-  upload.fields([
+  batchSlipsUpload.fields([
     { name: 'bankStatement', maxCount: 1 },
     { name: 'slips', maxCount: 50 },
   ]),
+  handleBatchReconcileUploads,
   accountantController.batchReconcileOcr
 );
 
