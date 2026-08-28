@@ -12,26 +12,26 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@vitejs/plugin-react": "^4.2.1",
-    "autoprefixer": "^10.4.17",
-    "axios": "^1.6.7",
-    "express": "^4.21.0",
+    "@vitejs/plugin-react": "^4.7.0",
+    "autoprefixer": "^10.5.4",
+    "axios": "^1.20.0",
+    "express": "^4.22.2",
     "gsap": "^3.15.0",
     "lucide-react": "^0.303.0",
-    "postcss": "^8.4.33",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-hook-form": "^7.49.3",
+    "postcss": "^8.5.26",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-hook-form": "^7.86.0",
     "react-query": "^3.39.3",
-    "react-router-dom": "^6.21.2",
+    "react-router-dom": "^6.30.6",
     "react-toastify": "^9.1.3",
-    "recharts": "^2.10.4",
-    "tailwindcss": "^3.4.1",
-    "vite": "^5.0.12"
+    "recharts": "^2.15.4",
+    "tailwindcss": "^3.4.19",
+    "vite": "^5.4.21"
   },
   "devDependencies": {
     "@types/node": "^20.11.30",
-    "@types/react": "^18.2.48",
+    "@types/react": "^18.3.31",
     "@types/react-dom": "^18.2.18",
     "typescript": "^5.3.3"
   }
