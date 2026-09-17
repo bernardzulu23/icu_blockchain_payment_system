@@ -66,6 +66,7 @@ const API_URL = resolveApiUrl();
 export const apiClient = axios.create({
   baseURL: API_URL,
   withCredentials: true,
+  timeout: 25_000,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -93,8 +94,14 @@ apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      localStorage.removeItem('token');
-      window.location.href = '/login';
+      const url = String(error.config?.url || '');
+      // Let useAuth handle /auth/me failures without a hard redirect loop after login
+      if (!url.includes('/auth/login') && !url.includes('/auth/me')) {
+        localStorage.removeItem('token');
+        if (!window.location.pathname.startsWith('/login')) {
+          window.location.href = '/login';
+        }
+      }
     }
     return Promise.reject(error);
   }

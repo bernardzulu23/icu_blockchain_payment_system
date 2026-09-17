@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate, Link } from 'react-router-dom';
+import { useQueryClient } from 'react-query';
 import { toast } from 'react-toastify';
 import { Sun, Moon } from 'lucide-react';
 import { authService } from '../api/services';
@@ -19,6 +20,7 @@ type LoginFormData = {
 
 export default function Login() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [loading, setLoading] = useState(false);
   const { theme, toggleTheme } = useTheme();
   const { register, handleSubmit, formState: { errors } } = useForm<LoginFormData>();
@@ -38,8 +40,34 @@ export default function Login() {
       await ensureCsrfToken();
       const res = await authService.login(data.identifier, data.password);
       const token = res.data.token || res.data.accessToken;
+      const rawUser = res.data.user;
+      if (!token || !rawUser) {
+        throw new Error('Login response missing token or user');
+      }
+
+      const role =
+        rawUser.role || (rawUser.type === 'student' ? 'student' : undefined);
+      const user = {
+        id: rawUser.id || rawUser.user_id || rawUser.student_id,
+        userId: rawUser.id || rawUser.user_id || rawUser.student_id,
+        email: rawUser.email,
+        student_number: rawUser.student_number,
+        name:
+          rawUser.name ||
+          rawUser.full_name ||
+          `${rawUser.first_name || ''} ${rawUser.last_name || ''}`.trim(),
+        role,
+        type: rawUser.type,
+        username: rawUser.username,
+        employee_id: rawUser.employee_id,
+        first_name: rawUser.first_name,
+        last_name: rawUser.last_name,
+      };
+
       localStorage.setItem('token', token);
-      const role = res.data.user?.role || (res.data.user?.type === 'student' ? 'student' : undefined);
+      // Seed auth cache so PrivateRoute does not stall on /auth/me (95% spinner)
+      queryClient.setQueryData('auth-user', user);
+
       toast.success('Welcome back!');
       navigate(getHomeForRole(role));
     } catch (err: unknown) {
@@ -47,7 +75,8 @@ export default function Login() {
         (err as { response?: { data?: { message?: string; error?: string } } })?.response?.data
           ?.message ||
         (err as { response?: { data?: { message?: string; error?: string } } })?.response?.data
-          ?.error;
+          ?.error ||
+        (err instanceof Error ? err.message : undefined);
       toast.error(msg || 'Login failed');
     } finally {
       setLoading(false);
