@@ -8,6 +8,8 @@
     { "source": "/api/auth/csrf", "destination": "/api/auth/csrf" },
     { "source": "/api/auth/login", "destination": "/api/auth/login" },
     { "source": "/api/auth/me", "destination": "/api/auth/me" },
+    { "source": "/api/accountant/stats", "destination": "/api/accountant/stats" },
+    { "source": "/api/admin/stats", "destination": "/api/admin/stats" },
     { "source": "/api/health", "destination": "/api/health" },
     { "source": "/api/(.*)", "destination": "/api" },
     { "source": "/((?!api/).*)", "destination": "/index.html" }
@@ -27,6 +29,16 @@
       "includeFiles": "backend/src/{config,middleware,utils}/**"
     },
     "api/auth/me.js": {
+      "memory": 512,
+      "maxDuration": 15,
+      "includeFiles": "backend/src/{config,middleware,utils}/**"
+    },
+    "api/accountant/stats.js": {
+      "memory": 512,
+      "maxDuration": 15,
+      "includeFiles": "backend/src/{config,middleware,utils}/**"
+    },
+    "api/admin/stats.js": {
       "memory": 512,
       "maxDuration": 15,
       "includeFiles": "backend/src/{config,middleware,utils}/**"

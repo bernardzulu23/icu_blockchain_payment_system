@@ -197,7 +197,13 @@ export default function Layout() {
 
           <footer className="border-t-2 border-ink px-8 py-6 font-mono text-[10px] uppercase tracking-widest text-ink/50">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <span>Built for ICU Zambia · Blockchain Payment Reconciliation</span>
+              <div className="flex flex-col gap-1">
+                <span>Built for ICU Zambia · Blockchain Payment Reconciliation</span>
+                <span>Bernard Zulu · Bluepeak Technologies</span>
+              </div>
+              <Link to="/" className="hover:text-ink transition-colors">
+                Home
+              </Link>
             </div>
           </footer>
         </div>

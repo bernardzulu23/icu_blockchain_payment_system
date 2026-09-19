@@ -1,28 +1,42 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 type Props = {
   size?: 'sm' | 'md' | 'lg';
-  /** Explicit progress 0–100. If omitted, animates toward 95% until unmounted. */
+  /** Explicit progress 0–100. If omitted, runs an indeterminate loop (never freezes at 95%). */
   percent?: number;
   label?: string;
 };
 
 export default function LoadingSpinner({ size = 'md', percent, label = 'Loading' }: Props) {
-  const [simulated, setSimulated] = useState(0);
-  const display = typeof percent === 'number' ? Math.min(100, Math.max(0, Math.round(percent))) : simulated;
+  const [simulated, setSimulated] = useState(20);
+  const risingRef = useRef(true);
+  const isDeterminate = typeof percent === 'number';
+  const display = isDeterminate
+    ? Math.min(100, Math.max(0, Math.round(percent)))
+    : simulated;
 
   useEffect(() => {
-    if (typeof percent === 'number') return undefined;
-    setSimulated(0);
+    if (isDeterminate) return undefined;
+    risingRef.current = true;
+    setSimulated(20);
     const id = window.setInterval(() => {
       setSimulated((p) => {
-        if (p >= 95) return 95;
-        const step = p < 40 ? 4 : p < 70 ? 2 : 1;
-        return Math.min(95, p + step);
+        if (risingRef.current) {
+          if (p >= 88) {
+            risingRef.current = false;
+            return 88;
+          }
+          return Math.min(88, p + (p < 40 ? 5 : 3));
+        }
+        if (p <= 18) {
+          risingRef.current = true;
+          return 18;
+        }
+        return Math.max(18, p - 4);
       });
-    }, 120);
+    }, 140);
     return () => window.clearInterval(id);
-  }, [percent]);
+  }, [isDeterminate]);
 
   const barWidth = size === 'sm' ? 'w-24' : size === 'lg' ? 'w-56' : 'w-40';
   const textSize = size === 'sm' ? 'text-xs' : size === 'lg' ? 'text-base' : 'text-sm';
@@ -36,7 +50,7 @@ export default function LoadingSpinner({ size = 'md', percent, label = 'Loading'
         />
       </div>
       <p className={`font-mono font-bold text-ink ${textSize}`}>
-        {label} {display}%
+        {isDeterminate ? `${label} ${display}%` : `${label}…`}
       </p>
     </div>
   );

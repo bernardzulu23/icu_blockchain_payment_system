@@ -4,28 +4,60 @@ import { UserPlus, MessageSquare, Shield, Users } from 'lucide-react';
 import { adminService } from '../../api/services';
 import LoadingSpinner from '../../components/LoadingSpinner';
 
+const QUERY_OPTS = { retry: 1, staleTime: 30_000 } as const;
+
+function StatSkeleton() {
+  return (
+    <div className="card animate-pulse">
+      <div className="h-3 w-16 bg-ink/15 mb-3" />
+      <div className="h-7 w-10 bg-ink/20" />
+    </div>
+  );
+}
+
 export default function AdminDashboard() {
-  const { data: stats, isLoading } = useQuery('admin-stats-page', () =>
-    adminService.getStats().then((r) => r.data)
+  const { data: stats, isLoading, isError, refetch, isFetching } = useQuery(
+    'admin-stats-page',
+    () => adminService.getStats().then((r) => r.data),
+    QUERY_OPTS
   );
 
   return (
     <div>
-      <h1 className="font-display text-2xl font-bold text-slate-800 dark:text-slate-100 mb-8">Admin Dashboard</h1>
-      {isLoading ? (
-        <div className="flex justify-center py-12">
-          <LoadingSpinner size="lg" />
+      <h1 className="font-display text-2xl font-bold text-slate-800 dark:text-slate-100 mb-8">
+        Admin Dashboard
+      </h1>
+
+      {isError && (
+        <div className="card mb-6 flex flex-wrap items-center justify-between gap-3 text-sm">
+          <span className="text-red-600 dark:text-red-400">Could not load stats.</span>
+          <button type="button" className="btn-secondary text-xs py-1.5 px-3" onClick={() => refetch()}>
+            Retry
+          </button>
         </div>
-      ) : (
-        <>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+      )}
+
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        {isLoading ? (
+          <>
+            <StatSkeleton />
+            <StatSkeleton />
+            <StatSkeleton />
+            <StatSkeleton />
+          </>
+        ) : (
+          <>
             <div className="card">
               <p className="text-sm text-slate-600 dark:text-slate-400">Students</p>
-              <p className="text-2xl font-bold text-slate-800 dark:text-slate-100 mt-1">{stats?.totalStudents ?? 0}</p>
+              <p className="text-2xl font-bold text-slate-800 dark:text-slate-100 mt-1">
+                {stats?.totalStudents ?? 0}
+              </p>
             </div>
             <div className="card">
               <p className="text-sm text-slate-600 dark:text-slate-400">Total Payments</p>
-              <p className="text-2xl font-bold text-slate-800 dark:text-slate-100 mt-1">{stats?.totalPayments ?? 0}</p>
+              <p className="text-2xl font-bold text-slate-800 dark:text-slate-100 mt-1">
+                {stats?.totalPayments ?? 0}
+              </p>
             </div>
             <div className="card">
               <p className="text-sm text-slate-600 dark:text-slate-400">Verified Amount</p>
@@ -35,45 +67,60 @@ export default function AdminDashboard() {
             </div>
             <div className="card">
               <p className="text-sm text-slate-600 dark:text-slate-400">Status Types</p>
-              <p className="text-2xl font-bold text-slate-800 dark:text-slate-100 mt-1">{stats?.payments?.length ?? 0}</p>
+              <p className="text-2xl font-bold text-slate-800 dark:text-slate-100 mt-1">
+                {stats?.payments?.length ?? 0}
+              </p>
             </div>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Link to="/admin/register-accountant" className="card hover:border-icu-accent/50 transition-colors group">
-              <Shield className="h-8 w-8 mb-2 text-ink" aria-hidden />
-              <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100 group-hover:text-icu-accent">
-                Register Accountant
-              </h2>
-              <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
-                Create accountant officer accounts (Employee ID, email, password, address, D.O.B.)
-              </p>
-            </Link>
-            <Link to="/admin/register-student" className="card hover:border-icu-accent/50 transition-colors group">
-              <UserPlus className="h-8 w-8 mb-2 text-ink" aria-hidden />
-              <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100 group-hover:text-icu-accent">
-                Register Student
-              </h2>
-              <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">Create student accounts</p>
-            </Link>
-            <Link to="/admin/staff" className="card hover:border-icu-accent/50 transition-colors group">
-              <Users className="h-8 w-8 mb-2 text-ink" aria-hidden />
-              <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100 group-hover:text-icu-accent">
-                Staff List
-              </h2>
-              <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
-                View and manage accountant, registrar, and admin accounts
-              </p>
-            </Link>
-            <Link to="/admin/feedback" className="card hover:border-icu-accent/50 transition-colors group">
-              <MessageSquare className="h-8 w-8 mb-2 text-ink" aria-hidden />
-              <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100 group-hover:text-icu-accent">
-                View Feedback
-              </h2>
-              <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">Review user feedback</p>
-            </Link>
-          </div>
-        </>
+          </>
+        )}
+      </div>
+
+      {isFetching && !isLoading && (
+        <div className="mb-4 flex justify-end">
+          <LoadingSpinner size="sm" label="Refreshing" />
+        </div>
       )}
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Link
+          to="/admin/register-accountant"
+          className="card hover:border-icu-accent/50 transition-colors group"
+        >
+          <Shield className="h-8 w-8 mb-2 text-ink" aria-hidden />
+          <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100 group-hover:text-icu-accent">
+            Register Accountant
+          </h2>
+          <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+            Create accountant officer accounts (Employee ID, email, password, address, D.O.B.)
+          </p>
+        </Link>
+        <Link
+          to="/admin/register-student"
+          className="card hover:border-icu-accent/50 transition-colors group"
+        >
+          <UserPlus className="h-8 w-8 mb-2 text-ink" aria-hidden />
+          <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100 group-hover:text-icu-accent">
+            Register Student
+          </h2>
+          <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">Create student accounts</p>
+        </Link>
+        <Link to="/admin/staff" className="card hover:border-icu-accent/50 transition-colors group">
+          <Users className="h-8 w-8 mb-2 text-ink" aria-hidden />
+          <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100 group-hover:text-icu-accent">
+            Staff List
+          </h2>
+          <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+            View and manage accountant, registrar, and admin accounts
+          </p>
+        </Link>
+        <Link to="/admin/feedback" className="card hover:border-icu-accent/50 transition-colors group">
+          <MessageSquare className="h-8 w-8 mb-2 text-ink" aria-hidden />
+          <h2 className="font-display font-semibold text-slate-800 dark:text-slate-100 group-hover:text-icu-accent">
+            View Feedback
+          </h2>
+          <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">Review user feedback</p>
+        </Link>
+      </div>
     </div>
   );
 }
