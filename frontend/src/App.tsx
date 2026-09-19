@@ -2,11 +2,10 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './components/Layout';
 import PrivateRoute from './components/PrivateRoute';
 import RoleRoute from './components/RoleRoute';
-import RoleRedirect from './components/RoleRedirect';
+import Landing from './pages/Landing';
 import Login from './pages/Login';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
-import Dashboard from './pages/Dashboard';
 import BatchReconciliation from './pages/accountant/BatchReconciliation';
 import PaymentHistory from './pages/PaymentHistory';
 import StudentPortal from './pages/StudentPortal';
@@ -32,18 +31,7 @@ import StaffManagement from './pages/admin/Staff';
 import AuditLogs from './pages/admin/AuditLogs';
 import BankStatements from './pages/accountant/BankStatements';
 import Notifications from './pages/student/Notifications';
-import { useAuth } from './hooks/useAuth';
-import { getHomeForRole } from './utils/routing';
 import TargetCursor from './components/TargetCursor/TargetCursor';
-
-function StaffHome() {
-  const { user } = useAuth();
-  const home = getHomeForRole(user?.role);
-  if (home !== '/login' && home !== '/') {
-    return <Navigate to={home} replace />;
-  }
-  return <Dashboard />;
-}
 
 function AdminOnly({ children }: { children: React.ReactNode }) {
   return <RoleRoute roles={['admin']}>{children}</RoleRoute>;
@@ -74,19 +62,19 @@ export default function App() {
         targetSelector="a, button, input, select, textarea, [role='button'], .cursor-target"
       />
       <Routes>
+        <Route path="/" element={<Landing />} />
+        <Route path="/home" element={<Navigate to="/" replace />} />
         <Route path="/login" element={<Login />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
         <Route path="/student" element={<StudentPortal />} />
         <Route
-          path="/"
           element={
             <PrivateRoute>
               <Layout />
             </PrivateRoute>
           }
         >
-          <Route index element={<StaffHome />} />
           <Route
             path="history"
             element={
@@ -152,7 +140,7 @@ export default function App() {
         >
           <Route index element={<RegistrarDashboard />} />
         </Route>
-        <Route path="*" element={<PrivateRoute><RoleRedirect /></PrivateRoute>} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </>
   );
