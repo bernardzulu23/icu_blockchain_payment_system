@@ -258,7 +258,7 @@ export default function AccountantVerification() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 mb-8">
         <StatCard
           label="Pending"
           value={Number(statistics.pending) || 0}
@@ -296,8 +296,8 @@ export default function AccountantVerification() {
         />
       </div>
 
-      <div className="card p-4 mb-6 flex flex-wrap items-center justify-between gap-4">
-        <div className="relative flex-1 max-w-md">
+      <div className="card p-4 mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="relative flex-1 w-full sm:max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
           <input
             type="text"
@@ -308,7 +308,7 @@ export default function AccountantVerification() {
           />
         </div>
         {selectedPayments.size > 0 && (
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-wrap">
             <span className="text-sm text-slate-600 dark:text-slate-400">
               {selectedPayments.size} selected
             </span>
@@ -324,11 +324,61 @@ export default function AccountantVerification() {
       </div>
 
       <div className="card overflow-hidden">
-        <div className="overflow-x-auto">
+        {/* Mobile cards */}
+        <div className="md:hidden divide-y divide-slate-200 dark:divide-slate-700">
+          {filteredPayments.length === 0 ? (
+            <p className="px-4 py-8 text-center text-slate-500 dark:text-slate-400 text-sm">
+              No payments found for this status
+            </p>
+          ) : (
+            filteredPayments.map((payment) => (
+              <div key={payment.payment_id} className="p-4 space-y-2">
+                <div className="flex items-start gap-3">
+                  <input
+                    type="checkbox"
+                    checked={selectedPayments.has(payment.payment_id)}
+                    onChange={() => handleSelectPayment(payment.payment_id)}
+                    className="mt-1 rounded border-slate-300 dark:border-slate-600"
+                  />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 truncate">
+                      {payment.student_name}
+                    </p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                      {payment.student_number}
+                    </p>
+                    <p className="text-sm text-slate-700 dark:text-slate-300 mt-1">
+                      {payment.semester}, {payment.academic_year} · K
+                      {parseFloat(String(payment.amount)).toFixed(2)}
+                    </p>
+                    <div className="mt-2 flex flex-wrap items-center gap-2">
+                      {getStatusBadge(payment.status)}
+                      {hasBankMatch(payment) ? (
+                        <span className="text-xs text-green-600 dark:text-green-400">Matched</span>
+                      ) : (
+                        <span className="text-xs text-slate-400">No match</span>
+                      )}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setViewingPayment(payment)}
+                      className="mt-2 text-sm text-icu-accent hover:underline inline-flex items-center"
+                    >
+                      <Eye className="h-4 w-4 mr-1" />
+                      View
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+
+        <div className="hidden md:block overflow-x-auto">
           <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-700">
             <thead className="bg-slate-50 dark:bg-slate-800/50">
               <tr>
-                <th className="px-6 py-3 text-left">
+                <th className="px-4 lg:px-6 py-3 text-left">
                   <input
                     type="checkbox"
                     checked={
@@ -339,25 +389,25 @@ export default function AccountantVerification() {
                     className="rounded border-slate-300 dark:border-slate-600"
                   />
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                <th className="px-4 lg:px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                   Student
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                <th className="px-4 lg:px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                   Semester
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                <th className="px-4 lg:px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                   Amount
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                <th className="px-4 lg:px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                   Batch Number
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                <th className="px-4 lg:px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                   Bank Match
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                <th className="px-4 lg:px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                   Status
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                <th className="px-4 lg:px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
@@ -378,7 +428,7 @@ export default function AccountantVerification() {
                     key={payment.payment_id}
                     className="hover:bg-slate-50 dark:hover:bg-slate-800/30"
                   >
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-4 lg:px-6 py-4 whitespace-nowrap">
                       <input
                         type="checkbox"
                         checked={selectedPayments.has(payment.payment_id)}
@@ -386,7 +436,7 @@ export default function AccountantVerification() {
                         className="rounded border-slate-300 dark:border-slate-600"
                       />
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-4 lg:px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-slate-800 dark:text-slate-200">
                         {payment.student_name}
                       </div>
@@ -394,10 +444,10 @@ export default function AccountantVerification() {
                         {payment.student_number}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-800 dark:text-slate-200">
+                    <td className="px-4 lg:px-6 py-4 whitespace-nowrap text-sm text-slate-800 dark:text-slate-200">
                       {payment.semester}, {payment.academic_year}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-800 dark:text-slate-200">
+                    <td className="px-4 lg:px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-800 dark:text-slate-200">
                       K{parseFloat(String(payment.amount)).toFixed(2)}
                       {payment.bank_amount && (
                         <div className="text-xs text-slate-500 dark:text-slate-400">
@@ -405,10 +455,10 @@ export default function AccountantVerification() {
                         </div>
                       )}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-800 dark:text-slate-200">
+                    <td className="px-4 lg:px-6 py-4 whitespace-nowrap text-sm text-slate-800 dark:text-slate-200">
                       {payment.batch_number}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-4 lg:px-6 py-4 whitespace-nowrap">
                       {hasBankMatch(payment) ? (
                         <div className="text-sm">
                           <div className="text-green-600 dark:text-green-400 font-medium">
@@ -424,10 +474,10 @@ export default function AccountantVerification() {
                         <span className="text-slate-400">No match</span>
                       )}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-4 lg:px-6 py-4 whitespace-nowrap">
                       {getStatusBadge(payment.status)}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    <td className="px-4 lg:px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <button
                         onClick={() => setViewingPayment(payment)}
                         className="text-icu-accent hover:underline flex items-center"
@@ -466,7 +516,7 @@ export default function AccountantVerification() {
               </div>
 
               <div className="space-y-4 mb-6">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
                       Student

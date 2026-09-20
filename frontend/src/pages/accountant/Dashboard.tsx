@@ -49,7 +49,7 @@ export default function AccountantDashboard() {
         </div>
       )}
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-8">
         {isLoading ? (
           <>
             <StatSkeleton />
@@ -61,7 +61,7 @@ export default function AccountantDashboard() {
           <>
             <div className="card">
               <p className="text-sm text-slate-600 dark:text-slate-400">Pending</p>
-              <p className="text-2xl font-bold text-slate-800 dark:text-slate-100 mt-1">
+              <p className="text-xl sm:text-2xl font-bold text-slate-800 dark:text-slate-100 mt-1 break-words">
                 {num(s.pending)}
               </p>
             </div>

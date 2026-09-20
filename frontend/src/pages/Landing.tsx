@@ -82,7 +82,9 @@ export default function Landing() {
             className="flex items-center gap-3 cursor-target"
           >
             <BrandLogo size="sm" />
-            <span className="font-display text-2xl leading-none tracking-tight">ICU Pay</span>
+            <span className="font-display text-xl sm:text-2xl leading-none tracking-tight hidden sm:inline">
+              ICU Pay
+            </span>
           </button>
 
           <nav className="hidden md:flex items-center gap-1" aria-label="Primary">
@@ -98,7 +100,7 @@ export default function Landing() {
             ))}
           </nav>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0">
             <button
               type="button"
               onClick={toggleTheme}
@@ -107,9 +109,12 @@ export default function Landing() {
             >
               {isDark ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
             </button>
-            <Link to={primaryCta.to} className="btn-primary text-xs py-2 px-3 cursor-target inline-flex items-center gap-1.5">
-              {primaryCta.label}
-              <ArrowRight className="h-3.5 w-3.5" />
+            <Link
+              to={primaryCta.to}
+              className="btn-primary text-[10px] sm:text-xs py-2 px-2.5 sm:px-3 cursor-target inline-flex items-center gap-1 max-w-[9.5rem] sm:max-w-none truncate"
+            >
+              <span className="truncate">{primaryCta.label}</span>
+              <ArrowRight className="h-3.5 w-3.5 hidden sm:inline shrink-0" />
             </Link>
           </div>
         </div>

@@ -83,7 +83,7 @@ export default function Login() {
   };
 
   return (
-    <div className="relative min-h-screen overflow-hidden flex flex-col bg-paper text-ink dark:bg-ink dark:text-paper selection:bg-accent selection:text-white">
+    <div className="relative min-h-screen overflow-x-hidden overflow-y-auto flex flex-col bg-paper text-ink dark:bg-ink dark:text-paper selection:bg-accent selection:text-white">
       <div className="absolute inset-0 z-0" aria-hidden>
         <div
           className="absolute inset-0"
@@ -105,43 +105,46 @@ export default function Login() {
       </div>
 
       {/* Top bar: back + home + theme */}
-      <div className="relative z-20 flex items-center justify-between gap-3 px-4 sm:px-6 pt-4">
+      <div className="relative z-20 flex items-center justify-between gap-2 px-4 sm:px-6 pt-4">
         <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={() => navigate(-1)}
-            className="btn-secondary text-xs py-2 px-3 inline-flex items-center gap-1.5 cursor-target"
+            className="btn-secondary text-xs py-2 px-2.5 sm:px-3 inline-flex items-center gap-1.5 cursor-target"
           >
             <ArrowLeft className="h-3.5 w-3.5" aria-hidden />
-            Back
+            <span className="hidden sm:inline">Back</span>
           </button>
           <Link
             to="/"
-            className="btn-secondary text-xs py-2 px-3 inline-flex items-center gap-1.5 cursor-target"
+            className="btn-secondary text-xs py-2 px-2.5 sm:px-3 inline-flex items-center gap-1.5 cursor-target"
           >
             <Home className="h-3.5 w-3.5" aria-hidden />
-            Home
+            <span className="hidden sm:inline">Home</span>
           </Link>
         </div>
         <button
           type="button"
           onClick={toggleTheme}
-          className="btn-secondary text-xs z-20 inline-flex items-center gap-1.5 cursor-target"
+          className="btn-secondary text-xs z-20 inline-flex items-center gap-1.5 cursor-target py-2 px-2.5 sm:px-3"
+          aria-label="Toggle theme"
         >
           {isDark ? (
             <>
-              <Sun className="h-3.5 w-3.5" aria-hidden /> Light
+              <Sun className="h-3.5 w-3.5" aria-hidden />
+              <span className="hidden sm:inline">Light</span>
             </>
           ) : (
             <>
-              <Moon className="h-3.5 w-3.5" aria-hidden /> Dark
+              <Moon className="h-3.5 w-3.5" aria-hidden />
+              <span className="hidden sm:inline">Dark</span>
             </>
           )}
         </button>
       </div>
 
       <div className="relative z-10 flex-1 flex items-center justify-center p-4">
-        <div className="w-full max-w-md border-2 border-ink bg-[#e8e4dc] text-ink p-8 brutal-shadow-lg">
+        <div className="w-full max-w-md border-2 border-ink bg-[#e8e4dc] text-ink p-5 sm:p-8 brutal-shadow-lg">
           <div className="text-center mb-8 border-b-2 border-ink pb-6">
             <Link to="/" className="inline-flex flex-col items-center gap-3 cursor-target group">
               <BrandLogo size="lg" />
@@ -189,7 +192,7 @@ export default function Login() {
               )}
             </div>
 
-            <div className="flex items-center justify-between text-sm text-ink">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between text-sm text-ink">
               <label className="flex items-center gap-2 cursor-pointer">
                 <input type="checkbox" className="w-4 h-4 border-2 border-ink accent-[var(--color-accent)]" />
                 <span className="font-medium">Remember me</span>

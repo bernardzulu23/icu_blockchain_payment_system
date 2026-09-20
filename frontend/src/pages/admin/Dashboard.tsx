@@ -37,7 +37,7 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-8">
         {isLoading ? (
           <>
             <StatSkeleton />
@@ -61,7 +61,7 @@ export default function AdminDashboard() {
             </div>
             <div className="card">
               <p className="text-sm text-slate-600 dark:text-slate-400">Verified Amount</p>
-              <p className="text-2xl font-bold text-green-600 dark:text-green-400 mt-1">
+              <p className="text-xl sm:text-2xl font-bold text-green-600 dark:text-green-400 mt-1 break-words">
                 ZMW {(stats?.totalVerifiedAmount ?? 0).toLocaleString()}
               </p>
             </div>

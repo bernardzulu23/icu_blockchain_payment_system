@@ -63,7 +63,7 @@ export default function Dashboard() {
       </div>
 
       {isAdmin && adminStats && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           <div className="card">
             <p className="font-mono text-[10px] uppercase tracking-wider text-accent">Total Students</p>
             <p className="text-3xl font-bold text-ink mt-1">{adminStats.totalStudents}</p>
