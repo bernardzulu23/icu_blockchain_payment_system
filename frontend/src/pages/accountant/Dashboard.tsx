@@ -1,10 +1,10 @@
 import { useQuery } from 'react-query';
 import { Link } from 'react-router-dom';
 import { BadgeCheck, FileUp, ClipboardList, Search } from 'lucide-react';
-import { accountantService } from '../../api/services';
+import { apiClient } from '../../api/client';
 import LoadingSpinner from '../../components/LoadingSpinner';
 
-const QUERY_OPTS = { retry: 1, staleTime: 30_000, refetchOnWindowFocus: true } as const;
+const QUERY_OPTS = { retry: 1, staleTime: 30_000 } as const;
 
 function StatSkeleton() {
   return (
@@ -15,24 +15,14 @@ function StatSkeleton() {
   );
 }
 
-function num(v: unknown): number {
-  const n = Number(v);
-  return Number.isFinite(n) ? n : 0;
-}
-
 export default function AccountantDashboard() {
-  const { data: stats, isLoading, isError, error, refetch, isFetching } = useQuery(
+  const { data: stats, isLoading, isError, refetch, isFetching } = useQuery(
     'accountant-stats',
-    () => accountantService.getStats().then((r) => r.data),
+    () => apiClient.get('/accountant/stats').then((r) => r.data),
     QUERY_OPTS
   );
 
   const s = stats?.statistics ?? {};
-  const errMsg =
-    (error as { response?: { data?: { message?: string; error?: string } } })?.response?.data
-      ?.message ||
-    (error as { response?: { data?: { error?: string } } })?.response?.data?.error ||
-    'Could not load stats.';
 
   return (
     <div>
@@ -42,7 +32,7 @@ export default function AccountantDashboard() {
 
       {isError && (
         <div className="card mb-6 flex flex-wrap items-center justify-between gap-3 text-sm">
-          <span className="text-red-600 dark:text-red-400">{errMsg}</span>
+          <span className="text-red-600 dark:text-red-400">Could not load stats.</span>
           <button type="button" className="btn-secondary text-xs py-1.5 px-3" onClick={() => refetch()}>
             Retry
           </button>
@@ -61,27 +51,23 @@ export default function AccountantDashboard() {
           <>
             <div className="card">
               <p className="text-sm text-slate-600 dark:text-slate-400">Pending</p>
-              <p className="text-2xl font-bold text-slate-800 dark:text-slate-100 mt-1">
-                {num(s.pending)}
-              </p>
+              <p className="text-2xl font-bold text-slate-800 dark:text-slate-100 mt-1">{s.pending ?? 0}</p>
             </div>
             <div className="card">
               <p className="text-sm text-slate-600 dark:text-slate-400">Auto Matched</p>
               <p className="text-2xl font-bold text-blue-600 dark:text-blue-400 mt-1">
-                {num(s.auto_matched)}
+                {s.auto_matched ?? 0}
               </p>
             </div>
             <div className="card">
               <p className="text-sm text-slate-600 dark:text-slate-400">Verified</p>
               <p className="text-2xl font-bold text-green-600 dark:text-green-400 mt-1">
-                {num(s.verified)}
+                {s.verified ?? 0}
               </p>
             </div>
             <div className="card">
               <p className="text-sm text-slate-600 dark:text-slate-400">Rejected</p>
-              <p className="text-2xl font-bold text-red-600 dark:text-red-400 mt-1">
-                {num(s.rejected)}
-              </p>
+              <p className="text-2xl font-bold text-red-600 dark:text-red-400 mt-1">{s.rejected ?? 0}</p>
             </div>
           </>
         )}
