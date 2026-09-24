@@ -162,10 +162,14 @@ export default function Login() {
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
             <div>
-              <label className="block font-mono text-[10px] uppercase tracking-widest text-ink font-bold mb-1">
+              <label
+                htmlFor="login-identifier"
+                className="block font-mono text-[10px] uppercase tracking-widest text-ink font-bold mb-1"
+              >
                 Email, student ID, or employee ID
               </label>
               <input
+                id="login-identifier"
                 {...register('identifier', { required: 'This field is required' })}
                 type="text"
                 className="input-field"
@@ -178,10 +182,14 @@ export default function Login() {
             </div>
 
             <div>
-              <label className="block font-mono text-[10px] uppercase tracking-widest text-ink font-bold mb-1">
+              <label
+                htmlFor="login-password"
+                className="block font-mono text-[10px] uppercase tracking-widest text-ink font-bold mb-1"
+              >
                 Password
               </label>
               <PasswordInput
+                id="login-password"
                 {...register('password', { required: 'Password is required' })}
                 className="input-field"
                 placeholder="Enter your password"
