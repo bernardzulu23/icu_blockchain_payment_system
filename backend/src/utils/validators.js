@@ -15,6 +15,8 @@ const {
   sanitizeMetadataString,
   sanitizeOcrText,
   sanitizeBankTransaction,
+  sanitizeOcrSlip,
+  sanitizeOcrPreviewResult,
 } = require('./input-validation');
 
 const authValidators = {
@@ -27,20 +29,30 @@ const paymentValidators = {
   uuidParam: validateUuidParam.slice(0, -1),
 };
 
+const optionalField = { values: 'falsy' };
+
 const studentValidators = {
   create: [
-    body('studentId').trim().notEmpty().isLength({ max: 20 }).matches(/^[A-Za-z0-9\-]+$/),
-    body('studentNumber').optional().trim().isLength({ max: 20 }),
+    body('studentId')
+      .trim()
+      .notEmpty()
+      .isLength({ max: 20 })
+      .matches(/^[A-Za-z0-9\-]+$/)
+      .withMessage('Student ID must be 1–20 letters, numbers, or hyphens'),
+    body('studentNumber').optional(optionalField).trim().isLength({ max: 20 }),
     body('firstName').trim().notEmpty().isLength({ max: 100 }),
     body('lastName').trim().notEmpty().isLength({ max: 100 }),
-    body('email').optional().isEmail().normalizeEmail(),
-    body('phone').optional().trim().isLength({ max: 20 }),
-    body('program').optional().trim().isLength({ max: 100 }),
-    body('department').optional().trim().isLength({ max: 100 }),
-    body('admissionYear').optional().isInt({ min: 1990, max: 2100 }),
-    body('dateOfBirth').optional().isISO8601().withMessage('Invalid date format (YYYY-MM-DD)'),
-    body('currentSemester').optional().isInt({ min: 1, max: 12 }),
-    body('currentTerm').optional().isInt({ min: 1, max: 3 }),
+    body('email').optional(optionalField).isEmail().normalizeEmail(),
+    body('phone').optional(optionalField).trim().isLength({ max: 20 }),
+    body('program').optional(optionalField).trim().isLength({ max: 100 }),
+    body('department').optional(optionalField).trim().isLength({ max: 100 }),
+    body('admissionYear').optional(optionalField).isInt({ min: 1990, max: 2100 }).toInt(),
+    body('dateOfBirth')
+      .optional(optionalField)
+      .isISO8601()
+      .withMessage('Invalid date format (YYYY-MM-DD)'),
+    body('currentSemester').optional(optionalField).isInt({ min: 1, max: 12 }).toInt(),
+    body('currentTerm').optional(optionalField).isInt({ min: 1, max: 3 }).toInt(),
     body('password')
       .trim()
       .notEmpty()

@@ -108,6 +108,18 @@ async function checkPayment(req, res, next) {
   }
 }
 
+function optionalInt(value) {
+  if (value === '' || value === null || value === undefined) return null;
+  const n = Number(value);
+  return Number.isFinite(n) ? n : null;
+}
+
+function optionalText(value) {
+  if (typeof value !== 'string') return null;
+  const trimmed = value.trim();
+  return trimmed || null;
+}
+
 async function create(req, res, next) {
   try {
     const {
@@ -141,9 +153,9 @@ async function create(req, res, next) {
         message: 'Email is required — students log in with this email and password',
       });
     }
-    if (!password || String(password).length < 6) {
+    if (!password || String(password).trim().length < 8) {
       return res.status(400).json({
-        message: 'Password is required (min 6 characters) — this is the student login password',
+        message: 'Password is required (min 8 characters) — this is the student login password',
       });
     }
 
@@ -162,13 +174,13 @@ async function create(req, res, next) {
       firstName: String(firstName).trim(),
       lastName: String(lastName).trim(),
       email: normalizedEmail,
-      phone,
-      program,
-      department,
-      admissionYear,
-      dateOfBirth,
-      currentSemester,
-      currentTerm,
+      phone: optionalText(phone),
+      program: optionalText(program),
+      department: optionalText(department),
+      admissionYear: optionalInt(admissionYear),
+      dateOfBirth: optionalText(dateOfBirth),
+      currentSemester: optionalInt(currentSemester),
+      currentTerm: optionalInt(currentTerm),
       passwordHash: hash,
     });
     res.status(201).json({

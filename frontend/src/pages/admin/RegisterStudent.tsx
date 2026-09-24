@@ -35,17 +35,31 @@ export default function RegisterStudent() {
     try {
       const { password, confirmPassword: _c, studentId, ...rest } = data;
       const id = String(studentId || '').trim();
+      const finiteOrEmpty = (value: unknown) =>
+        typeof value === 'number' && Number.isFinite(value) ? value : '';
       await studentService.create({
         ...rest,
         studentId: id,
         studentNumber: id,
         password: password!,
+        phone: rest.phone || '',
+        program: rest.program || '',
+        department: rest.department || '',
+        dateOfBirth: rest.dateOfBirth || '',
+        admissionYear: finiteOrEmpty(rest.admissionYear),
+        currentSemester: finiteOrEmpty(rest.currentSemester),
+        currentTerm: finiteOrEmpty(rest.currentTerm),
       });
       toast.success('Student registered — they can log in with the email and password you set');
       navigate('/admin');
     } catch (err: unknown) {
-      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
-      toast.error(msg || 'Failed to register student');
+      const data = (err as { response?: { data?: { message?: string; error?: string; details?: { field?: string; message?: string }[] } } })
+        ?.response?.data;
+      const detail = data?.details
+        ?.map((item) => item.message)
+        .filter(Boolean)
+        .join('. ');
+      toast.error(data?.message || detail || data?.error || 'Failed to register student');
     }
   };
 
@@ -221,10 +235,10 @@ export default function RegisterStudent() {
             <PasswordInput
               {...register('password', {
                 required: 'Password is required for student login',
-                minLength: { value: 6, message: 'Min 6 characters' },
+                minLength: { value: 8, message: 'Min 8 characters' },
               })}
               className="input-field w-full"
-              placeholder="Student will use this to log in (min 6 characters)"
+              placeholder="Student will use this to log in (min 8 characters)"
               autoComplete="new-password"
             />
             {errors.password && (
