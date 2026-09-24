@@ -356,7 +356,7 @@ const TargetCursor = ({
       target.addEventListener('mouseleave', leaveHandler);
     };
 
-    window.addEventListener('mouseover', enterHandler, { passive: true });
+    window.addEventListener('mouseover', enterHandler);
 
     const resizeHandler = () => {
       containingBlockRef.current = getContainingBlock(cursor);

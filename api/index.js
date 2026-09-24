@@ -34,16 +34,12 @@ let handler;
 let initError;
 
 try {
-  const serverless = require('serverless-http');
   const { createApp } = require('../backend/src/createApp');
   const env = require('../backend/src/config/environment');
 
   const app = createApp();
-  const baseHandler = serverless(app, {
-    binary: ['image/*', 'application/pdf', 'application/octet-stream'],
-  });
 
-  handler = async (req, res) => {
+  handler = (req, res) => {
     const pathname = requestPath(req);
 
     if (isHealthPath(pathname)) {
@@ -56,7 +52,9 @@ try {
       });
     }
 
-    return baseHandler(req, res);
+    // Vercel already passes Node req/res. serverless-http waits for a second
+    // response that never ends, so the function hits the 30s timeout after a 404.
+    return app(req, res);
   };
 } catch (err) {
   initError = err;
