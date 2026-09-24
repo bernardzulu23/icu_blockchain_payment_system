@@ -5,10 +5,13 @@ const { createClient } = require('@supabase/supabase-js');
 const env = require('../config/environment');
 const logger = require('../utils/logger');
 
+const isServerless = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME);
 const configuredUpload = env.UPLOAD_PATH || 'uploads';
-const baseDir = path.isAbsolute(configuredUpload)
-  ? configuredUpload
-  : path.resolve(process.cwd(), configuredUpload);
+const baseDir = isServerless
+  ? '/tmp/uploads'
+  : path.isAbsolute(configuredUpload)
+    ? configuredUpload
+    : path.resolve(process.cwd(), configuredUpload);
 const BUCKET = env.SUPABASE_STORAGE_BUCKET || 'icu-uploads';
 
 let supabase = null;

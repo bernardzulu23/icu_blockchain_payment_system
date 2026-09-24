@@ -152,8 +152,9 @@ module.exports = {
   PYTHON_SERVICE_URL:
     process.env.PYTHON_SERVICE_URL || (isProd ? '' : 'http://127.0.0.1:8000'),
   UPLOAD_PATH:
-    process.env.UPLOAD_PATH ||
-    (process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME ? '/tmp/uploads' : 'uploads'),
+    process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME
+      ? '/tmp/uploads'
+      : process.env.UPLOAD_PATH || 'uploads',
   /** Supabase project URL e.g. https://xxxx.supabase.co */
   SUPABASE_URL: process.env.SUPABASE_URL || '',
   /** Service role key — server only, never expose to frontend */
