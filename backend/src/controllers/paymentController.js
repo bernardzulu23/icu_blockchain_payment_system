@@ -3,7 +3,7 @@ const Payment = require('../models/Payment');
 const Student = require('../models/Student');
 const { getCurrentSemester } = require('../utils/helpers');
 const auditService = require('../services/auditService');
-const { createAuditLog } = require('../services/auditService');
+const { createAuditLog, createAuditLogTx } = require('../services/auditService');
 const pdfService = require('../services/pdfService');
 const { uploadToStorage, uploadHardenedFile } = require('../services/storageService');
 const { sendNotification, notifyAccountantsPendingVerification } = require('../services/notificationService');
@@ -83,6 +83,7 @@ async function receipt(req, res, next) {
 
 async function submitPayment(req, res) {
   const client = await getClient();
+  let released = false;
 
   try {
     const student_id = req.user.student_id || req.user.userId;
@@ -191,7 +192,7 @@ async function submitPayment(req, res) {
 
     const payment = insertResult.rows[0];
 
-    await createAuditLog({
+    await createAuditLogTx(client, {
       user_id: student_id,
       user_type: 'student',
       action: 'PAYMENT_SUBMITTED',
@@ -208,32 +209,17 @@ async function submitPayment(req, res) {
       ip_address: req.ip,
     });
 
-    await sendNotification({
-      recipient_id: student_id,
-      recipient_type: 'student',
-      type: 'PAYMENT_SUBMITTED',
-      title: 'Payment Submitted for Verification',
-      message: `Your payment for ${semester}, ${academic_year} (K${amount}) has been submitted. Batch: ${batch_number}. You will be notified once verified.`,
-      channels: ['email', 'sms'],
-    });
-
-    const { rows: pendingRows } = await query(
+    const { rows: pendingRows } = await client.query(
       "SELECT COUNT(*) AS count FROM student_payments WHERE status IN ('pending', 'manual_review')"
     );
     const countPending = parseInt(pendingRows[0]?.count || '0', 10);
-    const { rows: studentRows } = await query(
+    const { rows: studentRows } = await client.query(
       'SELECT first_name, last_name FROM students WHERE student_id = $1',
       [student_id]
     );
-    const studentName = studentRows[0] ? `${studentRows[0].first_name || ''} ${studentRows[0].last_name || ''}`.trim() : student_id;
-    await notifyAccountantsPendingVerification({
-      studentId: student_id,
-      studentName,
-      semester,
-      academicYear: academic_year,
-      amount,
-      countPending: countPending + 1,
-    });
+    const studentName = studentRows[0]
+      ? `${studentRows[0].first_name || ''} ${studentRows[0].last_name || ''}`.trim()
+      : student_id;
 
     const matchResult = await rematchPendingPayments(client);
     if (matchResult.matchedCount) {
@@ -246,6 +232,25 @@ async function submitPayment(req, res) {
     const finalStatus = statusRows[0]?.status || 'pending';
 
     await client.query('COMMIT');
+    client.release();
+    released = true;
+
+    await sendNotification({
+      recipient_id: student_id,
+      recipient_type: 'student',
+      type: 'PAYMENT_SUBMITTED',
+      title: 'Payment Submitted for Verification',
+      message: `Your payment for ${semester}, ${academic_year} (K${amount}) has been submitted. Batch: ${batch_number}. You will be notified once verified.`,
+      channels: ['email', 'sms'],
+    });
+    await notifyAccountantsPendingVerification({
+      studentId: student_id,
+      studentName,
+      semester,
+      academicYear: academic_year,
+      amount,
+      countPending: countPending + 1,
+    });
 
     logger.info(`Payment submitted: ${student_id} - ${semester}, ${academic_year} (${finalStatus})`);
 
@@ -275,14 +280,21 @@ async function submitPayment(req, res) {
             ],
     });
   } catch (error) {
-    await client.query('ROLLBACK');
+    if (!released) {
+      try {
+        await client.query('ROLLBACK');
+      } catch (rollbackError) {
+        logger.error('Payment rollback failed:', rollbackError);
+      }
+    }
     logger.error('Payment submission error:', error);
+    const detail = error?.message || 'An error occurred. Please try again or contact support.';
     res.status(500).json({
       error: 'Failed to submit payment',
-      message: 'An error occurred. Please try again or contact support.',
+      message: detail,
     });
   } finally {
-    client.release();
+    if (!released) client.release();
   }
 }
 
